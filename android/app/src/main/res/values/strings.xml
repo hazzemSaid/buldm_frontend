@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="app_name">buldm</string>
+	<string name="facebook_app_id">1807674973124935</string>
+	<string name="fb_login_protocol_scheme">fb1807674973124935</string>
+	<string name="facebook_client_token">971f79a3879b32045d4dfdd896a4b75d</string>
+</resources>

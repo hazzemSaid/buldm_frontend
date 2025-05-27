@@ -1,8 +1,14 @@
+import 'package:buldm/firebase_options.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await dotenv.load(fileName: ".env");
   // Enable verbose logging for debugging (remove in production)
   OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
@@ -123,8 +129,21 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
+        onPressed: () async {
+          try {
+            final LoginResult loginResult = await FacebookAuth.instance.login();
+            print('Login Result: $loginResult');
+            // Create a credential from the access token
+            final facebookAuthCredential = FacebookAuthProvider.credential(
+              loginResult.accessToken!.tokenString,
+            );
+            print('Access Token: ${loginResult.accessToken!.tokenString}');
+            // Once signed in, return the UserCredential
+            FirebaseAuth.instance.signInWithCredential(facebookAuthCredential);
+          } catch (e) {
+            print('Error: $e');
+          }
+        },
         child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );

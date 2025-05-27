@@ -1,0 +1,32 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "buldm-a9dc1",
+          "appId": "1:111458146926:android:5002daf27df3e4cb96a47f",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "buldm-a9dc1",
+          "configurations": {
+            "android": "1:111458146926:android:5002daf27df3e4cb96a47f",
+            "ios": "1:111458146926:ios:bccee054bb551a9e96a47f",
+            "macos": "1:111458146926:ios:bccee054bb551a9e96a47f",
+            "web": "1:111458146926:web:875e5747d681023496a47f"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "public": "hazzemSaid/buldm_frontend",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ]
+  }
+}
