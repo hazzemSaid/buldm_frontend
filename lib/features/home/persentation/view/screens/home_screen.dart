@@ -1,3 +1,4 @@
+import 'package:buldm/utils/app_theme.dart';
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -7,7 +8,12 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
-      body: Center(child: Text('Home Screen', style: TextStyle(fontSize: 24))),
+      body: Center(
+        child: Text(
+          'Home Screen',
+          style: AppTextStyles.headlineLarge(text: 'Home Screen'),
+        ),
+      ),
     );
   }
 }

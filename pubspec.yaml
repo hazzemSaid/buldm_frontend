@@ -39,6 +39,7 @@ dependencies:
   smooth_page_indicator: ^1.2.1
   firebase_auth: ^5.5.4
   go_router: ^15.1.2
+  flutter_native_splash: ^2.4.6
 
 dev_dependencies:
   # The "flutter_lints" package below contains a set of recommended lints to
@@ -54,35 +55,56 @@ dev_dependencies:
 # following page: https://dart.dev/tools/pub/pubspec
 # The following section is specific to Flutter packages.
 flutter:
-  # The following line ensures that the Material Icons font is
-  # included with your application, so that you can use the icons in
-  # the material Icons class.
   uses-material-design: true
-  # To add assets to your application, add an assets section, like this:
   assets:
     - .env
     - assets/images/
-  #   - images/a_dot_ham.jpeg
-  # An image asset can refer to one or more resolution-specific "variants", see
-  # https://flutter.dev/to/resolution-aware-images
-  # For details regarding adding assets from package dependencies, see
-  # https://flutter.dev/to/asset-from-package
-  # To add custom fonts to your application, add a fonts section here,
-  # in this "flutter" section. Each entry in this list should have a
-  # "family" key with the font family name, and a "fonts" key with a
-  # list giving the asset and other descriptors for the font. For
-  # example:
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
-  #         style: italic
-  #   - family: Trajan Pro
-  #     fonts:
-  #       - asset: fonts/TrajanPro.ttf
-  #       - asset: fonts/TrajanPro_Bold.ttf
-  #         weight: 700
-  #
-  # For details regarding fonts from package dependencies,
-  # see https://flutter.dev/to/font-from-package
+  fonts:
+    - family: SFProDisplay
+      fonts:
+        - asset: assets/fonts/English/SFPRODISPLAYTHINITALIC.OTF
+          weight: 100
+          style: italic
+        - asset: assets/fonts/English/SFPRODISPLAYULTRALIGHTITALIC.OTF
+          weight: 200
+          style: italic
+        - asset: assets/fonts/English/SFPRODISPLAYLIGHTITALIC.OTF
+          weight: 300
+          style: italic
+        - asset: assets/fonts/English/SFPRODISPLAYREGULAR.OTF
+          weight: 400
+        - asset: assets/fonts/English/SFPRODISPLAYMEDIUM.OTF
+          weight: 500
+        - asset: assets/fonts/English/SFPRODISPLAYSEMIBOLDITALIC.OTF
+          weight: 600
+          style: italic
+        - asset: assets/fonts/English/SFPRODISPLAYBOLD.OTF
+          weight: 700
+        - asset: assets/fonts/English/SFPRODISPLAYHEAVYITALIC.OTF
+          weight: 800
+        - asset: assets/fonts/English/SFPRODISPLAYBLACKITALIC.OTF
+          weight: 900
+    - family: IBMPlexSansArabic
+      fonts:
+        - asset: assets/fonts/Arabic/IBMPlexSansArabic-Thin.ttf
+          weight: 100
+        - asset: assets/fonts/Arabic/IBMPlexSansArabic-ExtraLight.ttf
+          weight: 200
+        - asset: assets/fonts/Arabic/IBMPlexSansArabic-Light.ttf
+          weight: 300
+        - asset: assets/fonts/Arabic/IBMPlexSansArabic-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Arabic/IBMPlexSansArabic-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Arabic/IBMPlexSansArabic-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Arabic/IBMPlexSansArabic-Bold.ttf
+          weight: 700
+
+flutter_native_splash:
+  color: "#F542A7"
+  image: assets/images/darklogobuldm.png
+  android: true
+  ios: true
+  android_gravity: center
+  ios_content_mode: scaleAspectFill

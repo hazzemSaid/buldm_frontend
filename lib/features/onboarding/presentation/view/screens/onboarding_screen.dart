@@ -1,4 +1,5 @@
 import 'package:buldm/utils/app_theme.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
@@ -34,7 +35,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     super.dispose();
   }
 
-  void _goToHome() => GoRouter.of(context).pushReplacement('/home');
+  void _goToHome() => GoRouter.of(context).replace('/signin');
 
   @override
   Widget build(BuildContext context) {
@@ -49,41 +50,15 @@ class _OnboardingScreenState extends State<OnboardingScreen>
             left: 0,
             right: 0,
             height: 200,
-            child: AnimatedBuilder(
-              animation: _animationController,
-              builder: (context, child) {
-                return Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        Colors.transparent,
-                        AppTheme.primaryColor.withOpacity(
-                          0.1 * _animationController.value,
-                        ),
-                        AppTheme.primaryColor.withOpacity(
-                          0.3 * _animationController.value,
-                        ),
-                        AppTheme.primaryColor.withOpacity(
-                          0.6 * _animationController.value,
-                        ),
-                        AppTheme.primaryColor.withOpacity(
-                          0.8 * _animationController.value,
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
+            child: transition_widget(animationController: _animationController),
           ),
 
           PageView(
+            physics: const BouncingScrollPhysics(),
+            scrollDirection: Axis.horizontal,
+            dragStartBehavior: DragStartBehavior.down,
             controller: controller,
             onPageChanged: (index) {
-              print('Page changed to: $index');
               if (index == pages) {
                 _goToHome();
               }
@@ -143,6 +118,48 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           ),
         ],
       ),
+    );
+  }
+}
+
+class transition_widget extends StatelessWidget {
+  const transition_widget({
+    super.key,
+    required AnimationController animationController,
+  }) : _animationController = animationController;
+
+  final AnimationController _animationController;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animationController,
+      builder: (context, child) {
+        return Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.transparent,
+                Colors.transparent,
+                AppTheme.primaryColor.withOpacity(
+                  0.1 * _animationController.value,
+                ),
+                AppTheme.primaryColor.withOpacity(
+                  0.3 * _animationController.value,
+                ),
+                AppTheme.primaryColor.withOpacity(
+                  0.6 * _animationController.value,
+                ),
+                AppTheme.primaryColor.withOpacity(
+                  0.8 * _animationController.value,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
