@@ -1,3 +1,4 @@
+import 'package:buldm/routes/routes.dart';
 import 'package:buldm/utils/app_theme.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -35,7 +36,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     super.dispose();
   }
 
-  void _goToHome() => GoRouter.of(context).replace('/signin');
+  void _goToAuth() => GoRouter.of(context).replace(paths[AppRoute.auth.name]!);
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +61,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
             controller: controller,
             onPageChanged: (index) {
               if (index == pages) {
-                _goToHome();
+                _goToAuth();
               }
             },
             children: [
@@ -103,7 +104,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
               child: Padding(
                 padding: const EdgeInsets.only(top: 16.0, right: 16.0),
                 child: GestureDetector(
-                  onTap: _goToHome,
+                  onTap: _goToAuth,
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     color: Colors.transparent,

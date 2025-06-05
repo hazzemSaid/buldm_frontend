@@ -43,6 +43,8 @@ dependencies:
   build_runner: ^2.4.15
   bloc: ^9.0.0
   flutter_bloc: ^9.1.1
+  lottie: ^3.3.1
+  google_sign_in: ^6.3.0
 
 dev_dependencies:
   # The "flutter_lints" package below contains a set of recommended lints to
@@ -64,6 +66,8 @@ flutter:
   assets:
     - .env
     - assets/images/
+    - assets/animations/
+
   fonts:
     - family: SFProDisplay
       fonts:
