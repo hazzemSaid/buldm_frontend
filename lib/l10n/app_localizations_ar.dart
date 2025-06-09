@@ -25,4 +25,55 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get signUp => 'إنشاء حساب';
+
+  @override
+  String get google => 'جوجل';
+
+  @override
+  String get apple => 'أبل';
+
+  @override
+  String get facebook => 'فيسبوك';
+
+  @override
+  String get email => 'البريد الإلكتروني';
+
+  @override
+  String get password => 'كلمة المرور';
+
+  @override
+  String get confirmPassword => 'تأكيد كلمة المرور';
+
+  @override
+  String get forgotPassword => 'نسيت كلمة المرور؟';
+
+  @override
+  String get resetPassword => 'إعادة تعيين كلمة المرور';
+
+  @override
+  String get profile => 'الملف الشخصي';
+
+  @override
+  String get settings => 'الإعدادات';
+
+  @override
+  String get language => 'اللغة';
+
+  @override
+  String get theme => 'المظهر';
+
+  @override
+  String get darkMode => 'الوضع المظلم';
+
+  @override
+  String get lightMode => 'الوضع الفاتح';
+
+  @override
+  String get notifications => 'الإشعارات';
+
+  @override
+  String get privacyPolicy => 'سياسة الخصوصية';
+
+  @override
+  String get termsOfService => 'شروط الخدمة';
 }

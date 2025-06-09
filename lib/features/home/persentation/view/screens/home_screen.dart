@@ -1,3 +1,4 @@
+import 'package:buldm/features/auth/presentaion/view/viewmodel/auth/auth_cubit.dart';
 import 'package:buldm/l10n/app_localizations.dart';
 import 'package:buldm/provider/localization/localization_cubit.dart';
 import 'package:buldm/utils/app_theme.dart';
@@ -10,6 +11,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
+    final user = BlocProvider.of<AuthCubit>(context).getCurrentUser();
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
@@ -31,8 +33,11 @@ class HomeScreen extends StatelessWidget {
 
           Center(
             child: Text(
-              localizations.hello, // should match your ARB key
-              style: AppTextStyles.headlineLarge(text: localizations.hello),
+              " ${localizations.hello} ${user?.name}", // should match your ARB key
+              style: AppTextStyles.headlineLarge(
+                context,
+                color: AppTheme.primaryColor,
+              ),
             ),
           ),
 

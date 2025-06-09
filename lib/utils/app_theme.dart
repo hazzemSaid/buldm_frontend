@@ -29,9 +29,12 @@ class AppTheme {
   }
 
   // Helper method to get appropriate font family
-  static String _getFontFamily(String? text) {
-    if (text == null || text.isEmpty) return englishFontFamily;
-    return _isArabicText(text) ? arabicFontFamily : englishFontFamily;
+  static String getFontFamilyFromLocale(Locale locale) {
+    // Example: return different font for Arabic
+    if (locale.languageCode == 'ar') {
+      return 'Cairo'; // Replace with your Arabic font family
+    }
+    return 'Roboto'; // Replace with your default font family
   }
 
   static ThemeData lightTheme = ThemeData(
@@ -177,145 +180,164 @@ class AppTheme {
 }
 
 class AppTextStyles {
+  static bool _isArabic(BuildContext context) =>
+      Localizations.localeOf(context).languageCode == 'ar';
+
+  static String _getFont(BuildContext context) =>
+      AppTheme.getFontFamilyFromLocale(Localizations.localeOf(context));
+
   // Display Styles
-  static TextStyle displayLarge({String? text, Color? color}) => TextStyle(
-    fontSize: 32,
-    fontWeight: FontWeight.bold,
-    fontFamily: AppTheme._getFontFamily(text),
-    color: color,
-    height: AppTheme._isArabicText(text ?? '') ? 1.4 : 1.2,
-  );
+  static TextStyle displayLarge(BuildContext context, {Color? color}) =>
+      TextStyle(
+        fontSize: 32,
+        fontWeight: FontWeight.bold,
+        fontFamily: _getFont(context),
+        color: color,
+        height: _isArabic(context) ? 1.4 : 1.2,
+      );
 
-  static TextStyle displayMedium({String? text, Color? color}) => TextStyle(
-    fontSize: 28,
-    fontWeight: FontWeight.bold,
-    fontFamily: AppTheme._getFontFamily(text),
-    color: color,
-    height: AppTheme._isArabicText(text ?? '') ? 1.4 : 1.2,
-  );
+  static TextStyle displayMedium(BuildContext context, {Color? color}) =>
+      TextStyle(
+        fontSize: 28,
+        fontWeight: FontWeight.bold,
+        fontFamily: _getFont(context),
+        color: color,
+        height: _isArabic(context) ? 1.4 : 1.2,
+      );
 
-  static TextStyle displaySmall({String? text, Color? color}) => TextStyle(
-    fontSize: 24,
-    fontWeight: FontWeight.w600,
-    fontFamily: AppTheme._getFontFamily(text),
-    color: color,
-    height: AppTheme._isArabicText(text ?? '') ? 1.4 : 1.2,
-  );
+  static TextStyle displaySmall(BuildContext context, {Color? color}) =>
+      TextStyle(
+        fontSize: 24,
+        fontWeight: FontWeight.w600,
+        fontFamily: _getFont(context),
+        color: color,
+        height: _isArabic(context) ? 1.4 : 1.2,
+      );
 
   // Headline Styles
-  static TextStyle headlineLarge({String? text, Color? color}) => TextStyle(
-    fontSize: 22,
-    fontWeight: FontWeight.w600,
-    fontFamily: AppTheme._getFontFamily(text),
-    color: color,
-    height: AppTheme._isArabicText(text ?? '') ? 1.4 : 1.3,
-  );
+  static TextStyle headlineLarge(BuildContext context, {Color? color}) =>
+      TextStyle(
+        fontSize: 22,
+        fontWeight: FontWeight.w600,
+        fontFamily: _getFont(context),
+        color: color,
+        height: _isArabic(context) ? 1.4 : 1.3,
+      );
 
-  static TextStyle headlineMedium({String? text, Color? color}) => TextStyle(
-    fontSize: 20,
-    fontWeight: FontWeight.w600,
-    fontFamily: AppTheme._getFontFamily(text),
-    color: color,
-    height: AppTheme._isArabicText(text ?? '') ? 1.4 : 1.3,
-  );
+  static TextStyle headlineMedium(BuildContext context, {Color? color}) =>
+      TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.w600,
+        fontFamily: _getFont(context),
+        color: color,
+        height: _isArabic(context) ? 1.4 : 1.3,
+      );
 
-  static TextStyle headlineSmall({String? text, Color? color}) => TextStyle(
-    fontSize: 18,
-    fontWeight: FontWeight.w500,
-    fontFamily: AppTheme._getFontFamily(text),
-    color: color,
-    height: AppTheme._isArabicText(text ?? '') ? 1.4 : 1.3,
-  );
+  static TextStyle headlineSmall(BuildContext context, {Color? color}) =>
+      TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.w500,
+        fontFamily: _getFont(context),
+        color: color,
+        height: _isArabic(context) ? 1.4 : 1.3,
+      );
 
   // Title Styles
-  static TextStyle titleLarge({String? text, Color? color}) => TextStyle(
-    fontSize: 18,
-    fontWeight: FontWeight.w600,
-    fontFamily: AppTheme._getFontFamily(text),
-    color: color,
-    height: AppTheme._isArabicText(text ?? '') ? 1.4 : 1.3,
-  );
+  static TextStyle titleLarge(BuildContext context, {Color? color}) =>
+      TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.w600,
+        fontFamily: _getFont(context),
+        color: color,
+        height: _isArabic(context) ? 1.4 : 1.3,
+      );
 
-  static TextStyle titleMedium({String? text, Color? color}) => TextStyle(
-    fontSize: 16,
-    fontWeight: FontWeight.w500,
-    fontFamily: AppTheme._getFontFamily(text),
-    color: color,
-    height: AppTheme._isArabicText(text ?? '') ? 1.4 : 1.3,
-  );
+  static TextStyle titleMedium(BuildContext context, {Color? color}) =>
+      TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w500,
+        fontFamily: _getFont(context),
+        color: color,
+        height: _isArabic(context) ? 1.4 : 1.3,
+      );
 
-  static TextStyle titleSmall({String? text, Color? color}) => TextStyle(
-    fontSize: 14,
-    fontWeight: FontWeight.w500,
-    fontFamily: AppTheme._getFontFamily(text),
-    color: color,
-    height: AppTheme._isArabicText(text ?? '') ? 1.4 : 1.3,
-  );
+  static TextStyle titleSmall(BuildContext context, {Color? color}) =>
+      TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        fontFamily: _getFont(context),
+        color: color,
+        height: _isArabic(context) ? 1.4 : 1.3,
+      );
 
   // Body Styles
-  static TextStyle bodyLarge({String? text, Color? color}) => TextStyle(
+  static TextStyle bodyLarge(BuildContext context, {Color? color}) => TextStyle(
     fontSize: 16,
     fontWeight: FontWeight.normal,
-    fontFamily: AppTheme._getFontFamily(text),
+    fontFamily: _getFont(context),
     color: color,
-    height: AppTheme._isArabicText(text ?? '') ? 1.6 : 1.4,
+    height: _isArabic(context) ? 1.6 : 1.4,
   );
 
-  static TextStyle bodyMedium({String? text, Color? color}) => TextStyle(
-    fontSize: 14,
-    fontWeight: FontWeight.normal,
-    fontFamily: AppTheme._getFontFamily(text),
-    color: color,
-    height: AppTheme._isArabicText(text ?? '') ? 1.6 : 1.4,
-  );
+  static TextStyle bodyMedium(BuildContext context, {Color? color}) =>
+      TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.normal,
+        fontFamily: _getFont(context),
+        color: color,
+        height: _isArabic(context) ? 1.6 : 1.4,
+      );
 
-  static TextStyle bodySmall({String? text, Color? color}) => TextStyle(
+  static TextStyle bodySmall(BuildContext context, {Color? color}) => TextStyle(
     fontSize: 12,
     fontWeight: FontWeight.normal,
-    fontFamily: AppTheme._getFontFamily(text),
+    fontFamily: _getFont(context),
     color: color,
-    height: AppTheme._isArabicText(text ?? '') ? 1.6 : 1.4,
+    height: _isArabic(context) ? 1.6 : 1.4,
   );
 
   // Label Styles
-  static TextStyle labelLarge({String? text, Color? color}) => TextStyle(
-    fontSize: 14,
-    fontWeight: FontWeight.w500,
-    fontFamily: AppTheme._getFontFamily(text),
-    color: color,
-    height: AppTheme._isArabicText(text ?? '') ? 1.4 : 1.2,
-  );
+  static TextStyle labelLarge(BuildContext context, {Color? color}) =>
+      TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        fontFamily: _getFont(context),
+        color: color,
+        height: _isArabic(context) ? 1.4 : 1.2,
+      );
 
-  static TextStyle labelMedium({String? text, Color? color}) => TextStyle(
-    fontSize: 12,
-    fontWeight: FontWeight.w500,
-    fontFamily: AppTheme._getFontFamily(text),
-    color: color,
-    height: AppTheme._isArabicText(text ?? '') ? 1.4 : 1.2,
-  );
+  static TextStyle labelMedium(BuildContext context, {Color? color}) =>
+      TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+        fontFamily: _getFont(context),
+        color: color,
+        height: _isArabic(context) ? 1.4 : 1.2,
+      );
 
-  static TextStyle labelSmall({String? text, Color? color}) => TextStyle(
-    fontSize: 10,
-    fontWeight: FontWeight.w500,
-    fontFamily: AppTheme._getFontFamily(text),
-    color: color,
-    height: AppTheme._isArabicText(text ?? '') ? 1.4 : 1.2,
-  );
+  static TextStyle labelSmall(BuildContext context, {Color? color}) =>
+      TextStyle(
+        fontSize: 10,
+        fontWeight: FontWeight.w500,
+        fontFamily: _getFont(context),
+        color: color,
+        height: _isArabic(context) ? 1.4 : 1.2,
+      );
 
-  // Special Purpose Styles
-  static TextStyle button({String? text, Color? color}) => TextStyle(
+  // Button & Caption
+  static TextStyle button(BuildContext context, {Color? color}) => TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w600,
-    fontFamily: AppTheme._getFontFamily(text),
+    fontFamily: _getFont(context),
     color: color,
     letterSpacing: 0.5,
   );
 
-  static TextStyle caption({String? text, Color? color}) => TextStyle(
+  static TextStyle caption(BuildContext context, {Color? color}) => TextStyle(
     fontSize: 12,
     fontWeight: FontWeight.normal,
-    fontFamily: AppTheme._getFontFamily(text),
+    fontFamily: _getFont(context),
     color: color,
-    height: AppTheme._isArabicText(text ?? '') ? 1.4 : 1.2,
+    height: _isArabic(context) ? 1.4 : 1.2,
   );
 }

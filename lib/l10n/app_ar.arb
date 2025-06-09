@@ -2,9 +2,25 @@
   "@@locale": "ar",
   "hello": "مرحبا!",
   "welcome": "أهلا بك في التطبيق",
-  
   "greeting": "صباح الخير!",
   "logout": "تسجيل الخروج",
   "signIn": "تسجيل الدخول",
-  "signUp": "إنشاء حساب"
+  "signUp": "إنشاء حساب",
+  "google": "جوجل",
+  "apple": "أبل",
+  "facebook": "فيسبوك",
+  "email": "البريد الإلكتروني",
+  "password": "كلمة المرور",
+  "confirmPassword": "تأكيد كلمة المرور",
+  "forgotPassword": "نسيت كلمة المرور؟",
+  "resetPassword": "إعادة تعيين كلمة المرور",
+  "profile": "الملف الشخصي",
+  "settings": "الإعدادات",
+  "language": "اللغة",
+  "theme": "المظهر",
+  "darkMode": "الوضع المظلم",
+  "lightMode": "الوضع الفاتح",
+  "notifications": "الإشعارات",
+  "privacyPolicy": "سياسة الخصوصية",
+  "termsOfService": "شروط الخدمة"
 }

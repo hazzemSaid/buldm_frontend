@@ -5,5 +5,22 @@
   "greeting": "Good morning!",
   "logout": "Log out",
   "signIn": "Sign in",
-  "signUp": "Sign up"
+  "signUp": "Sign up",
+  "google": "Google",
+  "apple": "Apple",
+  "facebook": "Facebook",
+  "email": "Email",
+  "password": "Password",
+  "confirmPassword": "Confirm Password",
+  "forgotPassword": "Forgot Password?",
+  "resetPassword": "Reset Password",
+  "profile": "Profile",
+  "settings": "Settings",
+  "language": "Language",
+  "theme": "Theme",
+  "darkMode": "Dark Mode",
+  "lightMode": "Light Mode",
+  "notifications": "Notifications",
+  "privacyPolicy": "Privacy Policy",
+  "termsOfService": "Terms of Service"
 }

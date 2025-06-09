@@ -45,6 +45,16 @@ dependencies:
   flutter_bloc: ^9.1.1
   lottie: ^3.3.1
   google_sign_in: ^6.3.0
+  font_awesome_flutter: ^10.8.0
+  either_dart: ^1.0.0
+  get_it: ^8.0.3
+  path_provider: ^2.1.5
+  hydrated_bloc: ^10.0.0
+  another_flushbar: ^1.10.28
+  dio: ^5.8.0+1
+  hive: ^2.2.3
+  hive_generator: ^2.0.1
+  flutter_secure_storage: ^9.0.0
 
 dev_dependencies:
   # The "flutter_lints" package below contains a set of recommended lints to
@@ -71,27 +81,27 @@ flutter:
   fonts:
     - family: SFProDisplay
       fonts:
-        - asset: assets/fonts/English/SFPRODISPLAYTHINITALIC.OTF
+        - asset: assets/fonts/English/SFPRODISPLAYTHINITALIC.otf
           weight: 100
           style: italic
-        - asset: assets/fonts/English/SFPRODISPLAYULTRALIGHTITALIC.OTF
+        - asset: assets/fonts/English/SFPRODISPLAYULTRALIGHTITALIC.otf
           weight: 200
           style: italic
-        - asset: assets/fonts/English/SFPRODISPLAYLIGHTITALIC.OTF
+        - asset: assets/fonts/English/SFPRODISPLAYLIGHTITALIC.otf
           weight: 300
           style: italic
-        - asset: assets/fonts/English/SFPRODISPLAYREGULAR.OTF
+        - asset: assets/fonts/English/SFPRODISPLAYREGULAR.otf
           weight: 400
-        - asset: assets/fonts/English/SFPRODISPLAYMEDIUM.OTF
+        - asset: assets/fonts/English/SFPRODISPLAYMEDIUM.otf
           weight: 500
-        - asset: assets/fonts/English/SFPRODISPLAYSEMIBOLDITALIC.OTF
+        - asset: assets/fonts/English/SFPRODISPLAYSEMIBOLDITALIC.otf
           weight: 600
           style: italic
-        - asset: assets/fonts/English/SFPRODISPLAYBOLD.OTF
+        - asset: assets/fonts/English/SFPRODISPLAYBOLD.otf
           weight: 700
-        - asset: assets/fonts/English/SFPRODISPLAYHEAVYITALIC.OTF
+        - asset: assets/fonts/English/SFPRODISPLAYHEAVYITALIC.otf
           weight: 800
-        - asset: assets/fonts/English/SFPRODISPLAYBLACKITALIC.OTF
+        - asset: assets/fonts/English/SFPRODISPLAYBLACKITALIC.otf
           weight: 900
     - family: IBMPlexSansArabic
       fonts:
