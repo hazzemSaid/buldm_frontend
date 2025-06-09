@@ -98,7 +98,7 @@ class Authrepositoryimpl implements IAuth {
   }
 
   @override
-  static Future<void> setCurrentUser(UserModel user) async {
+  Future<void> setCurrentUser(UserModel user) async {
     await Hive.box('user').put('user', user);
   }
 

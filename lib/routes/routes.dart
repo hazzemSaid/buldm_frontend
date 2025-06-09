@@ -1,6 +1,7 @@
 import 'package:buldm/features/auth/data/repositery/AuthRepositoryImpl%20.dart';
 import 'package:buldm/features/auth/presentaion/view/screen/auth_screen.dart';
 import 'package:buldm/features/auth/presentaion/view/viewmodel/auth/auth_cubit.dart';
+import 'package:buldm/features/auth/presentaion/view/viewmodel/auth/auth_state.dart';
 import 'package:buldm/features/home/persentation/view/screens/home_screen.dart';
 import 'package:buldm/features/onboarding/presentation/view/screens/onboarding_screen.dart';
 import 'package:buldm/routes/GoRouterRefreshStream.dart';
@@ -20,6 +21,27 @@ final GoRouter router = GoRouter(
   refreshListenable: GoRouterRefreshStream(
     AuthCubit(Authrepositoryimpl()).stream,
   ),
+
+  redirect: (context, state) {
+    final isAuthenticated =
+        AuthCubit(Authrepositoryimpl()).state is Authenticated;
+    final isOnboarding = state.uri.path == paths[AppRoute.onboarding.name];
+    final isAuth = state.uri.path == paths[AppRoute.auth.name];
+
+    if (!isAuthenticated && !isOnboarding && !isAuth) {
+      return paths[AppRoute.onboarding.name];
+    }
+    if (isAuthenticated && isOnboarding) {
+      return paths[AppRoute.navbar.name];
+    }
+    if (isAuthenticated && isAuth) {
+      return paths[AppRoute.navbar.name];
+    }
+    if (!isAuthenticated) {
+      return paths[AppRoute.auth.name];
+    }
+    return null;
+  },
 
   initialLocation: paths[AppRoute.onboarding.name]!,
   routes: <RouteBase>[

@@ -5,8 +5,10 @@ import 'package:hydrated_bloc/hydrated_bloc.dart';
 
 class AuthCubit extends HydratedCubit<AuthState> {
   final Authrepositoryimpl _auth;
-  UserModel? getCurrentUser() {
-    return state is Authenticated ? (state as Authenticated).usermodel : null;
+  Future<UserModel?> getCurrentUser() async {
+    final user = await _auth.getCurrentUser();
+
+    return user;
   }
 
   AuthCubit(this._auth) : super(AuthInitial()) {
@@ -26,10 +28,11 @@ class AuthCubit extends HydratedCubit<AuthState> {
     emit(AuthLoading());
     try {
       final result = await _auth.authwithgoogle();
-      result.fold(
-        (error) => emit(AuthFailure(error)),
-        (user) => emit(Authenticated(usermodel: user)),
-      );
+      result.fold((error) => emit(AuthFailure(error)), (user) {
+        //save the user into hive
+        _auth.setCurrentUser(user);
+        emit(Authenticated(usermodel: user));
+      });
     } catch (e) {
       emit(AuthFailure(e.toString()));
     }
@@ -50,6 +53,7 @@ class AuthCubit extends HydratedCubit<AuthState> {
       }
     } catch (e) {
       // Log error if needed
+      return Unauthenticated();
     }
     return AuthInitial();
   }
