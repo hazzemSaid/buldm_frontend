@@ -21,11 +21,11 @@ import 'package:path_provider/path_provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   HydratedBloc.storage = await HydratedStorage.build(
-    storageDirectory:
-        kIsWeb
-            ? HydratedStorageDirectory.web
-            : HydratedStorageDirectory((await getTemporaryDirectory()).path),
+    storageDirectory: kIsWeb
+        ? HydratedStorageDirectory.web
+        : HydratedStorageDirectory((await getTemporaryDirectory()).path),
   );
+
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   //hive for usermodel
   Hive.init((await getApplicationDocumentsDirectory()).path);

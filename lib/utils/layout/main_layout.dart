@@ -14,11 +14,40 @@ class MainLayout extends StatefulWidget {
 class _MainLayoutState extends State<MainLayout> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = const [
-    HomeScreen(),
-    ProfileScreen(),
-    SettingScreen(),
-  ];
+  final _homeScrollController = ScrollController();
+  final _profileScrollController = ScrollController();
+  final _settingScrollController = ScrollController();
+
+  late final List<Widget> _screens;
+
+  @override
+  void initState() {
+    super.initState();
+    _screens = [
+      HomeScreen(scrollController: _homeScrollController),
+      ProfileScreen(),
+      SettingScreen(),
+    ];
+  }
+
+  void _onTap(int index) {
+    if (_currentIndex == index) {
+      // نفس الصفحة، نرفعها لفوق
+      switch (index) {
+        case 0:
+          _homeScrollController.animateTo(
+            0,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
+          break;
+      }
+    } else {
+      setState(() {
+        _currentIndex = index;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,11 +55,7 @@ class _MainLayoutState extends State<MainLayout> {
       body: IndexedStack(index: _currentIndex, children: _screens),
       bottomNavigationBar: CustomNavBar(
         currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
+        onTap: _onTap,
       ),
     );
   }

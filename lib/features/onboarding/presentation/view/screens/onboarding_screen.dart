@@ -191,7 +191,7 @@ class OnboardingPage extends StatelessWidget {
           height: MediaQuery.of(context).size.height,
           decoration: const BoxDecoration(
             image: DecorationImage(
-              image: AssetImage('assets/images/darkbuldm.png'),
+              image: AssetImage('assets/images/lightbuldm.png'),
               fit: BoxFit.fitWidth,
             ),
           ),

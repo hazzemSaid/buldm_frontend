@@ -12,7 +12,9 @@ class AuthCubit extends HydratedCubit<AuthState> {
   }
 
   AuthCubit(this._auth) : super(AuthInitial()) {
-    _initialize();
+    if (state is AuthInitial) {
+      _initialize();
+    }
   }
 
   Future<void> _initialize() async {
@@ -47,12 +49,13 @@ class AuthCubit extends HydratedCubit<AuthState> {
   @override
   AuthState? fromJson(Map<String, dynamic> json) {
     try {
+      print("Loading from json: $json");
       if (json['user'] != null) {
         final user = UserModel.fromJson(json['user']);
         return Authenticated(usermodel: user);
       }
     } catch (e) {
-      // Log error if needed
+      print("Error restoring state: $e");
       return Unauthenticated();
     }
     return AuthInitial();
@@ -60,6 +63,12 @@ class AuthCubit extends HydratedCubit<AuthState> {
 
   @override
   Map<String, dynamic>? toJson(AuthState state) {
-    return state is Authenticated ? {'user': state.usermodel.toJson()} : null;
+    if (state is Authenticated) {
+      print("Saving to json: ${state.usermodel.toJson()}");
+      return {'user': state.usermodel.toJson()};
+    } else if (state is Unauthenticated) {
+      return {};
+    }
+    return null; // For AuthInitial or other states, return null
   }
 }

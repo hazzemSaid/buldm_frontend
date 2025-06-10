@@ -2,7 +2,6 @@ import 'package:buldm/features/auth/data/repositery/AuthRepositoryImpl%20.dart';
 import 'package:buldm/features/auth/presentaion/view/screen/auth_screen.dart';
 import 'package:buldm/features/auth/presentaion/view/viewmodel/auth/auth_cubit.dart';
 import 'package:buldm/features/auth/presentaion/view/viewmodel/auth/auth_state.dart';
-import 'package:buldm/features/home/persentation/view/screens/home_screen.dart';
 import 'package:buldm/features/onboarding/presentation/view/screens/onboarding_screen.dart';
 import 'package:buldm/routes/GoRouterRefreshStream.dart';
 import 'package:buldm/utils/layout/main_layout.dart';
@@ -21,51 +20,40 @@ final GoRouter router = GoRouter(
   refreshListenable: GoRouterRefreshStream(
     AuthCubit(Authrepositoryimpl()).stream,
   ),
-
   redirect: (context, state) {
-    final isAuthenticated =
-        AuthCubit(Authrepositoryimpl()).state is Authenticated;
-    final isOnboarding = state.uri.path == paths[AppRoute.onboarding.name];
-    final isAuth = state.uri.path == paths[AppRoute.auth.name];
+    final authCubit = AuthCubit(Authrepositoryimpl());
+    final isAuthenticated = authCubit.state is Authenticated;
 
-    if (!isAuthenticated && !isOnboarding && !isAuth) {
-      return paths[AppRoute.onboarding.name];
-    }
-    if (isAuthenticated && isOnboarding) {
+    if (state.uri.path == paths[AppRoute.onboarding.name] && isAuthenticated) {
       return paths[AppRoute.navbar.name];
     }
-    if (isAuthenticated && isAuth) {
+
+    if (state.uri.path == paths[AppRoute.auth.name] && isAuthenticated) {
       return paths[AppRoute.navbar.name];
     }
-    if (!isAuthenticated) {
+
+    if (state.uri.path == paths[AppRoute.navbar.name] && !isAuthenticated) {
       return paths[AppRoute.auth.name];
     }
+
     return null;
   },
-
   initialLocation: paths[AppRoute.onboarding.name]!,
   routes: <RouteBase>[
     GoRoute(
       path: paths[AppRoute.navbar.name]!,
-      builder:
-          (BuildContext context, GoRouterState state) => const MainLayout(),
+      builder: (BuildContext context, GoRouterState state) =>
+          const MainLayout(),
     ),
     GoRoute(
       path: paths[AppRoute.onboarding.name]!,
-      builder:
-          (BuildContext context, GoRouterState state) =>
-              const OnboardingScreen(),
+      builder: (BuildContext context, GoRouterState state) =>
+          const OnboardingScreen(),
     ),
-    GoRoute(
-      path: paths[AppRoute.home.name]!,
-      builder:
-          (BuildContext context, GoRouterState state) => const HomeScreen(),
-    ),
-
     GoRoute(
       path: paths[AppRoute.auth.name]!,
-      builder:
-          (BuildContext context, GoRouterState state) => const AuthScreen(),
+      builder: (BuildContext context, GoRouterState state) =>
+          const AuthScreen(),
     ),
   ],
 );
