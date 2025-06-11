@@ -91,7 +91,7 @@ class MyApp extends StatelessWidget {
           darkTheme: AppTheme.darkTheme,
           routerConfig: router,
           title: 'Buldm App',
-          theme: AppTheme.darkTheme,
+          theme: AppTheme.lightTheme,
         );
       },
     );

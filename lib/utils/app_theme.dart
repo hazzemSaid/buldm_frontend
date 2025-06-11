@@ -40,7 +40,7 @@ class AppTheme {
   static ThemeData lightTheme = ThemeData(
     brightness: Brightness.light,
     primaryColor: primaryColor,
-    scaffoldBackgroundColor: backgroundColor,
+    scaffoldBackgroundColor: const Color.fromARGB(255, 217, 214, 214),
     appBarTheme: const AppBarTheme(
       backgroundColor: primaryColor,
       foregroundColor: Colors.white,
@@ -272,12 +272,12 @@ class AppTextStyles {
 
   // Body Styles
   static TextStyle bodyLarge(BuildContext context, {Color? color}) => TextStyle(
-    fontSize: 16,
-    fontWeight: FontWeight.normal,
-    fontFamily: _getFont(context),
-    color: color,
-    height: _isArabic(context) ? 1.6 : 1.4,
-  );
+        fontSize: 16,
+        fontWeight: FontWeight.normal,
+        fontFamily: _getFont(context),
+        color: color,
+        height: _isArabic(context) ? 1.6 : 1.4,
+      );
 
   static TextStyle bodyMedium(BuildContext context, {Color? color}) =>
       TextStyle(
@@ -289,12 +289,12 @@ class AppTextStyles {
       );
 
   static TextStyle bodySmall(BuildContext context, {Color? color}) => TextStyle(
-    fontSize: 12,
-    fontWeight: FontWeight.normal,
-    fontFamily: _getFont(context),
-    color: color,
-    height: _isArabic(context) ? 1.6 : 1.4,
-  );
+        fontSize: 12,
+        fontWeight: FontWeight.normal,
+        fontFamily: _getFont(context),
+        color: color,
+        height: _isArabic(context) ? 1.6 : 1.4,
+      );
 
   // Label Styles
   static TextStyle labelLarge(BuildContext context, {Color? color}) =>
@@ -326,18 +326,18 @@ class AppTextStyles {
 
   // Button & Caption
   static TextStyle button(BuildContext context, {Color? color}) => TextStyle(
-    fontSize: 14,
-    fontWeight: FontWeight.w600,
-    fontFamily: _getFont(context),
-    color: color,
-    letterSpacing: 0.5,
-  );
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        fontFamily: _getFont(context),
+        color: color,
+        letterSpacing: 0.5,
+      );
 
   static TextStyle caption(BuildContext context, {Color? color}) => TextStyle(
-    fontSize: 12,
-    fontWeight: FontWeight.normal,
-    fontFamily: _getFont(context),
-    color: color,
-    height: _isArabic(context) ? 1.4 : 1.2,
-  );
+        fontSize: 12,
+        fontWeight: FontWeight.normal,
+        fontFamily: _getFont(context),
+        color: color,
+        height: _isArabic(context) ? 1.4 : 1.2,
+      );
 }
