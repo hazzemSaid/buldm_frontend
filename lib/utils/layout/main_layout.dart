@@ -1,6 +1,8 @@
+import 'package:buldm/features/Add_Post/presentation/view/screens/add_post_screen.dart';
 import 'package:buldm/features/home/persentation/view/screens/home_screen.dart';
+import 'package:buldm/features/map_location/presentation/view/screens/map_location_screen.dart';
 import 'package:buldm/features/profile/presentation/view/screens/profile_screen.dart';
-import 'package:buldm/features/setting/presentation/view/screens/setting_screen.dart';
+import 'package:buldm/features/search/presentation/view/screens/search_screen.dart';
 import 'package:buldm/utils/widgets/custom_nav_bar.dart';
 import 'package:flutter/material.dart';
 
@@ -25,8 +27,10 @@ class _MainLayoutState extends State<MainLayout> {
     super.initState();
     _screens = [
       HomeScreen(scrollController: _homeScrollController),
+      MapLocationScreen(),
+      AddPostScreen(),
+      SearchScreen(),
       ProfileScreen(),
-      SettingScreen(),
     ];
   }
 

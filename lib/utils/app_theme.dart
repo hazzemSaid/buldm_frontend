@@ -10,8 +10,9 @@ class AppTheme {
     0xFFB8A9F1,
   ); // Soft lavender variant
   static const Color accentColor = Color(0xFFA683E3); // Light purple accent
-  static const Color backgroundColor = Color(0xFFFFFFFF); // White
-  static const Color surfaceColor = Color(0xFFF4F2FA); // Light lavender-grey
+  static const Color backgroundColor = Colors.white70;
+  static const Color surfaceColor =
+      Color.fromARGB(255, 201, 200, 202); // Light lavender-grey
   static const Color textColor = Color(0xFF212529); // Dark grey
 
   static const background = Color(0xFF111112); // Light lavender-grey background
@@ -32,9 +33,9 @@ class AppTheme {
   static String getFontFamilyFromLocale(Locale locale) {
     // Example: return different font for Arabic
     if (locale.languageCode == 'ar') {
-      return 'Cairo'; // Replace with your Arabic font family
+      return 'IBMPlexSansArabic'; // Replace with your Arabic font family
     }
-    return 'Roboto'; // Replace with your default font family
+    return 'SFProDisplay'; // Replace with your default font family
   }
 
   static ThemeData lightTheme = ThemeData(
@@ -45,6 +46,36 @@ class AppTheme {
       backgroundColor: primaryColor,
       foregroundColor: Colors.white,
       elevation: 0,
+    ),
+    bottomNavigationBarTheme: BottomNavigationBarThemeData(
+      backgroundColor: AppTheme.surfaceColor,
+      elevation: 12,
+      selectedItemColor: AppTheme.primaryColor,
+      unselectedItemColor: AppTheme.textColor.withOpacity(0.5),
+      selectedIconTheme: const IconThemeData(
+        size: 26,
+        color: AppTheme.primaryColor,
+      ),
+      unselectedIconTheme: IconThemeData(
+        size: 24,
+        color: AppTheme.textColor.withOpacity(0.5),
+      ),
+      selectedLabelStyle: const TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        fontFamily: AppTheme.fallbackFontFamily,
+        color: AppTheme.primaryColor,
+      ),
+      unselectedLabelStyle: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        fontFamily: AppTheme.fallbackFontFamily,
+        color: AppTheme.textColor.withOpacity(0.5),
+      ),
+      showSelectedLabels: true,
+      showUnselectedLabels: true,
+      type: BottomNavigationBarType.fixed,
+      enableFeedback: true,
     ),
     colorScheme: const ColorScheme.light(
       primary: primaryColor,
@@ -60,27 +91,27 @@ class AppTheme {
       displayLarge: TextStyle(
         fontSize: 32,
         fontWeight: FontWeight.bold,
-        fontFamily: 'Roboto',
+        fontFamily: 'SFProDisplay',
       ),
       titleLarge: TextStyle(
         fontSize: 24,
         fontWeight: FontWeight.w600,
-        fontFamily: 'Roboto',
+        fontFamily: 'SFProDisplay',
       ),
       bodyLarge: TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.normal,
-        fontFamily: 'Roboto',
+        fontFamily: 'SFProDisplay',
       ),
       bodyMedium: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.normal,
-        fontFamily: 'Roboto',
+        fontFamily: 'SFProDisplay',
       ),
       labelLarge: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w500,
-        fontFamily: 'Roboto',
+        fontFamily: 'SFProDisplay',
       ),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
@@ -114,6 +145,36 @@ class AppTheme {
       foregroundColor: Colors.white,
       elevation: 0,
     ),
+    bottomNavigationBarTheme: BottomNavigationBarThemeData(
+      backgroundColor: const Color(0xFF1E1E1E),
+      elevation: 12,
+      selectedItemColor: AppTheme.secondaryColor,
+      unselectedItemColor: Colors.white60,
+      selectedIconTheme: const IconThemeData(
+        size: 26,
+        color: AppTheme.secondaryColor,
+      ),
+      unselectedIconTheme: const IconThemeData(
+        size: 24,
+        color: Colors.white60,
+      ),
+      selectedLabelStyle: const TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        fontFamily: AppTheme.fallbackFontFamily,
+        color: AppTheme.secondaryColor,
+      ),
+      unselectedLabelStyle: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        fontFamily: AppTheme.fallbackFontFamily,
+        color: Colors.white.withOpacity(0.6),
+      ),
+      showSelectedLabels: true,
+      showUnselectedLabels: true,
+      type: BottomNavigationBarType.fixed,
+      enableFeedback: true,
+    ),
     colorScheme: const ColorScheme.dark(
       primary: primaryColor,
       secondary: accentColor,
@@ -128,31 +189,31 @@ class AppTheme {
       displayLarge: TextStyle(
         fontSize: 32,
         fontWeight: FontWeight.bold,
-        fontFamily: 'Roboto',
+        fontFamily: 'SFProDisplay',
         color: Colors.white,
       ),
       titleLarge: TextStyle(
         fontSize: 24,
         fontWeight: FontWeight.w600,
-        fontFamily: 'Roboto',
+        fontFamily: 'SFProDisplay',
         color: Colors.white,
       ),
       bodyLarge: TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.normal,
-        fontFamily: 'Roboto',
+        fontFamily: 'SFProDisplay',
         color: Colors.white,
       ),
       bodyMedium: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.normal,
-        fontFamily: 'Roboto',
+        fontFamily: 'SFProDisplay',
         color: Colors.white,
       ),
       labelLarge: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w500,
-        fontFamily: 'Roboto',
+        fontFamily: 'SFProDisplay',
         color: Colors.white,
       ),
     ),
