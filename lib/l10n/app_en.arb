@@ -22,5 +22,12 @@
   "lightMode": "Light Mode",
   "notifications": "Notifications",
   "privacyPolicy": "Privacy Policy",
-  "termsOfService": "Terms of Service"
+  "termsOfService": "Terms of Service",
+  "onboarding_1_title": "Welcome to BULDM – the smart way to find lost items!",
+  "onboarding_1_subtitle": "Search, report, and help reunite people with their lost belongings",
+  "onboarding_2_title": "Lost something? Report it in seconds",
+  "onboarding_2_subtitle": "Easily report lost items and help return them to their rightful owners",
+  "onboarding_3_title": "Found something lost? Be the reason it gets back!",
+  "onboarding_3_subtitle": "Report what you find and help someone nearby reclaim their item",
+  "skip": "Skip"
 }

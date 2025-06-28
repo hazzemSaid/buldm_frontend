@@ -1,7 +1,11 @@
+import 'package:buldm/features/onboarding/presentation/view/widgets/OnboardingPage.dart';
+import 'package:buldm/features/onboarding/presentation/view/widgets/transition_widget.dart';
+import 'package:buldm/l10n/app_localizations.dart';
+import 'package:buldm/provider/localization/localization_cubit.dart';
 import 'package:buldm/routes/routes.dart';
-import 'package:buldm/utils/app_theme.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
@@ -40,6 +44,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
@@ -100,128 +105,44 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
           SafeArea(
             child: Align(
-              alignment: Alignment.topRight,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 16.0, right: 16.0),
-                child: GestureDetector(
-                  onTap: _goToAuth,
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    color: Colors.transparent,
-                    child: const Text(
-                      "Skip",
-                      style: TextStyle(color: Colors.white, fontSize: 18),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+                alignment: Alignment.topRight,
+                child: Padding(
+                    padding: const EdgeInsets.only(top: 16.0, right: 16.0),
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              context
+                                  .read<LocalizationCubit>()
+                                  .switchLanguage();
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              color: Colors.transparent,
+                              child: Icon(
+                                Icons.language_outlined,
+                                color: Colors.white,
+                                size: 28,
+                              ),
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: _goToAuth,
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              color: Colors.transparent,
+                              child: Text(
+                                localizations.skip,
+                                style: const TextStyle(
+                                    color: Colors.white, fontSize: 18),
+                              ),
+                            ),
+                          ),
+                        ]))),
           ),
         ],
       ),
-    );
-  }
-}
-
-class transition_widget extends StatelessWidget {
-  const transition_widget({
-    super.key,
-    required AnimationController animationController,
-  }) : _animationController = animationController;
-
-  final AnimationController _animationController;
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _animationController,
-      builder: (context, child) {
-        return Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Colors.transparent,
-                Colors.transparent,
-                AppTheme.primaryColor.withOpacity(
-                  0.1 * _animationController.value,
-                ),
-                AppTheme.primaryColor.withOpacity(
-                  0.3 * _animationController.value,
-                ),
-                AppTheme.primaryColor.withOpacity(
-                  0.6 * _animationController.value,
-                ),
-                AppTheme.primaryColor.withOpacity(
-                  0.8 * _animationController.value,
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class OnboardingPage extends StatelessWidget {
-  final int index;
-
-  const OnboardingPage({super.key, required this.index});
-
-  @override
-  Widget build(BuildContext context) {
-    final titles = [
-      'Welcome to Buildm!',
-      'Discover amazing tools!',
-      'Get started easily!',
-    ];
-    final subtitles = [
-      'Your one-stop solution for all your building needs.',
-      'Tools and resources at your fingertips.',
-      'Let\'s build something great together.',
-    ];
-
-    return Stack(
-      children: [
-        // Background image
-        Container(
-          width: double.infinity,
-          height: MediaQuery.of(context).size.height,
-          decoration: const BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage('assets/images/lightbuldm.png'),
-              fit: BoxFit.fitWidth,
-            ),
-          ),
-        ),
-
-        // Text content
-        Positioned(
-          bottom: 100,
-          left: 24,
-          right: 24,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                titles[index],
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                subtitles[index],
-                style: const TextStyle(color: Colors.white70, fontSize: 16),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 }

@@ -76,4 +76,25 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get termsOfService => 'شروط الخدمة';
+
+  @override
+  String get onboarding_1_title => 'مرحبًا بك في BULDM – تطبيقك الذكي للعثور على المفقودات!';
+
+  @override
+  String get onboarding_1_subtitle => 'ابحث، أبلغ، وساعد في لمّ الشمل بين الناس وأغراضهم الضائعة';
+
+  @override
+  String get onboarding_2_title => 'ضاع منك شيء؟ بلغ عنه في ثوانٍ';
+
+  @override
+  String get onboarding_2_subtitle => 'للإبلاغ عن الأشياء المفقودة بسهولة وسرعة، وكن جزءًا من مجتمع يساعد في إعادة الأشياء لأصحابها.';
+
+  @override
+  String get onboarding_3_title => 'رأيت شيئًا مفقودًا؟ كن السبب في عودة الفرحة لصاحبه!';
+
+  @override
+  String get onboarding_3_subtitle => 'ساهم في إعادة الأشياء لأصحابها من خلال الإبلاغ عن المفقودات التي تراها في منطقتك.';
+
+  @override
+  String get skip => 'تخطي';
 }

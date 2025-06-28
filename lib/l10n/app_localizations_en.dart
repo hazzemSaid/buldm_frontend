@@ -76,4 +76,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get termsOfService => 'Terms of Service';
+
+  @override
+  String get onboarding_1_title => 'Welcome to BULDM – the smart way to find lost items!';
+
+  @override
+  String get onboarding_1_subtitle => 'Search, report, and help reunite people with their lost belongings';
+
+  @override
+  String get onboarding_2_title => 'Lost something? Report it in seconds';
+
+  @override
+  String get onboarding_2_subtitle => 'Easily report lost items and help return them to their rightful owners';
+
+  @override
+  String get onboarding_3_title => 'Found something lost? Be the reason it gets back!';
+
+  @override
+  String get onboarding_3_subtitle => 'Report what you find and help someone nearby reclaim their item';
+
+  @override
+  String get skip => 'Skip';
 }

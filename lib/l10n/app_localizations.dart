@@ -232,6 +232,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Terms of Service'**
   String get termsOfService;
+
+  /// No description provided for @onboarding_1_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to BULDM – the smart way to find lost items!'**
+  String get onboarding_1_title;
+
+  /// No description provided for @onboarding_1_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Search, report, and help reunite people with their lost belongings'**
+  String get onboarding_1_subtitle;
+
+  /// No description provided for @onboarding_2_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Lost something? Report it in seconds'**
+  String get onboarding_2_title;
+
+  /// No description provided for @onboarding_2_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Easily report lost items and help return them to their rightful owners'**
+  String get onboarding_2_subtitle;
+
+  /// No description provided for @onboarding_3_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Found something lost? Be the reason it gets back!'**
+  String get onboarding_3_title;
+
+  /// No description provided for @onboarding_3_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Report what you find and help someone nearby reclaim their item'**
+  String get onboarding_3_subtitle;
+
+  /// No description provided for @skip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get skip;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
