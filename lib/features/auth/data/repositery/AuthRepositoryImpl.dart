@@ -1,16 +1,20 @@
-import 'package:buldm/features/auth/data/db/authdb.dart';
+import 'package:buldm/features/auth/data/datasource/localdatasource.dart';
+import 'package:buldm/features/auth/data/datasource/remotedatasource.dart';
+import 'package:buldm/features/auth/data/model/Registerusere_model.dart';
 import 'package:buldm/features/auth/data/model/usermodel.dart';
-import 'package:buldm/features/auth/data/repositery/Iauthrepository.dart';
 import 'package:buldm/features/auth/data/services/google_auth.dart';
+import 'package:buldm/features/auth/domain/repository/Iauthrepository.dart';
+import 'package:either_dart/either.dart';
 import 'package:either_dart/src/either.dart';
-// Add this import
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive/hive.dart';
 
-// Create a single instance (preferably as a field in your repository or cubit)
-
-class Authrepositoryimpl implements IAuth {
-  final FlutterSecureStorage secureStorage = FlutterSecureStorage();
+class AuthRepositoryImpl implements authRepositoryInterface {
+  final AuthRemoteDataSourceImpl remoteDataSourceImpl;
+  final AuthLocalDataSourceImpl localDataSourceImpl;
+  AuthRepositoryImpl({
+    required this.remoteDataSourceImpl,
+    required this.localDataSourceImpl,
+  });
 
   @override
   Future<Either<String, UserModel>> authwithgoogle() async {
@@ -27,9 +31,9 @@ class Authrepositoryimpl implements IAuth {
     final String idToken = result.right;
     // now we can send the token to the backend
     try {
-      final Authdb authdb = Authdb();
-      final response = await authdb.sendTokenToBackend(idToken);
-      // check if the response is a success or failure
+      final response = await remoteDataSourceImpl.google_auth_service(
+        idToken: idToken,
+      );
       if (response.statusCode != 200) {
         return Left(
           'Failed to authenticate with Google sign-in: ${response.statusCode}',
@@ -37,19 +41,12 @@ class Authrepositoryimpl implements IAuth {
       }
       // if success then we can parse the response to the user model
       final userModel = UserModel.fromJson(response.data['user']);
-      final token = response.data['user']['token'];
-      // save the token to secure storage
-      saveToken(token);
-      // and return the user model
+      // cache the user in the local data source
+      await localDataSourceImpl.cacheUser(userModel);
       return Right(userModel);
     } on Exception catch (e) {
-      // if there is an error then we can return the error
       return Left(e.toString());
     }
-    // this is the flow of the google auth service
-
-    // second send the request to the backend
-    //third fetch for the respone -> either 1 - fauiler , usermodel
   }
 
   @override
@@ -65,21 +62,38 @@ class Authrepositoryimpl implements IAuth {
   }
 
   @override
-  Future<void> signInWithEmailAndPassword(String email, String password) {
-    // TODO: implement signInWithEmailAndPassword
-    throw UnimplementedError();
+  Future<UserModel> signInWithEmailAndPassword({
+    required String email,
+    required String password,
+  }) {
+    var response = remoteDataSourceImpl.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+    // Cache the user in the local data source
+    response = response.then((user) async {
+      await localDataSourceImpl.cacheUser(user);
+      return user;
+    });
+    return response;
   }
 
   @override
   Future<void> signOut() {
-    // TODO: implement signOut
-    throw UnimplementedError();
+    return localDataSourceImpl.removeUser();
   }
 
   @override
-  Future<void> signUpWithEmailAndPassword(String email, String password) {
-    // TODO: implement signUpWithEmailAndPassword
-    throw UnimplementedError();
+  Future<RegisterusereModel> signUpWithEmailAndPassword({
+    required String email,
+    required String password,
+    required String name,
+  }) {
+    return remoteDataSourceImpl.signUpWithEmailAndPassword(
+      email: email,
+      password: password,
+      name: name,
+    );
   }
 
   @override
@@ -95,25 +109,5 @@ class Authrepositoryimpl implements IAuth {
       return null; // No user is currently signed in
     }
     return userBox.get('user'); // Retrieve the current user
-  }
-
-  @override
-  Future<void> setCurrentUser(UserModel user) async {
-    await Hive.box('user').put('user', user);
-  }
-
-  @override
-  Future<void> deleteToken() async {
-    await secureStorage.delete(key: 'auth_token');
-  }
-
-  @override
-  Future<String?> gettoken() async {
-    return await secureStorage.read(key: 'auth_token');
-  }
-
-  @override
-  Future<void> saveToken(String token) async {
-    await secureStorage.write(key: 'auth_token', value: token);
   }
 }

@@ -35,6 +35,8 @@ dependencies:
 
   json_annotation: ^4.9.0
   freezed_annotation: ^2.4.0 # downgraded to 2.x for compatibility
+  equatable: ^2.0.7
+  hive_flutter: ^1.1.0
 
 dev_dependencies:
   flutter_test:
@@ -44,6 +46,7 @@ dev_dependencies:
   freezed: ^2.4.0 # downgraded to 2.x for compatibility
   hive_generator: ^2.0.1
   json_serializable: ^6.9.0
+  get: ^4.7.2
 
 flutter:
   generate: true
