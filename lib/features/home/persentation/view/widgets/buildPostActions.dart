@@ -32,11 +32,9 @@ class BuildPostActions extends StatelessWidget {
             onTap: () {
               showModalBottomSheet(
                 context: context,
-                backgroundColor: Colors.white,
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                ),
-                builder: (_) => CommentBottomSheet(),
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (_) => const CommentBottomSheet(),
               );
             },
             iconColor: Colors.deepPurpleAccent,
