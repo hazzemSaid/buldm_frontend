@@ -29,7 +29,17 @@ class _PostWidgetState extends State<PostWidget> {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.only(bottom: 8),
-      color: Theme.of(context).scaffoldBackgroundColor,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.background,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -41,9 +51,8 @@ class _PostWidgetState extends State<PostWidget> {
             currentPageNotifier: _currentPageNotifier,
             imagePaths: _imagePaths,
           ),
-          const SizedBox(height: 20),
-          buildPostActions(),
-          const SizedBox(height: 20),
+          const SizedBox(height: 8),
+          const BuildPostActions(),
         ],
       ),
     );

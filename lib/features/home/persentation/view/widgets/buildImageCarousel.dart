@@ -33,27 +33,32 @@ class buildImageCarousel extends StatelessWidget {
                 },
               ),
               Positioned(
-                top: 10,
-                right: 12,
-                child: ValueListenableBuilder<int>(
-                  valueListenable: currentPageNotifier,
-                  builder: (context, currentIndex, _) {
-                    return Row(
-                      children: List.generate(imagePaths.length, (index) {
-                        return Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 2),
-                          width: currentIndex == index ? 8 : 6,
-                          height: currentIndex == index ? 8 : 6,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: currentIndex == index
-                                ? Colors.white
-                                : Colors.white.withOpacity(0.5),
-                          ),
-                        );
-                      }),
-                    );
-                  },
+                bottom: 12,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: ValueListenableBuilder<int>(
+                    valueListenable: currentPageNotifier,
+                    builder: (context, currentIndex, _) {
+                      return Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: List.generate(imagePaths.length, (index) {
+                          return AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            margin: const EdgeInsets.symmetric(horizontal: 3),
+                            width: currentIndex == index ? 10 : 6,
+                            height: currentIndex == index ? 10 : 6,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: currentIndex == index
+                                  ? Colors.white
+                                  : Colors.white.withOpacity(0.5),
+                            ),
+                          );
+                        }),
+                      );
+                    },
+                  ),
                 ),
               ),
             ],

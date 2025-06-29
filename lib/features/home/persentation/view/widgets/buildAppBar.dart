@@ -10,9 +10,14 @@ class buildAppBar extends StatelessWidget {
     return SliverAppBar(
       floating: true,
       snap: true,
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.background,
       elevation: 0,
-      title: Text("Buldm", style: AppTextStyles.headlineLarge(context)),
+      title: Text(
+        "Buldm",
+        style: AppTextStyles.headlineLarge(context).copyWith(
+            color: Theme.of(context).colorScheme.primary,
+            fontWeight: FontWeight.bold),
+      ),
       actions: [
         IconButton(
           icon: Icon(FontAwesomeIcons.heart,

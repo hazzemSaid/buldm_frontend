@@ -40,7 +40,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     super.dispose();
   }
 
-  void _goToAuth() => GoRouter.of(context).replace(paths[AppRoute.auth.name]!);
+  void _goToAuth() =>
+      GoRouter.of(context).replace(paths[AppRoute.signin.name]!);
 
   @override
   Widget build(BuildContext context) {

@@ -8,7 +8,7 @@ class AuthCubit extends Cubit<AuthState> {
     required this.authRepository,
   }) : super(AuthInitial());
   // Method to handle user sign-in
-  Future<void> signIn(String email, String password) async {
+  Future<void> signIn({required String email, required String password}) async {
     try {
       final user = await authRepository.signInWithEmailAndPassword(
         email: email,
@@ -55,6 +55,15 @@ class AuthCubit extends Cubit<AuthState> {
       } else {
         emit(UnAuthenticated());
       }
+    } catch (e) {
+      emit(AuthError(message: e.toString()));
+    }
+  }
+
+  Future<void> signOut() async {
+    try {
+      await authRepository.signOut();
+      emit(UnAuthenticated());
     } catch (e) {
       emit(AuthError(message: e.toString()));
     }
