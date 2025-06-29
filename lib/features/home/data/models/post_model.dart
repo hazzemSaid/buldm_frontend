@@ -1,48 +1,73 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:buldm/features/home/domain/entities/postentity.dart';
+import 'package:equatable/equatable.dart';
 
-part 'post_model.freezed.dart';
-part 'post_model.g.dart';
+class PostModel extends PostEntity implements Equatable {
+  const PostModel(
+      {required super.title,
+      required super.description,
+      required super.images,
+      required super.location,
+      required super.status,
+      required super.category,
+      required super.predictedItems,
+      required super.userId,
+      required super.contactInfo,
+      required super.when,
+      required super.createdAt,
+      required super.updatedAt,
+      required super.id});
+  factory PostModel.fromJson(Map<String, dynamic> json) {
+    return PostModel(
+      title: json['title'],
+      description: json['description'],
+      images: json['images'],
+      location: json['location'],
+      status: json['status'],
+      category: json['category'],
+      predictedItems: json['predictedItems'],
+      userId: json['userId'],
+      contactInfo: json['contactInfo'],
+      when: json['when'],
+      createdAt: json['createdAt'],
+      updatedAt: json['updatedAt'],
+      id: json['id'],
+    );
+  }
+  Map<String, dynamic> toJson() {
+    return {
+      'title': title,
+      'description': description,
+      'images': images,
+      'location': location,
+      'status': status,
+      'category': category,
+      'predictedItems': predictedItems,
+      'userId': userId,
+      'contactInfo': contactInfo,
+      'when': when,
+      'createdAt': createdAt,
+      'updatedAt': updatedAt,
+      'id': id,
+    };
+  }
 
-@freezed
-class Post with _$Post {
-  const factory Post({
-    required String title,
-    required String description,
-    List<String>? images,
-    required Location location,
-    required String status,
-    @Default("other") String category,
-    @Default([]) List<PredictedItem> predictedItems,
-    @JsonKey(name: 'user_id') required String userId,
-    @Default("") String contactInfo,
-    @Default(null) DateTime? when,
-    required DateTime createdAt,
-    required DateTime updatedAt,
-  }) = _Post;
+  @override
+  List<Object?> get props => [
+        title,
+        description,
+        images,
+        location,
+        status,
+        category,
+        predictedItems,
+        userId,
+        contactInfo,
+        when,
+        createdAt,
+        updatedAt,
+        id,
+      ];
 
-  factory Post.fromJson(Map<String, dynamic> json) => _$PostFromJson(json);
-}
-
-@freezed
-class Location with _$Location {
-  const factory Location({
-    @Default("Point") String type,
-    required List<double> coordinates,
-    @Default("") String placeName,
-  }) = _Location;
-
-  factory Location.fromJson(Map<String, dynamic> json) =>
-      _$LocationFromJson(json);
-}
-
-@freezed
-class PredictedItem with _$PredictedItem {
-  const factory PredictedItem({
-    required String label,
-    required double confidence,
-    @Default("other") String category,
-  }) = _PredictedItem;
-
-  factory PredictedItem.fromJson(Map<String, dynamic> json) =>
-      _$PredictedItemFromJson(json);
+  @override
+  bool? get stringify => true;
 }
