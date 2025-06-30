@@ -1,9 +1,12 @@
+import 'package:buldm/features/home/domain/entities/postentity.dart';
 import 'package:flutter/material.dart';
 
 class buildProfileHeader extends StatelessWidget {
-  const buildProfileHeader({super.key});
+  final String? userId;
+  final PostEntity post;
+  const buildProfileHeader(
+      {required this.post, super.key, required this.userId});
 
-  @override
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -21,10 +24,10 @@ class buildProfileHeader extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Hazem",
+                Text(userId!,
                     style: textTheme.bodyLarge
                         ?.copyWith(fontWeight: FontWeight.bold)),
-                Text("2h • Cairo",
+                Text("Posted on ${post.createdAt}",
                     style: textTheme.bodySmall
                         ?.copyWith(color: Colors.grey.shade600, fontSize: 12)),
               ],
@@ -36,13 +39,13 @@ class buildProfileHeader extends StatelessWidget {
               color: Colors.green.shade50,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Row(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.check_circle, size: 16, color: Colors.green),
-                SizedBox(width: 4),
-                Text("Found",
-                    style: TextStyle(
+                const Icon(Icons.check_circle, size: 16, color: Colors.green),
+                const SizedBox(width: 4),
+                Text(post.status,
+                    style: const TextStyle(
                         color: Colors.green,
                         fontSize: 12,
                         fontWeight: FontWeight.w500)),

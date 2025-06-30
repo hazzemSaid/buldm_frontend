@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 class buildImageCarousel extends StatelessWidget {
@@ -7,7 +8,7 @@ class buildImageCarousel extends StatelessWidget {
       required this.currentPageNotifier,
       required this.imagePaths});
   final pageController;
-  final imagePaths;
+  final List<String> imagePaths;
   final currentPageNotifier;
 
   @override
@@ -25,10 +26,9 @@ class buildImageCarousel extends StatelessWidget {
                 itemCount: imagePaths.length,
                 onPageChanged: (index) => currentPageNotifier.value = index,
                 itemBuilder: (context, index) {
-                  return Image.asset(
-                    imagePaths[index],
-                    fit: BoxFit.cover,
-                    width: double.infinity,
+                  return CachedNetworkImage(
+                    imageUrl: imagePaths[index],
+                    errorWidget: (context, url, error) => Icon(Icons.error),
                   );
                 },
               ),

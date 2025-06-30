@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 
 class buildDescription extends StatelessWidget {
-  const buildDescription({super.key});
+  final String description;
+  const buildDescription({super.key, required this.description});
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Text(
-        "Found a wallet near the park. If it’s yours, please contact me.",
+        description,
         style: textTheme.bodyMedium,
       ),
     );

@@ -37,6 +37,8 @@ dependencies:
   freezed_annotation: ^2.4.0 # downgraded to 2.x for compatibility
   equatable: ^2.0.7
   hive_flutter: ^1.1.0
+  cached_network_image: ^3.4.1
+  shimmer: ^3.0.0
 
 dev_dependencies:
   flutter_test:

@@ -1,3 +1,4 @@
+import 'package:buldm/features/home/domain/entities/postentity.dart';
 import 'package:buldm/features/home/persentation/view/widgets/buildDescription.dart';
 import 'package:buldm/features/home/persentation/view/widgets/buildImageCarousel.dart';
 import 'package:buldm/features/home/persentation/view/widgets/buildPostActions.dart';
@@ -5,7 +6,8 @@ import 'package:buldm/features/home/persentation/view/widgets/buildProfileHeader
 import 'package:flutter/material.dart';
 
 class PostWidget extends StatefulWidget {
-  const PostWidget({super.key});
+  const PostWidget({super.key, required this.post});
+  final PostEntity post;
 
   @override
   State<PostWidget> createState() => _PostWidgetState();
@@ -14,9 +16,6 @@ class PostWidget extends StatefulWidget {
 class _PostWidgetState extends State<PostWidget> {
   final PageController _pageController = PageController();
   final ValueNotifier<int> _currentPageNotifier = ValueNotifier<int>(0);
-
-  final List<String> _imagePaths = List.generate(
-      5, (index) => "assets/images/profile.jpg"); // Example images
 
   @override
   void dispose() {
@@ -43,13 +42,18 @@ class _PostWidgetState extends State<PostWidget> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const buildProfileHeader(),
-          const buildDescription(),
+          buildProfileHeader(
+            userId: widget.post.userId,
+            post: widget.post,
+          ),
+          buildDescription(
+            description: widget.post.description,
+          ),
           const SizedBox(height: 8),
           buildImageCarousel(
             pageController: _pageController,
             currentPageNotifier: _currentPageNotifier,
-            imagePaths: _imagePaths,
+            imagePaths: widget.post.images,
           ),
           const SizedBox(height: 8),
           const BuildPostActions(),
