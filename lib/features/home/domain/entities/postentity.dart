@@ -1,7 +1,7 @@
 import 'package:buldm/features/home/domain/entities/LocationEntity.dart';
 import 'package:buldm/features/home/domain/entities/PredictedItemEntity.dart';
 
-class PostEntity {
+abstract class PostEntity {
   final String title;
   final String description;
   final List<String> images;

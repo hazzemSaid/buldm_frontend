@@ -20,14 +20,15 @@ class UserModelAdapter extends TypeAdapter<UserModel> {
       name: fields[0] as String,
       email: fields[1] as String,
       avatar: fields[2] as String,
-      token: fields[3] as String?,
+      token: fields[3] as String,
+      refreshToken: fields[4] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, UserModel obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.name)
       ..writeByte(1)
@@ -35,7 +36,9 @@ class UserModelAdapter extends TypeAdapter<UserModel> {
       ..writeByte(2)
       ..write(obj.avatar)
       ..writeByte(3)
-      ..write(obj.token);
+      ..write(obj.token)
+      ..writeByte(4)
+      ..write(obj.refreshToken);
   }
 
   @override

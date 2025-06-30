@@ -14,13 +14,15 @@ class UserModel extends HiveObject implements User {
   @HiveField(2)
   final String avatar;
   @HiveField(3)
-  final String? token;
-
+  final String token;
+  @HiveField(4)
+  final String refreshToken;
   UserModel({
     required this.name,
     required this.email,
     this.avatar = "/image/2024.png",
-    this.token,
+    required this.token,
+    required this.refreshToken,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -29,11 +31,18 @@ class UserModel extends HiveObject implements User {
       email: json['email'],
       avatar: json['avatar'] ?? '/image/2024.png',
       token: json['token'],
+      refreshToken: json['refreshToken'],
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {'name': name, 'email': email, 'avatar': avatar, 'token': token};
+    return {
+      'name': name,
+      'email': email,
+      'avatar': avatar,
+      'token': token,
+      'refreshToken': refreshToken
+    };
   }
 }
 

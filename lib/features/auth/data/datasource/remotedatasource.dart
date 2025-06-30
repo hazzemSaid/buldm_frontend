@@ -23,7 +23,7 @@ abstract class AuthRemoteDataSource {
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   final Dio dio;
-  static const String _baseUrl = 'http://10.0.2.2:3000';
+  static const String _baseUrl = 'http://192.168.1.8:3000';
 
   AuthRemoteDataSourceImpl({required this.dio});
 

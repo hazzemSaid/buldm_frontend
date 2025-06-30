@@ -27,7 +27,7 @@ abstract class RemotePostDataSource {
 
 class RemotePostDataSourceImpl implements RemotePostDataSource {
   final Dio dio;
-  static const String _baseUrl = 'http://10.0.2.2:3000';
+  static const String _baseUrl = 'http://192.168.1.8:3000';
 
   RemotePostDataSourceImpl({required this.dio});
 
@@ -61,7 +61,7 @@ class RemotePostDataSourceImpl implements RemotePostDataSource {
     required String token,
   }) async {
     try {
-      final response = await dio.post(
+      final response = await dio.get(
         '$_baseUrl/api/v1/post',
         options: Options(
           headers: {
@@ -69,9 +69,9 @@ class RemotePostDataSourceImpl implements RemotePostDataSource {
           },
         ),
       );
-
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return (response.data['posts'] as List)
+        print("Response Data: ${response.data['data']}");
+        return (response.data['data'] as List)
             .map((post) => PostModel.fromJson(post))
             .toList();
       } else {

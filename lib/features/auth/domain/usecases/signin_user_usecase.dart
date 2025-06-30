@@ -4,7 +4,7 @@ import 'package:buldm/features/auth/domain/repository/Iauthrepository.dart';
 class SignInUserUseCase {
   final authRepositoryInterface repository;
 
-  SignInUserUseCase(this.repository);
+  SignInUserUseCase({required this.repository});
 
   Future<User> call({required String email, required String password}) {
     return repository.signInWithEmailAndPassword(

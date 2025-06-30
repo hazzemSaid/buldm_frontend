@@ -6,6 +6,7 @@ class GoogleAuth {
   static String webClientId = dotenv.get('webClientId');
 
   static String androidID = dotenv.get('androidID');
+
   Future<Either<Exception, String>> googleauth_service() async {
     // this class using the solid pri to make the google auth service to gave the db a token id
     final GoogleSignIn _googleSignIn = GoogleSignIn(
@@ -14,6 +15,7 @@ class GoogleAuth {
           webClientId, // This ensures the ID token has the correct audience
       // Remove clientId or set it to null for Android
     );
+    await _googleSignIn.signOut(); // optional
 
     final account = await _googleSignIn.signIn();
 
