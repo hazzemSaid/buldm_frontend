@@ -16,14 +16,29 @@ class PostLoading extends PostState {}
 
 class PostLoaded extends PostState {
   final List<PostEntity> posts;
+  final bool hasMore;
+  final bool isLoadingMore;
 
-  const PostLoaded({required this.posts});
+  const PostLoaded({
+    required this.posts,
+    this.hasMore = true,
+    this.isLoadingMore = false,
+  });
+
+  PostLoaded copyWith({
+    List<PostEntity>? posts,
+    bool? hasMore,
+    bool? isLoadingMore,
+  }) {
+    return PostLoaded(
+      posts: posts ?? this.posts,
+      hasMore: hasMore ?? this.hasMore,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+    );
+  }
 
   @override
-  List<Object?> get props => [posts];
-
-  @override
-  bool? get stringify => true;
+  List<Object?> get props => [posts, hasMore, isLoadingMore];
 }
 
 class PostError extends PostState {

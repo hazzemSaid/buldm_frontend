@@ -15,17 +15,24 @@ class LoadPostEvent extends PostEvent {
   final String? status;
   final String? userId;
   final String? searchQuery;
-  final int? limit;
-  final int? offset;
+  final int limit;
+  final int page;
+
   const LoadPostEvent({
     this.category,
     this.status,
     this.userId,
     this.searchQuery,
-    this.limit,
-    this.offset,
+    required this.limit,
+    required this.page,
   });
+
+  @override
+  List<Object?> get props =>
+      [category, status, userId, searchQuery, limit, page];
 }
+
+class LoadMorePostsEvent extends PostEvent {}
 
 class AddPostEvent extends PostEvent {
   final PostEntity post;

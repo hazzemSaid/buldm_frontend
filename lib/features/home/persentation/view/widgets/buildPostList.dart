@@ -12,14 +12,26 @@ class buildPostList extends StatelessWidget {
     return BlocBuilder<PostBloc, PostState>(
       builder: (context, state) {
         if (state is PostLoaded) {
+          final posts = state.posts;
+          final isLoadingMore = state.isLoadingMore; // تأكد تضيفه في الستيت
           return SliverList(
             delegate: SliverChildBuilderDelegate(
-              (context, index) => Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                child: PostWidget(post: state.posts[index]),
-              ),
-              childCount: state.posts.length,
+              (context, index) {
+                if (index < posts.length) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8.0, vertical: 4.0),
+                    child: PostWidget(post: posts[index]),
+                  );
+                } else {
+                  // مؤشر تحميل الصفحة التالية
+                  return const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                }
+              },
+              childCount: posts.length + (isLoadingMore ? 1 : 0),
             ),
           );
         }

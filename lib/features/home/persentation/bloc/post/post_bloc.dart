@@ -10,6 +10,8 @@ part 'post_event.dart';
 part 'post_state.dart';
 
 class PostBloc extends Bloc<PostEvent, PostState> {
+  bool isFetchingMore = false;
+
   final GetPostUseCase getPostUseCase;
   final GetCurrentuserUsercase getCurrentuserUsercase;
   PostBloc({required this.getCurrentuserUsercase, required this.getPostUseCase})
@@ -19,32 +21,31 @@ class PostBloc extends Bloc<PostEvent, PostState> {
     on<UpdatePostEvent>(_onUpdatePost);
     on<DeletePostEvent>(_onDeletePost);
     on<FilterPostEvent>(_onFilterPost);
+    on<LoadMorePostsEvent>(_onLoadMorePosts);
   }
 
   Future<void> _onLoadPost(LoadPostEvent event, Emitter<PostState> emit) async {
     emit(PostLoading());
-    print("Loading posts with event: $event");
+
     try {
       final user = await getCurrentuserUsercase();
+
       final token = user?.token ?? '';
 
-      final posts = await getPostUseCase(
+      final newPosts = await getPostUseCase(
         category: event.category,
         status: event.status,
         userId: event.userId,
         searchQuery: event.searchQuery,
         limit: event.limit,
-        offset: event.offset,
+        page: event.page,
         token: token,
       );
 
-      emit(PostLoaded(posts: posts));
+      emit(
+          PostLoaded(posts: newPosts, hasMore: newPosts.length == event.limit));
     } catch (e) {
-      if (e is Failure) {
-        emit(PostError(message: e.message));
-      } else {
-        emit(PostError(message: 'An unexpected error occurred'));
-      }
+      emit(PostError(message: e.toString()));
     }
   }
 
@@ -65,6 +66,41 @@ class PostBloc extends Bloc<PostEvent, PostState> {
   Future<void> _onFilterPost(
       FilterPostEvent event, Emitter<PostState> emit) async {
     // Logic to filter posts by category
+  }
+  Future<void> _onLoadMorePosts(
+      LoadMorePostsEvent event, Emitter<PostState> emit) async {
+    if (isFetchingMore) return;
+
+    final currentState = state;
+    if (currentState is PostLoaded && currentState.hasMore) {
+      isFetchingMore = true;
+      try {
+        final user = await getCurrentuserUsercase();
+        final token = user?.token ?? '';
+        final currentPosts = currentState.posts;
+        final nextPage = (currentPosts.length / 5).ceil() + 1;
+
+        final newPosts = await getPostUseCase(
+          category: null,
+          status: null,
+          userId: null,
+          searchQuery: null,
+          limit: 5,
+          page: nextPage,
+          token: token,
+        );
+
+        final hasMore = newPosts.length == 5;
+        emit(PostLoaded(
+          posts: [...currentPosts, ...newPosts],
+          hasMore: hasMore,
+        ));
+      } catch (e) {
+        emit(PostError(message: e.toString()));
+      } finally {
+        isFetchingMore = false;
+      }
+    }
   }
 }
 

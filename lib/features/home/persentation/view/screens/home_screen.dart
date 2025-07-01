@@ -5,37 +5,79 @@ import 'package:buldm/features/home/persentation/view/widgets/buildPostList.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, required this.scrollController});
 
   final ScrollController scrollController;
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  late PostBloc _postBloc;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _postBloc = sl<PostBloc>();
+
+    _postBloc.add(
+      LoadPostEvent(
+          category: null,
+          status: null,
+          userId: null,
+          searchQuery: null,
+          limit: 5,
+          page: 1),
+    );
+
+    widget.scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    final position = widget.scrollController.position;
+    final currentState = _postBloc.state;
+
+    if (position.pixels >= position.maxScrollExtent - 200 &&
+        !_postBloc.isFetchingMore &&
+        currentState is PostLoaded &&
+        currentState.hasMore) {
+      _postBloc.add(LoadMorePostsEvent());
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.scrollController.removeListener(_onScroll);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return BlocProvider<PostBloc>(
-      create: (context) {
-        final bloc = sl<PostBloc>();
-        bloc.add(
-          LoadPostEvent(
-            category: null,
-            status: null,
-            userId: null,
-            searchQuery: null,
-            limit: 10,
-            offset: 0,
-          ),
-        );
-        return bloc;
-      },
+    return BlocProvider<PostBloc>.value(
+      value: _postBloc,
       child: Scaffold(
         extendBody: true,
         backgroundColor: Theme.of(context).colorScheme.background,
         body: SafeArea(
           child: RefreshIndicator(
-            onRefresh: () async {},
+            onRefresh: () async {
+              _postBloc.add(
+                LoadPostEvent(
+                  category: null,
+                  status: null,
+                  userId: null,
+                  searchQuery: null,
+                  limit: 5,
+                  page: 1,
+                ),
+              );
+            },
             child: CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
-              controller: scrollController,
+              controller: widget.scrollController,
               slivers: [
                 buildAppBar(),
                 const SliverToBoxAdapter(child: SizedBox(height: 8)),

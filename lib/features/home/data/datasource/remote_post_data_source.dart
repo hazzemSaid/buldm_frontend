@@ -11,7 +11,7 @@ abstract class RemotePostDataSource {
     String? userId,
     String? searchQuery,
     int? limit,
-    int? offset,
+    int? page,
     required String token,
   });
   Future<PostModel> getPostById(String postId);
@@ -27,7 +27,6 @@ abstract class RemotePostDataSource {
 
 class RemotePostDataSourceImpl implements RemotePostDataSource {
   final Dio dio;
-  static const String _baseUrl = 'http://192.168.1.8:3000';
 
   RemotePostDataSourceImpl({required this.dio});
 
@@ -57,12 +56,12 @@ class RemotePostDataSourceImpl implements RemotePostDataSource {
     String? userId,
     String? searchQuery,
     int? limit,
-    int? offset,
+    int? page,
     required String token,
   }) async {
     try {
       final response = await dio.get(
-        '$_baseUrl/api/v1/post',
+        '/post?page=$page&limit=$limit&category=$category&status=$status&userId=$userId&searchQuery=$searchQuery',
         options: Options(
           headers: {
             'Authorization': 'Bearer $token',

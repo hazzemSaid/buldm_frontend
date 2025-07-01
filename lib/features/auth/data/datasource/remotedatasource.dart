@@ -23,7 +23,6 @@ abstract class AuthRemoteDataSource {
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   final Dio dio;
-  static const String _baseUrl = 'http://192.168.1.8:3000';
 
   AuthRemoteDataSourceImpl({required this.dio});
 
@@ -34,7 +33,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }) async {
     try {
       final response = await dio.post(
-        '$_baseUrl/api/v1/user/login',
+        '/user/login',
         data: {
           'email': email,
           'password': password,
@@ -59,7 +58,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }) async {
     try {
       final response = await dio.post(
-        '$_baseUrl/api/v1/user/register',
+        '/user/register',
         data: {
           'name': name,
           'email': email,
@@ -88,7 +87,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String idToken,
   }) {
     final response = dio.post(
-      '$_baseUrl/api/v1/user/google_auth',
+      '/user/google_auth',
       data: {'token': idToken},
     );
     return response;

@@ -7,7 +7,7 @@ abstract class Postrepository {
     String? userId,
     String? searchQuery,
     int? limit,
-    int? offset,
+    int? page,
     required token,
   });
   Future<PostEntity> getPostById(String postId);

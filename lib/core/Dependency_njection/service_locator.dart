@@ -83,7 +83,11 @@ void setupDio(Dio dio) {
 Future<void> init() async {
   // ✅ Dio instance
 
-  final dio = Dio();
+  final dio = Dio(
+    BaseOptions(
+      baseUrl: 'http://10.0.2.2:3000/api/v1',
+    ),
+  );
   setupDio(dio); // مهم: إعداد interceptor قبل ما تسجّله في GetIt
   sl.registerLazySingleton<Dio>(() => dio);
   // ✅ Remote Data Source

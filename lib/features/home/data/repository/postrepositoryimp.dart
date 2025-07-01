@@ -30,7 +30,7 @@ class Postrepositoryimp extends Postrepository {
       String? userId,
       String? searchQuery,
       int? limit,
-      int? offset,
+      int? page,
       required token}) {
     return remotePostDataSource.getPosts(
       category: category,
@@ -38,7 +38,7 @@ class Postrepositoryimp extends Postrepository {
       userId: userId,
       searchQuery: searchQuery,
       limit: limit,
-      offset: offset,
+      page: page,
       token: token,
     );
   }

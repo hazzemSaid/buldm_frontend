@@ -27,7 +27,8 @@ class buildImageCarousel extends StatelessWidget {
                 onPageChanged: (index) => currentPageNotifier.value = index,
                 itemBuilder: (context, index) {
                   return CachedNetworkImage(
-                    imageUrl: imagePaths[index],
+                    imageUrl: imagePaths[index].replaceFirst(
+                        '/upload/', '/upload/f_auto,q_60,w_600,dpr_auto/'),
                     errorWidget: (context, url, error) => Icon(Icons.error),
                   );
                 },

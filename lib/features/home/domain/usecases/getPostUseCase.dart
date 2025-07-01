@@ -10,7 +10,7 @@ class GetPostUseCase {
     String? userId,
     String? searchQuery,
     int? limit,
-    int? offset,
+    int? page,
     required String token,
   }) {
     return postrepository.getPosts(
@@ -19,7 +19,7 @@ class GetPostUseCase {
       userId: userId,
       searchQuery: searchQuery,
       limit: limit,
-      offset: offset,
+      page: page,
       token: token,
     );
   }
