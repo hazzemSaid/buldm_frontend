@@ -1,3 +1,4 @@
+import 'package:buldm/features/auth/data/model/usermodel.dart';
 import 'package:buldm/features/home/data/models/post_model.dart';
 import 'package:dio/dio.dart';
 
@@ -23,6 +24,7 @@ abstract class RemotePostDataSource {
     double longitude,
     double radius,
   );
+  Future<UserModel> getUserById(String userId);
 }
 
 class RemotePostDataSourceImpl implements RemotePostDataSource {
@@ -114,5 +116,26 @@ class RemotePostDataSourceImpl implements RemotePostDataSource {
   Future<void> updatePost(String postId, Map<String, dynamic> data) {
     // TODO: implement updatePost
     throw UnimplementedError();
+  }
+
+  @override
+  Future<UserModel> getUserById(String userId) async {
+    // /user/6819ecfe592604de47d2a499
+    try {
+      final response = await dio.get(
+        '/user/ID/$userId',
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return UserModel.fromJson(response.data['user']);
+      } else {
+        throw Exception('Failed to fetch user');
+      }
+    } on DioException catch (e) {
+      if (e.response != null) {
+        throw Exception(e.response?.data['message'] ?? e.message);
+      } else {
+        throw Exception(e.message);
+      }
+    }
   }
 }

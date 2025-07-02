@@ -104,3 +104,15 @@ class SortPostEvent extends PostEvent {
   @override
   bool? get stringify => true;
 }
+
+class userbyid extends PostEvent {
+  final String userId;
+
+  const userbyid({required this.userId});
+
+  @override
+  List<Object?> get props => [userId];
+
+  @override
+  bool? get stringify => true;
+}

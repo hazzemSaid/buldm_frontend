@@ -1,3 +1,4 @@
+import 'package:buldm/features/auth/domain/entities/userentities.dart';
 import 'package:buldm/features/home/domain/entities/postentity.dart';
 
 abstract class Postrepository {
@@ -30,4 +31,5 @@ abstract class Postrepository {
     double radius,
     String category,
   );
+  Future<User> getUserById(String userId);
 }

@@ -1,3 +1,4 @@
+import 'package:buldm/features/auth/domain/entities/userentities.dart';
 import 'package:buldm/features/home/data/datasource/remote_post_data_source.dart';
 import 'package:buldm/features/home/domain/entities/postentity.dart';
 import 'package:buldm/features/home/domain/repository/postrepository.dart';
@@ -91,5 +92,10 @@ class Postrepositoryimp extends Postrepository {
   Future<void> updatePost(String postId, Map<String, dynamic> data) {
     // TODO: implement updatePost
     throw UnimplementedError();
+  }
+
+  @override
+  Future<User> getUserById(String userId) {
+    return remotePostDataSource.getUserById(userId);
   }
 }

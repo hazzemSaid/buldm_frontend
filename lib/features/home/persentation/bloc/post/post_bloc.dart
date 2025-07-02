@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+import 'package:buldm/features/auth/data/model/usermodel.dart';
 import 'package:buldm/features/auth/domain/usecases/get_currentuser_usercase.dart';
 import 'package:buldm/features/home/domain/entities/postentity.dart';
 import 'package:buldm/features/home/domain/usecases/getPostUseCase.dart';

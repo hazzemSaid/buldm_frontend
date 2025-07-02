@@ -13,109 +13,104 @@ import 'package:buldm/features/home/data/datasource/remote_post_data_source.dart
 import 'package:buldm/features/home/data/repository/postrepositoryimp.dart';
 import 'package:buldm/features/home/domain/repository/postrepository.dart';
 import 'package:buldm/features/home/domain/usecases/getPostUseCase.dart';
+import 'package:buldm/features/home/domain/usecases/getUserById.dart';
 import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
+import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive/hive.dart';
 
 final sl = GetIt.instance;
-// final storage = FlutterSecureStorage(); // Secure token storage
 
-// ✅ Interceptor setup with token refresh logic
+/// 🔐 Dio Interceptor setup
 void setupDio(Dio dio) {
-  dio.interceptors.add(InterceptorsWrapper(
-    onRequest: (options, handler) async {
-      final userBox = Hive.box<UserModel>('user');
-      final user = userBox.get('user');
-      if (user != null && user.token != null) {
-        options.headers['Authorization'] = 'Bearer ${user.token}';
-      }
-      return handler.next(options);
-    },
-    onError: (DioException error, handler) async {
-      if (error.response?.statusCode == 401 &&
-          !error.requestOptions.path.contains('/refreshToken')) {
+  dio.interceptors.add(
+    InterceptorsWrapper(
+      onRequest: (options, handler) async {
         final userBox = Hive.box<UserModel>('user');
         final user = userBox.get('user');
-
-        if (user == null || user.refreshToken == null) {
-          await userBox.clear();
-          return handler.reject(error);
+        if (user != null && user.refreshToken != null) {
+          options.headers['Authorization'] = 'Bearer ${user.refreshToken}';
         }
+        return handler.next(options);
+      },
+      onError: (error, handler) async {
+        if (error.response?.statusCode == 401 &&
+            !error.requestOptions.path.contains('/refreshToken')) {
+          final userBox = Hive.box<UserModel>('user');
+          final user = userBox.get('user');
 
-        try {
-          // 🔁 Call the correct refresh token endpoint
-          final response = await dio.post('/user/refreshToken', data: {
-            'refreshToken': user.refreshToken,
-          });
-
-          if (response.statusCode == 200 && response.data['success'] == true) {
-            final userJson = response.data['user'];
-
-            // Make sure this uses fromJson correctly
-            final updatedUser = UserModel.fromJson(userJson);
-
-            // Save new user with fresh tokens
-            await userBox.put('user', updatedUser);
-
-            // Retry original request with new token
-            final originalRequest = error.requestOptions;
-            originalRequest.headers['Authorization'] =
-                'Bearer ${updatedUser.token}';
-
-            final retryResponse = await dio.fetch(originalRequest);
-            return handler.resolve(retryResponse);
-          } else {
+          if (user == null || user.refreshToken == null) {
             await userBox.clear();
             return handler.reject(error);
           }
-        } catch (_) {
-          await userBox.clear();
-          return handler.reject(error);
-        }
-      }
 
-      return handler.next(error);
-    },
-  ));
+          try {
+            final response = await dio.post('/user/refreshToken', data: {
+              'refreshToken': user.refreshToken,
+            });
+
+            if (response.statusCode == 200 &&
+                response.data['success'] == true) {
+              final updatedUser = UserModel.fromJson(response.data['user']);
+              await userBox.put('user', updatedUser);
+
+              final originalRequest = error.requestOptions;
+              originalRequest.headers['Authorization'] =
+                  'Bearer ${updatedUser.token}';
+
+              final retryResponse = await dio.fetch(originalRequest);
+              return handler.resolve(retryResponse);
+            } else {
+              await userBox.clear();
+              return handler.reject(error);
+            }
+          } catch (_) {
+            await userBox.clear();
+            return handler.reject(error);
+          }
+        }
+
+        return handler.next(error);
+      },
+    ),
+  );
 }
 
+/// 🧠 App Dependency Injection Setup
 Future<void> init() async {
-  // ✅ Dio instance
-
-  final dio = Dio(
-    BaseOptions(
-      baseUrl: 'http://10.0.2.2:3000/api/v1',
-    ),
-  );
-  setupDio(dio); // مهم: إعداد interceptor قبل ما تسجّله في GetIt
+  /// ✅ Dio
+  final dio = Dio(BaseOptions(
+    baseUrl: 'http://10.0.2.2:3000/api/v1',
+    connectTimeout: const Duration(seconds: 30),
+    receiveTimeout: const Duration(seconds: 30),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  ));
+  setupDio(dio);
   sl.registerLazySingleton<Dio>(() => dio);
-  // ✅ Remote Data Source
+
+  /// ✅ Auth Module
+
+  // Data Sources
   sl.registerLazySingleton<AuthRemoteDataSourceImpl>(
-    () => AuthRemoteDataSourceImpl(dio: sl()),
-  );
-
-  // ✅ Local Data Source
+      () => AuthRemoteDataSourceImpl(dio: sl()));
   sl.registerLazySingleton<AuthLocalDataSourceImpl>(
-    () => AuthLocalDataSourceImpl(Hive.box<UserModel>('user')),
-  );
+      () => AuthLocalDataSourceImpl(Hive.box<UserModel>('user')));
 
-  // ✅ Repository
-  sl.registerLazySingleton<authRepositoryInterface>(
-    () => AuthRepositoryImpl(
-      remoteDataSourceImpl: sl(),
-      localDataSourceImpl: sl(),
-    ),
-  );
+  // Repository
+  sl.registerLazySingleton<authRepositoryInterface>(() => AuthRepositoryImpl(
+      remoteDataSourceImpl: sl(), localDataSourceImpl: sl()));
 
-  // ✅ Use Cases
+  // Use Cases
   sl.registerLazySingleton(() => SignInUserUseCase(repository: sl()));
   sl.registerLazySingleton(() => SignUpUserUseCase(repository: sl()));
   sl.registerLazySingleton(() => GoogleAuthUsecase(authRepository: sl()));
   sl.registerLazySingleton(() => GetCurrentuserUsercase(authRepository: sl()));
   sl.registerLazySingleton(() => SignOutUseCase(authRepository: sl()));
 
-  // ✅ AuthCubit
+  // Auth Cubit
   final authCubit = AuthCubit(
     signInUserUseCase: sl(),
     signUpUserUseCase: sl(),
@@ -124,30 +119,27 @@ Future<void> init() async {
     signOutUseCase: sl(),
   );
   sl.registerSingleton<AuthCubit>(authCubit);
+  authCubit.appStarted(); // Optional: check login on app start
 
-  // ✅ Auto-run auth check
-  authCubit.appStarted();
+  /// ✅ Home Module - Post
 
-  // ✅ Post Use Case
-  sl.registerLazySingleton(() => GetPostUseCase(postrepository: sl()));
-
-  // ✅ Post Repository
-  sl.registerLazySingleton<Postrepository>(() => Postrepositoryimp(
-        remotePostDataSource: RemotePostDataSourceImpl(dio: sl()),
-      ));
-
-  // ✅ Remote Post Data Source
+  // Data Source
   sl.registerLazySingleton<RemotePostDataSource>(
-    () => RemotePostDataSourceImpl(dio: sl()),
+      () => RemotePostDataSourceImpl(dio: sl()));
+
+  // Repository
+  sl.registerLazySingleton<Postrepository>(
+      () => Postrepositoryimp(remotePostDataSource: sl()));
+
+  // Use Cases
+  sl.registerLazySingleton(() => GetPostUseCase(postrepository: sl()));
+  sl.registerLazySingleton(() => Getuserbyid(postRepository: sl()));
+  sl.registerLazySingleton<Postrepositoryimp>(
+    () => Postrepositoryimp(remotePostDataSource: sl()),
   );
 
-  // ✅ Post Bloc
-
-  sl.registerFactory<PostBloc>(
-    () => PostBloc(
-      getCurrentuserUsercase: sl(),
-      getPostUseCase: sl(),
-    ),
-  );
-  // add the event to load posts
+  // Blocs
+  sl.registerFactory(
+      () => PostBloc(getCurrentuserUsercase: sl(), getPostUseCase: sl()));
+  sl.registerFactory(() => UserBloc(getuserbyid: sl()));
 }

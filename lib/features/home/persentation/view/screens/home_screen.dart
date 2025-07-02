@@ -1,5 +1,6 @@
 import 'package:buldm/core/Dependency_njection/service_locator.dart';
 import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
+import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
 import 'package:buldm/features/home/persentation/view/widgets/buildAppBar.dart';
 import 'package:buldm/features/home/persentation/view/widgets/buildPostList.dart';
 import 'package:flutter/material.dart';
@@ -56,8 +57,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<PostBloc>.value(
-      value: _postBloc,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<PostBloc>(
+          create: (context) => _postBloc,
+        ),
+        BlocProvider<UserBloc>(
+          create: (context) => sl<UserBloc>(),
+        ),
+      ],
       child: Scaffold(
         extendBody: true,
         backgroundColor: Theme.of(context).colorScheme.background,
