@@ -1,77 +1,104 @@
 import 'dart:io';
 
-import 'package:buldm/features/auth/data/model/usermodel.dart';
-import 'package:buldm/features/home/data/models/location_model.dart';
-import 'package:buldm/features/home/data/models/post_model.dart';
-import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
+import 'package:buldm/features/Add_Post/presentation/view/screens/AddPostDetails.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hive/hive.dart';
 import 'package:image_picker/image_picker.dart';
 
-class AddPostScreen extends StatelessWidget {
-  const AddPostScreen({super.key});
+class PostUploadScreen extends StatefulWidget {
+  const PostUploadScreen({super.key});
+
+  @override
+  State<PostUploadScreen> createState() => _PostUploadScreenState();
+}
+
+class _PostUploadScreenState extends State<PostUploadScreen> {
+  final ImagePicker _picker = ImagePicker();
+  List<XFile> _pickedImages = [];
+
+  Future<void> _selectImages() async {
+    final images = await _picker.pickMultiImage();
+    if (images != null && images.isNotEmpty) {
+      setState(() {
+        _pickedImages = images;
+      });
+    }
+  }
+
+  void _goNext() {
+    // هنا تروح للشاشة اللي فيها تفاصيل النشر
+    // وتبعت الصور المختارة
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AddPostDetails(images: _pickedImages),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: IconButton(
-          onPressed: () async {
-            final userBox = Hive.box<UserModel>('user');
-            final user = userBox.get('user');
-            if (user == null || user.token == null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('User not logged in')),
-              );
-              return;
-            }
-
-            // اختر صورة من المعرض
-            final ImagePicker picker = ImagePicker();
-            final XFile? pickedFile =
-                await picker.pickImage(source: ImageSource.gallery);
-
-            if (pickedFile == null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('No image selected')),
-              );
-              return;
-            }
-
-            final File imageFile = File(pickedFile.path);
-            final token = user.token;
-
-            // إرسال الحدث إلى PostBloc
-            context.read<PostBloc>().add(
-                  AddPostEvent(
-                    post: PostModel(
-                      title: 'back',
-                      description: 'back',
-                      category: 'back',
-                      location: LocationModel(
-                        type: "found",
-                        coordinates: [0, 0],
-                        placeName: "",
+      appBar: AppBar(
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text("Post Upload"),
+            IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () {
+                setState(() {
+                  _pickedImages.clear();
+                });
+                Navigator.maybePop(context);
+              },
+            ),
+          ],
+        ),
+        actions: [
+          if (_pickedImages.isNotEmpty)
+            TextButton(
+              onPressed: _goNext,
+              child: const Text(
+                "التالي",
+                style: TextStyle(color: Colors.white),
+              ),
+            )
+        ],
+      ),
+      body: _pickedImages.isEmpty
+          ? Center(
+              child: ElevatedButton.icon(
+                onPressed: _selectImages,
+                icon: const Icon(Icons.add_a_photo),
+                label: const Text('اختر صور من المعرض'),
+              ),
+            )
+          : PageView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: _pickedImages.length,
+              itemBuilder: (context, index) {
+                return Container(
+                  width: MediaQuery.of(context).size.width,
+                  height: MediaQuery.of(context).size.height * 0.4,
+                  margin: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey, width: 1),
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 4,
+                        offset: Offset(0, 2),
                       ),
-                      user_id: "67fa7475705be9c78ea1cfc0",
-                      createdAt: DateTime.now(),
-                      updatedAt: DateTime.now(),
-                      images: [], // سيتم رفع الصورة كـ MultipartFile في backend
-                      status: 'found',
-                      predictedItems: [],
-                      contactInfo: '',
-                      when: DateTime.now(),
-                    ),
-                    token: token,
-                    imageFile: imageFile,
+                    ],
+                  ),
+                  child: Image.file(
+                    File(_pickedImages[index].path),
+                    fit: BoxFit.contain,
                   ),
                 );
-          },
-          icon:
-              const Icon(Icons.add_circle, size: 50, color: Colors.blueAccent),
-        ),
-      ),
+              },
+            ),
     );
   }
 }

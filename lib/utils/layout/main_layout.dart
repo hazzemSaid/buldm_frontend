@@ -32,7 +32,7 @@ class _MainLayoutState extends State<MainLayout> {
     _screens = [
       HomeScreen(scrollController: _homeScrollController),
       MapLocationScreen(),
-      AddPostScreen(),
+      PostUploadScreen(),
       SearchScreen(),
       ProfileScreen(),
     ];

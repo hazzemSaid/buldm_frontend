@@ -37,13 +37,13 @@ class LoadMorePostsEvent extends PostEvent {}
 class AddPostEvent extends PostEvent {
   final PostModel post;
   final String token;
-  final File imageFile;
+  final List<File> imageFiles; // بدل File imageFile
 
   const AddPostEvent(
-      {required this.post, required this.token, required this.imageFile});
+      {required this.post, required this.token, required this.imageFiles});
 
   @override
-  List<Object?> get props => [post, token, imageFile];
+  List<Object?> get props => [post, token, imageFiles];
 
   @override
   bool? get stringify => true;

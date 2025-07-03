@@ -66,10 +66,10 @@ class PostBloc extends Bloc<PostEvent, PostState> {
       final data = postModel.toJson();
       final formData = FormData.fromMap({
         ...data,
-        'images': await MultipartFile.fromFile(
-          event.imageFile.path,
-          filename: event.imageFile.path.split('/').last,
-        ),
+        'images': await Future.wait(event.imageFiles.map((file) async {
+          return await MultipartFile.fromFile(file.path,
+              filename: file.path.split('/').last);
+        })),
       });
       await createPostUsecase(data: formData, token: token);
 
