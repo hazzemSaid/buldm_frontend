@@ -11,12 +11,11 @@ class PostModel extends PostEntity {
     required super.status,
     required super.category,
     required super.predictedItems,
-    required super.userId,
+    required super.user_id,
     required super.contactInfo,
     required super.when,
     required super.createdAt,
     required super.updatedAt,
-    required super.id,
   });
 
   factory PostModel.fromJson(Map<String, dynamic> json) {
@@ -33,12 +32,11 @@ class PostModel extends PostEntity {
           ? []
           : List<PredictedItemModel>.from(json['predictedItems']
               .map((item) => PredictedItemModel.fromJson(item))),
-      userId: json['user_id'] ?? '',
+      user_id: json['user_id'] ?? '',
       contactInfo: json['contactInfo'] ?? '',
       when: DateTime.tryParse(json['when'] ?? '') ?? DateTime.now(),
       createdAt: DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now(),
       updatedAt: DateTime.tryParse(json['updatedAt'] ?? '') ?? DateTime.now(),
-      id: json['id'] ?? '',
     );
   }
 
@@ -53,12 +51,11 @@ class PostModel extends PostEntity {
       'predictedItems': predictedItems
           .map((item) => (item as PredictedItemModel).toJson())
           .toList(),
-      'user_id': userId,
+      'user_id': user_id,
       'contactInfo': contactInfo,
       'when': when.toIso8601String(),
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
-      'id': id,
     };
   }
 }

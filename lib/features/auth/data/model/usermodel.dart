@@ -1,10 +1,11 @@
 import 'package:buldm/features/auth/domain/entities/userentities.dart';
+import 'package:equatable/equatable.dart';
 import 'package:hive/hive.dart';
 
 part 'usermodel.g.dart';
 
 @HiveType(typeId: 0)
-class UserModel extends HiveObject implements User {
+class UserModel extends HiveObject implements User, Equatable {
   @HiveField(0)
   final String name;
 
@@ -44,6 +45,14 @@ class UserModel extends HiveObject implements User {
       'refreshToken': refreshToken
     };
   }
+
+  @override
+  // TODO: implement props
+  List<Object?> get props => [name, email, avatar, token, refreshToken];
+
+  @override
+  // TODO: implement stringify
+  bool? get stringify => true;
 }
 
 // Run the build runner to generate the adapter

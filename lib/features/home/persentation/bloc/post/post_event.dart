@@ -35,12 +35,15 @@ class LoadPostEvent extends PostEvent {
 class LoadMorePostsEvent extends PostEvent {}
 
 class AddPostEvent extends PostEvent {
-  final PostEntity post;
+  final PostModel post;
+  final String token;
+  final File imageFile;
 
-  const AddPostEvent({required this.post});
+  const AddPostEvent(
+      {required this.post, required this.token, required this.imageFile});
 
   @override
-  List<Object?> get props => [post];
+  List<Object?> get props => [post, token, imageFile];
 
   @override
   bool? get stringify => true;

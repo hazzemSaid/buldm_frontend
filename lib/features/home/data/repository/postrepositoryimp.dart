@@ -2,14 +2,14 @@ import 'package:buldm/features/auth/domain/entities/userentities.dart';
 import 'package:buldm/features/home/data/datasource/remote_post_data_source.dart';
 import 'package:buldm/features/home/domain/entities/postentity.dart';
 import 'package:buldm/features/home/domain/repository/postrepository.dart';
+import 'package:dio/dio.dart';
 
 class Postrepositoryimp extends Postrepository {
   final RemotePostDataSource remotePostDataSource;
   Postrepositoryimp({required this.remotePostDataSource});
   @override
-  Future<void> createPost(Map<String, dynamic> data) {
-    // TODO: implement createPost
-    throw UnimplementedError();
+  Future<Response> createPost(FormData data, String token) {
+    return remotePostDataSource.createPost(data, token);
   }
 
   @override

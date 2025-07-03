@@ -30,6 +30,11 @@ class buildImageCarousel extends StatelessWidget {
                     imageUrl: imagePaths[index].replaceFirst(
                         '/upload/', '/upload/f_auto,q_60,w_600,dpr_auto/'),
                     errorWidget: (context, url, error) => Icon(Icons.error),
+                    placeholder: (context, url) => Center(
+                      child: CircularProgressIndicator(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
                   );
                 },
               ),

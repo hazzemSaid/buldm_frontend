@@ -3,7 +3,7 @@ import 'package:buldm/features/home/data/models/post_model.dart';
 import 'package:dio/dio.dart';
 
 abstract class RemotePostDataSource {
-  Future<void> createPost(Map<String, dynamic> data);
+  Future<Response> createPost(FormData data, String token);
   Future<void> updatePost(String postId, Map<String, dynamic> data);
   Future<void> deletePost(String postId);
   Future<List<PostModel>> getPosts({
@@ -33,9 +33,25 @@ class RemotePostDataSourceImpl implements RemotePostDataSource {
   RemotePostDataSourceImpl({required this.dio});
 
   @override
-  Future<void> createPost(Map<String, dynamic> data) {
-    // TODO: implement createPost
-    throw UnimplementedError();
+  Future<Response> createPost(FormData data, String token) async {
+    // Convert List<MapEntry<String, String>> to Map<String, dynamic>
+
+    print('Posting to: ${dio.options.baseUrl}/post');
+
+    final response = await dio.post(
+      '/post',
+      data: data,
+      options: Options(
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ),
+    );
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return response;
+    }
+    throw Exception('Failed to create post: ${response.data['message']}');
   }
 
   @override

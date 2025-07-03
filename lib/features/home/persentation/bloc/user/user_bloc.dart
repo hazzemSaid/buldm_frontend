@@ -6,33 +6,28 @@ import 'package:buldm/features/home/persentation/bloc/user/user_state.dart';
 
 class UserBloc extends Bloc<UserEvent, UserState> {
   final Getuserbyid getuserbyid;
-
   final Map<String, User> _userCache = {};
 
-  UserBloc({required this.getuserbyid}) : super(UserInitial()) {
+  UserBloc({required this.getuserbyid}) : super(UserLoaded(users: {})) {
     on<LoadUserEvent>(_onUserLoaded);
   }
 
   Future<void> _onUserLoaded(
-      LoadUserEvent event, Emitter<UserState> emit) async {
-    final userId = event.userId;
-
-    // ✅ استخدم الكاش الداخلي
-    if (_userCache.containsKey(userId)) {
-      emit(UserLoaded(users: {..._userCache}));
+    LoadUserEvent event,
+    Emitter<UserState> emit,
+  ) async {
+    // ✅ Skip if already cached and not forced
+    if (!event.forceRefresh && _userCache.containsKey(event.userId)) {
       return;
     }
 
-    emit(UserLoading(userId));
-
     try {
-      final user = await getuserbyid(userId);
-
-      _userCache[userId] = user;
+      final user = await getuserbyid(event.userId);
+      _userCache[event.userId] = user;
 
       emit(UserLoaded(users: {..._userCache}));
     } catch (e) {
-      emit(UserError(message: e.toString(), userId: userId));
+      emit(UserError(message: e.toString(), userId: event.userId));
     }
   }
 }

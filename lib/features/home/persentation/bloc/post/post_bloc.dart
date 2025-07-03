@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:bloc/bloc.dart';
-import 'package:buldm/features/auth/data/model/usermodel.dart';
 import 'package:buldm/features/auth/domain/usecases/get_currentuser_usercase.dart';
+import 'package:buldm/features/home/data/models/post_model.dart';
 import 'package:buldm/features/home/domain/entities/postentity.dart';
+import 'package:buldm/features/home/domain/usecases/createPostUseCase.dart';
 import 'package:buldm/features/home/domain/usecases/getPostUseCase.dart';
+import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 
 part 'post_event.dart';
@@ -15,7 +18,11 @@ class PostBloc extends Bloc<PostEvent, PostState> {
 
   final GetPostUseCase getPostUseCase;
   final GetCurrentuserUsercase getCurrentuserUsercase;
-  PostBloc({required this.getCurrentuserUsercase, required this.getPostUseCase})
+  final Createpostusecase createPostUsecase;
+  PostBloc(
+      {required this.getCurrentuserUsercase,
+      required this.getPostUseCase,
+      required this.createPostUsecase})
       : super(PostInitial()) {
     on<LoadPostEvent>(_onLoadPost);
     on<AddPostEvent>(_onAddPost);
@@ -51,7 +58,34 @@ class PostBloc extends Bloc<PostEvent, PostState> {
   }
 
   Future<void> _onAddPost(AddPostEvent event, Emitter<PostState> emit) async {
-    // Logic to add a post
+    emit(PostLoading());
+    try {
+      final user = await getCurrentuserUsercase();
+      final token = user?.token ?? '';
+      final postModel = event.post;
+      final data = postModel.toJson();
+      final formData = FormData.fromMap({
+        ...data,
+        'images': await MultipartFile.fromFile(
+          event.imageFile.path,
+          filename: event.imageFile.path.split('/').last,
+        ),
+      });
+      await createPostUsecase(data: formData, token: token);
+
+      emit(postCreatedState());
+      // Optionally, you can reload posts after adding a new one
+      add(LoadPostEvent(
+        category: null,
+        status: null,
+        userId: null,
+        searchQuery: null,
+        limit: 5,
+        page: 1,
+      ));
+    } catch (e) {
+      emit(PostError(message: e.toString()));
+    }
   }
 
   Future<void> _onUpdatePost(

@@ -1,8 +1,12 @@
+// ✅ في buildPostList.dart
 import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
 import 'package:buldm/features/home/persentation/view/screens/PostWidget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shimmer/shimmer.dart';
+
+final Set<int> keepAliveIndexes = {}; // ✅ خارج أي كلاس
+const int maxAliveCount = 10;
 
 class buildPostList extends StatelessWidget {
   const buildPostList({super.key});
@@ -13,18 +17,26 @@ class buildPostList extends StatelessWidget {
       builder: (context, state) {
         if (state is PostLoaded) {
           final posts = state.posts;
-          final isLoadingMore = state.isLoadingMore; // تأكد تضيفه في الستيت
+          final isLoadingMore = state.isLoadingMore;
+
           return SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, index) {
                 if (index < posts.length) {
+                  // ✅ إدارة الكاش
+                  if (!keepAliveIndexes.contains(index)) {
+                    if (keepAliveIndexes.length >= maxAliveCount) {
+                      keepAliveIndexes.remove(keepAliveIndexes.first);
+                    }
+                    keepAliveIndexes.add(index);
+                  }
+
                   return Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 8.0, vertical: 4.0),
-                    child: PostWidget(post: posts[index]),
+                    child: PostWidget(post: posts[index], index: index),
                   );
                 } else {
-                  // مؤشر تحميل الصفحة التالية
                   return const Padding(
                     padding: EdgeInsets.all(16),
                     child: Center(child: CircularProgressIndicator()),
@@ -38,17 +50,13 @@ class buildPostList extends StatelessWidget {
 
         if (state is PostError) {
           return SliverToBoxAdapter(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(state.message, style: TextStyle(color: Colors.red)),
-              ],
+            child: Center(
+              child: Text(state.message,
+                  style: const TextStyle(color: Colors.red)),
             ),
           );
         }
 
-        // Loading shimmer
         return SliverList(
           delegate: SliverChildBuilderDelegate(
             (context, index) => const PostShimmerWidget(),

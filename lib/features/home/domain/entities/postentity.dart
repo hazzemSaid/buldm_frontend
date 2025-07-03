@@ -9,12 +9,11 @@ abstract class PostEntity {
   final String status; // "lost", "found", or "claimed"
   final String category;
   final List<PredictedItemEntity> predictedItems;
-  final String userId;
+  final String user_id;
   final String contactInfo;
   final DateTime when;
   final DateTime createdAt;
   final DateTime updatedAt;
-  final String id;
 
   const PostEntity({
     required this.title,
@@ -24,11 +23,10 @@ abstract class PostEntity {
     required this.status,
     required this.category,
     required this.predictedItems,
-    required this.userId,
+    required this.user_id,
     required this.contactInfo,
     required this.when,
     required this.createdAt,
     required this.updatedAt,
-    required this.id,
   });
 }

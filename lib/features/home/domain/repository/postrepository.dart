@@ -1,5 +1,6 @@
 import 'package:buldm/features/auth/domain/entities/userentities.dart';
 import 'package:buldm/features/home/domain/entities/postentity.dart';
+import 'package:dio/dio.dart';
 
 abstract class Postrepository {
   Future<List<PostEntity>> getPosts({
@@ -20,7 +21,7 @@ abstract class Postrepository {
     double longitude,
     double radius,
   );
-  Future<void> createPost(Map<String, dynamic> data);
+  Future<Response> createPost(FormData data, String token);
   Future<void> updatePost(String postId, Map<String, dynamic> data);
   Future<void> deletePost(String postId);
   Future<List<PostEntity>> getPostsBySearchQuery(String searchQuery);

@@ -52,3 +52,5 @@ class PostError extends PostState {
   @override
   bool? get stringify => true;
 }
+
+class postCreatedState extends PostState {}

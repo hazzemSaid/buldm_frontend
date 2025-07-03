@@ -12,6 +12,7 @@ import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
 import 'package:buldm/features/home/data/datasource/remote_post_data_source.dart';
 import 'package:buldm/features/home/data/repository/postrepositoryimp.dart';
 import 'package:buldm/features/home/domain/repository/postrepository.dart';
+import 'package:buldm/features/home/domain/usecases/createPostUseCase.dart';
 import 'package:buldm/features/home/domain/usecases/getPostUseCase.dart';
 import 'package:buldm/features/home/domain/usecases/getUserById.dart';
 import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
@@ -81,7 +82,9 @@ void setupDio(Dio dio) {
 Future<void> init() async {
   /// ✅ Dio
   final dio = Dio(BaseOptions(
-    baseUrl: 'http://10.0.2.2:3000/api/v1',
+    baseUrl: 'http://192.168.1.8:3000/api/v1',
+    //  for testing on real device
+    // baseUrl: 'http://10.0.2.2:3000/api/v1',
     connectTimeout: const Duration(seconds: 30),
     receiveTimeout: const Duration(seconds: 30),
     headers: {
@@ -137,9 +140,14 @@ Future<void> init() async {
   sl.registerLazySingleton<Postrepositoryimp>(
     () => Postrepositoryimp(remotePostDataSource: sl()),
   );
+//createPostUsecase
+  sl.registerLazySingleton(() => Createpostusecase(postrepository: sl()));
 
   // Blocs
-  sl.registerFactory(
-      () => PostBloc(getCurrentuserUsercase: sl(), getPostUseCase: sl()));
+
+  sl.registerFactory(() => PostBloc(
+      getCurrentuserUsercase: sl(),
+      getPostUseCase: sl(),
+      createPostUsecase: sl()));
   sl.registerFactory(() => UserBloc(getuserbyid: sl()));
 }
