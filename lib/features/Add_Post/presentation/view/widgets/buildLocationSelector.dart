@@ -1,9 +1,12 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first, file_names
+import 'package:buldm/features/Add_Post/presentation/bloc/location_cubit/location_cubit.dart';
 import 'package:buldm/features/Add_Post/presentation/view/screens/LostItemLocationPicker.dart';
 import 'package:buldm/features/home/data/models/location_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class BuildLocationSelector extends StatefulWidget {
+  // هتتهندل ب البلوك  if we have a data location
   final LocationModel? initialLocation;
 
   const BuildLocationSelector({super.key, this.initialLocation});
@@ -18,6 +21,7 @@ class _BuildLocationSelectorState extends State<BuildLocationSelector> {
   @override
   void initState() {
     super.initState();
+
     _pickedLocation = widget.initialLocation;
   }
 
@@ -25,20 +29,30 @@ class _BuildLocationSelectorState extends State<BuildLocationSelector> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () async {
-        //handle this later with bloc
-        final result = await Navigator.push(
+        final locationCubit = context.read<LocationCubit>();
+
+        await Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => const LostItemLocationPicker(),
+            builder: (context) => BlocProvider.value(
+              value: locationCubit,
+              child: LostItemLocationPicker(),
+            ),
           ),
         );
 
-        if (result != null && result['coordinates'] != null) {
+        final currentState = locationCubit.state;
+
+        if (currentState is LocationSelected) {
+          final selectedLocation = currentState.location;
           setState(() {
             _pickedLocation = LocationModel(
               type: 'Point',
-              coordinates: List<double>.from(result['coordinates']),
-              placeName: result['placeName'] ?? 'Selected Location',
+              coordinates: [
+                selectedLocation.longitude,
+                selectedLocation.latitude
+              ],
+              placeName: 'Selected Location',
             );
           });
         }

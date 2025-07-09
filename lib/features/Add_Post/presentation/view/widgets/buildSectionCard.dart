@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 
 class BuildSectionCard extends StatelessWidget {
-  final String? title;
-  final IconData? icon;
-  final List<Widget>? children;
-  const BuildSectionCard({super.key, this.children, this.title, this.icon});
+  final String title;
+  final IconData icon;
+  final List<Widget> children;
+  const BuildSectionCard(
+      {super.key,
+      required this.children,
+      required this.title,
+      required this.icon});
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +41,7 @@ class BuildSectionCard extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Text(
-                title ?? 'Section Title',
+                title,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
@@ -47,7 +51,7 @@ class BuildSectionCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          ...children ?? [], // Use null-aware operator to handle null children
+          ...children
         ],
       ),
     );

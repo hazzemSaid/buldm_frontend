@@ -1,3 +1,4 @@
+import 'package:buldm/features/Add_Post/presentation/bloc/location_cubit/location_cubit.dart';
 import 'package:buldm/features/auth/data/datasource/localdatasource.dart';
 import 'package:buldm/features/auth/data/datasource/remotedatasource.dart';
 import 'package:buldm/features/auth/data/model/usermodel.dart';
@@ -82,7 +83,7 @@ void setupDio(Dio dio) {
 Future<void> init() async {
   /// ✅ Dio
   final dio = Dio(BaseOptions(
-    baseUrl: 'http://192.168.1.8:3000/api/v1',
+    baseUrl: 'http://192.168.1.15:3000/api/v1',
     //  for testing on real device
     // baseUrl: 'http://10.0.2.2:3000/api/v1',
     connectTimeout: const Duration(seconds: 30),
@@ -150,4 +151,6 @@ Future<void> init() async {
       getPostUseCase: sl(),
       createPostUsecase: sl()));
   sl.registerFactory(() => UserBloc(getuserbyid: sl()));
+  // location cubit
+  sl.registerFactory(() => LocationCubit());
 }

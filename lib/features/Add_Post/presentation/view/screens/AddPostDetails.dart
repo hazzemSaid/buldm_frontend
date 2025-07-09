@@ -1,5 +1,8 @@
 import 'dart:io';
 
+import 'package:buldm/features/Add_Post/data/model/UploadablePostModel.dart';
+import 'package:buldm/features/Add_Post/presentation/bloc/imagespicker_cubit/imagespicker_cubit.dart';
+import 'package:buldm/features/Add_Post/presentation/bloc/location_cubit/location_cubit.dart';
 import 'package:buldm/features/Add_Post/presentation/view/widgets/buildCategorySelector.dart';
 import 'package:buldm/features/Add_Post/presentation/view/widgets/buildCustomTextField.dart';
 import 'package:buldm/features/Add_Post/presentation/view/widgets/buildDateSelector.dart';
@@ -8,13 +11,15 @@ import 'package:buldm/features/Add_Post/presentation/view/widgets/buildLocationS
 import 'package:buldm/features/Add_Post/presentation/view/widgets/buildSectionCard.dart';
 import 'package:buldm/features/Add_Post/presentation/view/widgets/buildStatusSelector.dart';
 import 'package:buldm/features/home/data/models/location_model.dart';
+import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:latlong2/latlong.dart';
 
 class AddPostDetails extends StatefulWidget {
-  final List<XFile> images;
-  const AddPostDetails({super.key, required this.images});
+  const AddPostDetails({super.key});
 
   @override
   State<AddPostDetails> createState() => _AddPostDetailsState();
@@ -22,18 +27,14 @@ class AddPostDetails extends StatefulWidget {
 
 class _AddPostDetailsState extends State<AddPostDetails>
     with TickerProviderStateMixin {
+  List<XFile> images = [];
   final _formKey = GlobalKey<FormState>();
   final _scrollController = ScrollController();
-
+  final ValueNotifier<String> _statusNotifier = ValueNotifier<String>('found');
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _categoryController = TextEditingController();
   final TextEditingController _contactInfoController = TextEditingController();
-
-  DateTime? _selectedDate;
-  String _status = 'found';
-  LocationModel? _pickedLocation;
-  bool _isSubmitting = false;
 
   late AnimationController _fadeController;
   late AnimationController _slideController;
@@ -65,6 +66,12 @@ class _AddPostDetailsState extends State<AddPostDetails>
   @override
   void initState() {
     super.initState();
+    if (context.read<ImagespickerCubit>().state is ImagespickerLoaded) {
+      images = (context.read<ImagespickerCubit>().state as ImagespickerLoaded)
+          .images;
+    } else {
+      images = [];
+    }
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
@@ -102,31 +109,45 @@ class _AddPostDetailsState extends State<AddPostDetails>
       _scrollToFirstError();
       return;
     }
-
-    if (_pickedLocation == null) {
-      _showErrorSnackBar('Please select a location');
+    if (_descriptionController.text.trim().isEmpty) {
+      _showErrorSnackBar("Description cannot be empty");
       return;
     }
 
-    setState(() => _isSubmitting = true);
-
-    final postData = {
-      'title': _titleController.text.trim(),
-      'description': _descriptionController.text.trim(),
-      'category': _categoryController.text.trim(),
-      'contactInfo': _contactInfoController.text.trim(),
-      'status': _status,
-      'when': _selectedDate ?? DateTime.now(),
-      'location': _pickedLocation,
-      'images': widget.images.map((img) => File(img.path)).toList(),
-    };
-
-    // Simulate API call
-    await Future.delayed(const Duration(seconds: 2));
-
-    setState(() => _isSubmitting = false);
-
-    _showSuccessSnackBar('Post submitted successfully!');
+    final locationpiker = context.read<LocationCubit>();
+    final currentState = locationpiker.state;
+    LatLng? _pickedLocation = null;
+    if (currentState is LocationSelected) {
+      _pickedLocation = currentState.location;
+    }
+    if (_pickedLocation == null) {
+      _showErrorSnackBar("Please select a location");
+      return;
+    }
+    context.read<PostBloc>().add(UpdatePostEvent(
+            post: UploadablePostModel(
+          title: "asdasd",
+          description: _descriptionController.text.trim(),
+          category: _categoryController.text.trim(),
+          contactInfo: _contactInfoController.text.trim(),
+          status: _statusNotifier.value,
+          when: DateTime.now(),
+          images: images,
+          location: LocationModel(
+              type: "Point",
+              coordinates: [
+                _pickedLocation?.latitude ?? LatLng(0, 0).latitude,
+                _pickedLocation?.longitude ?? LatLng(0, 0).longitude
+              ],
+              placeName: "Selected Location"),
+          predictedItems: [],
+          user_id: "6862ee1eb389f2554cecea98",
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        )));
+    // go back to home page
+    _showSuccessSnackBar("Post submitted successfully!");
+    context.read<ImagespickerCubit>().clearImages();
     Navigator.pop(context);
   }
 
@@ -202,28 +223,41 @@ class _AddPostDetailsState extends State<AddPostDetails>
           ),
         ),
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: _isSubmitting
-                ? const Center(
-                    child: SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+          BlocConsumer<PostBloc, PostState>(
+            listener: (context, state) {
+              if (state is PostError) {
+                _showErrorSnackBar(state.message);
+              } else if (state is postCreatedState) {
+                _showSuccessSnackBar('Post created successfully!');
+                Navigator.pop(context);
+              }
+            },
+            builder: (context, state) {
+              return Padding(
+                padding: const EdgeInsets.only(right: 16),
+                child: state is PostLoading
+                    ? const Center(
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        ),
+                      )
+                    : TextButton.icon(
+                        onPressed: _submit,
+                        icon: const Icon(Icons.publish, color: Colors.white),
+                        label: const Text(
+                          'Publish',
+                          style: TextStyle(
+                              color: Colors.white, fontWeight: FontWeight.w600),
+                        ),
                       ),
-                    ),
-                  )
-                : TextButton.icon(
-                    onPressed: _submit,
-                    icon: const Icon(Icons.publish, color: Colors.white),
-                    label: const Text(
-                      'Publish',
-                      style: TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.w600),
-                    ),
-                  ),
+              );
+            },
           ),
         ],
       ),
@@ -241,7 +275,7 @@ class _AddPostDetailsState extends State<AddPostDetails>
                 children: [
                   // Images Preview Section
                   BuildImagesSection(
-                    images: widget.images.map((img) => File(img.path)).toList(),
+                    images: images.map((img) => File(img.path)).toList(),
                   ),
                   const SizedBox(height: 24),
 
@@ -281,7 +315,21 @@ class _AddPostDetailsState extends State<AddPostDetails>
                   BuildSectionCard(
                     title: 'Status',
                     icon: Icons.flag,
-                    children: [BuildStatusSelector()],
+                    children: [
+                      ValueListenableBuilder(
+                        valueListenable: _statusNotifier,
+                        builder: (context, status, child) {
+                          return BuildStatusSelector(
+                            status: status,
+                            onStatusChanged: () {
+                              final newStatus =
+                                  status == 'found' ? 'lost' : 'found';
+                              _statusNotifier.value = newStatus;
+                            },
+                          );
+                        },
+                      ),
+                    ],
                   ),
 
                   const SizedBox(height: 20),
@@ -291,6 +339,7 @@ class _AddPostDetailsState extends State<AddPostDetails>
                     title: 'Location & Date',
                     icon: Icons.place,
                     children: [
+                      // Location Selector screen
                       BuildLocationSelector(),
                       const SizedBox(height: 16),
                       BuildDateSelector(),

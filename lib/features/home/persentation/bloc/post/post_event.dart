@@ -50,7 +50,7 @@ class AddPostEvent extends PostEvent {
 }
 
 class UpdatePostEvent extends PostEvent {
-  final PostEntity post;
+  final UploadablePostModel post;
 
   const UpdatePostEvent({required this.post});
 

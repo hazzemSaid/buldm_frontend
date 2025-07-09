@@ -1,4 +1,5 @@
 import 'package:buldm/core/Dependency_njection/service_locator.dart';
+import 'package:buldm/features/Add_Post/presentation/bloc/imagespicker_cubit/imagespicker_cubit.dart';
 import 'package:buldm/features/Add_Post/presentation/view/screens/add_post_screen.dart';
 import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
@@ -23,20 +24,6 @@ class _MainLayoutState extends State<MainLayout> {
   final _homeScrollController = ScrollController();
   final _profileScrollController = ScrollController();
   final _settingScrollController = ScrollController();
-
-  late final List<Widget> _screens;
-
-  @override
-  void initState() {
-    super.initState();
-    _screens = [
-      HomeScreen(scrollController: _homeScrollController),
-      MapLocationScreen(),
-      PostUploadScreen(),
-      SearchScreen(),
-      ProfileScreen(),
-    ];
-  }
 
   void _onTap(int index) {
     if (_currentIndex == index) {
@@ -66,12 +53,27 @@ class _MainLayoutState extends State<MainLayout> {
           create: (context) => sl<UserBloc>(),
         ),
       ],
-      child: Scaffold(
-        body: IndexedStack(index: _currentIndex, children: _screens),
-        bottomNavigationBar: CustomNavBar(
-          currentIndex: _currentIndex,
-          onTap: _onTap,
-        ),
+      child: Builder(
+        builder: (context) {
+          final screens = [
+            HomeScreen(scrollController: _homeScrollController),
+            MapLocationScreen(),
+            BlocProvider(
+              create: (context) => ImagespickerCubit(),
+              child: PostUploadScreen(),
+            ),
+            SearchScreen(),
+            ProfileScreen(),
+          ];
+
+          return Scaffold(
+            body: IndexedStack(index: _currentIndex, children: screens),
+            bottomNavigationBar: CustomNavBar(
+              currentIndex: _currentIndex,
+              onTap: _onTap,
+            ),
+          );
+        },
       ),
     );
   }

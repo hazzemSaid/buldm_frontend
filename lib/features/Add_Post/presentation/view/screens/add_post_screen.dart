@@ -1,81 +1,86 @@
 import 'dart:io';
 
+import 'package:buldm/core/Dependency_njection/service_locator.dart';
+import 'package:buldm/features/Add_Post/presentation/bloc/imagespicker_cubit/imagespicker_cubit.dart';
+import 'package:buldm/features/Add_Post/presentation/bloc/location_cubit/location_cubit.dart';
 import 'package:buldm/features/Add_Post/presentation/view/screens/AddPostDetails.dart';
+import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 
-class PostUploadScreen extends StatefulWidget {
+class PostUploadScreen extends StatelessWidget {
   const PostUploadScreen({super.key});
 
-  @override
-  State<PostUploadScreen> createState() => _PostUploadScreenState();
-}
+  Future<void> _selectImages(BuildContext context) async {
+    final ImagePicker picker = ImagePicker();
+    final List<XFile>? selectedImages = await picker.pickMultiImage();
 
-class _PostUploadScreenState extends State<PostUploadScreen> {
-  final ImagePicker _picker = ImagePicker();
-  List<XFile> _pickedImages = [];
-
-  Future<void> _selectImages() async {
-    final images = await _picker.pickMultiImage();
-    if (images != null && images.isNotEmpty) {
-      setState(() {
-        _pickedImages = images;
-      });
+    if (selectedImages != null && selectedImages.isNotEmpty) {
+      context.read<ImagespickerCubit>().selectImages(selectedImages);
     }
   }
 
-  void _goNext() {
-    // هنا تروح للشاشة اللي فيها تفاصيل النشر
-    // وتبعت الصور المختارة
+  void _goNext(BuildContext context, List<XFile> images) {
+    // Get the PostBloc from the current context before navigation
+    final postBloc = context.read<PostBloc>();
+    final imagespicker = context.read<ImagespickerCubit>();
     Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => AddPostDetails(images: _pickedImages),
-      ),
-    );
+        context,
+        MaterialPageRoute(
+            builder: (context) => MultiBlocProvider(
+                  providers: [
+                    BlocProvider.value(
+                      value: postBloc,
+                    ),
+                    BlocProvider<LocationCubit>(
+                      create: (context) => sl<LocationCubit>(),
+                    ),
+                    BlocProvider<ImagespickerCubit>.value(
+                      value: imagespicker,
+                    ),
+                  ],
+                  child: AddPostDetails(),
+                )));
+  }
+
+  void _clearImages(BuildContext context) {
+    context.read<ImagespickerCubit>().clearImages();
+    Navigator.maybePop(context);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text("Post Upload"),
-            IconButton(
-              icon: const Icon(Icons.close),
-              onPressed: () {
-                setState(() {
-                  _pickedImages.clear();
-                });
-                Navigator.maybePop(context);
-              },
+    return BlocBuilder<ImagespickerCubit, ImagespickerState>(
+      builder: (context, state) {
+        if (state is ImagespickerLoaded) {
+          final pickedImages = state.images;
+          return Scaffold(
+            appBar: AppBar(
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text("Post Upload"),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => _clearImages(context),
+                  ),
+                ],
+              ),
+              actions: [
+                if (pickedImages.isNotEmpty)
+                  TextButton(
+                    onPressed: () => _goNext(context, pickedImages),
+                    child: const Text(
+                      "التالي",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  )
+              ],
             ),
-          ],
-        ),
-        actions: [
-          if (_pickedImages.isNotEmpty)
-            TextButton(
-              onPressed: _goNext,
-              child: const Text(
-                "التالي",
-                style: TextStyle(color: Colors.white),
-              ),
-            )
-        ],
-      ),
-      body: _pickedImages.isEmpty
-          ? Center(
-              child: ElevatedButton.icon(
-                onPressed: _selectImages,
-                icon: const Icon(Icons.add_a_photo),
-                label: const Text('اختر صور من المعرض'),
-              ),
-            )
-          : PageView.builder(
+            body: PageView.builder(
               scrollDirection: Axis.horizontal,
-              itemCount: _pickedImages.length,
+              itemCount: pickedImages.length,
               itemBuilder: (context, index) {
                 return Container(
                   width: MediaQuery.of(context).size.width,
@@ -93,12 +98,27 @@ class _PostUploadScreenState extends State<PostUploadScreen> {
                     ],
                   ),
                   child: Image.file(
-                    File(_pickedImages[index].path),
+                    File(pickedImages[index].path),
                     fit: BoxFit.contain,
                   ),
                 );
               },
             ),
+          );
+        } else {
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text("Post Upload"),
+            ),
+            body: Center(
+              child: ElevatedButton(
+                onPressed: () => _selectImages(context),
+                child: const Text("Select Images"),
+              ),
+            ),
+          );
+        }
+      },
     );
   }
 }

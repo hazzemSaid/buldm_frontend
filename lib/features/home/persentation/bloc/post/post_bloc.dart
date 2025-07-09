@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:bloc/bloc.dart';
+import 'package:buldm/features/Add_Post/data/model/UploadablePostModel.dart';
 import 'package:buldm/features/auth/domain/usecases/get_currentuser_usercase.dart';
 import 'package:buldm/features/home/data/models/post_model.dart';
 import 'package:buldm/features/home/domain/entities/postentity.dart';
@@ -90,7 +91,34 @@ class PostBloc extends Bloc<PostEvent, PostState> {
 
   Future<void> _onUpdatePost(
       UpdatePostEvent event, Emitter<PostState> emit) async {
-    // Logic to update a post
+    emit(PostLoading());
+    try {
+      final user = await getCurrentuserUsercase();
+      final token = user?.token ?? '';
+      final uploadpostmodel = event.post;
+      final data = uploadpostmodel.toJson();
+      final formData = FormData.fromMap({
+        ...data,
+        'images': await Future.wait(uploadpostmodel.images.map((image) async {
+          return await MultipartFile.fromFile(image.path,
+              filename: image.path.split('/').last);
+        })),
+      });
+      await createPostUsecase(data: formData, token: token);
+
+      emit(postCreatedState());
+      // Optionally, you can reload posts after adding a new one
+      add(LoadPostEvent(
+        category: null,
+        status: null,
+        userId: null,
+        searchQuery: null,
+        limit: 5,
+        page: 1,
+      ));
+    } catch (e) {
+      emit(PostError(message: e.toString()));
+    }
   }
 
   Future<void> _onDeletePost(
