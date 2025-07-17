@@ -18,6 +18,11 @@ import 'package:buldm/features/home/domain/usecases/getPostUseCase.dart';
 import 'package:buldm/features/home/domain/usecases/getUserById.dart';
 import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
+import 'package:buldm/features/profile/data/datasource/profile_remote_data_resource.dart';
+import 'package:buldm/features/profile/data/repo/profilerepoimp.dart';
+import 'package:buldm/features/profile/domain/repo/ProfileRepository.dart';
+import 'package:buldm/features/profile/domain/usecases/fetchpost.dart';
+import 'package:buldm/features/profile/presentation/blocs/profile/profile_cubit.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive/hive.dart';
@@ -31,7 +36,7 @@ void setupDio(Dio dio) {
       onRequest: (options, handler) async {
         final userBox = Hive.box<UserModel>('user');
         final user = userBox.get('user');
-        if (user != null && user.refreshToken != null) {
+        if (user != null) {
           options.headers['Authorization'] = 'Bearer ${user.refreshToken}';
         }
         return handler.next(options);
@@ -42,7 +47,7 @@ void setupDio(Dio dio) {
           final userBox = Hive.box<UserModel>('user');
           final user = userBox.get('user');
 
-          if (user == null || user.refreshToken == null) {
+          if (user == null) {
             await userBox.clear();
             return handler.reject(error);
           }
@@ -83,7 +88,7 @@ void setupDio(Dio dio) {
 Future<void> init() async {
   /// ✅ Dio
   final dio = Dio(BaseOptions(
-    baseUrl: 'http://192.168.1.15:3000/api/v1',
+    baseUrl: 'http://192.168.1.8:3000/api/v1',
     //  for testing on real device
     // baseUrl: 'http://10.0.2.2:3000/api/v1',
     connectTimeout: const Duration(seconds: 30),
@@ -153,4 +158,19 @@ Future<void> init() async {
   sl.registerFactory(() => UserBloc(getuserbyid: sl()));
   // location cubit
   sl.registerFactory(() => LocationCubit());
+  sl.registerLazySingleton<ProfileRemoteDataResource>(
+    () => ProfileRemoteDataResourceImpl(dio: sl()),
+  );
+
+  // Profile Repository (reusing existing RemotePostDataSource)
+  sl.registerLazySingleton<ProfileRepository>(() => Profilerepoimp(
+      profileRemoteDataResource: sl<ProfileRemoteDataResource>()));
+
+  // fetch post UseCase
+  sl.registerLazySingleton(
+      () => Fetchpost(profileRepository: sl<ProfileRepository>()));
+  // Profile cubit
+  sl.registerFactory(() => ProfileCubit(
+        fetchpostUseCase: sl<Fetchpost>(),
+      ));
 }

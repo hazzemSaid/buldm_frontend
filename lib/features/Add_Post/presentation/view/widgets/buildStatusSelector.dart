@@ -16,10 +16,10 @@ class BuildStatusSelector extends StatelessWidget {
               duration: const Duration(milliseconds: 200),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: status == 'lost' ? Colors.red.shade50 : Colors.grey[100],
+                color: status == 'LOST' ? Colors.red.shade50 : Colors.grey[100],
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: status == 'lost' ? Colors.red : Colors.grey[300]!,
+                  color: status == 'LOST' ? Colors.red : Colors.grey[300]!,
                   width: 2,
                 ),
               ),
@@ -27,14 +27,14 @@ class BuildStatusSelector extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.search_off,
-                    color: status == 'lost' ? Colors.red : Colors.grey[600],
+                    color: status == 'LOST' ? Colors.red : Colors.grey[600],
                     size: 32,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Lost',
+                    'LOST',
                     style: TextStyle(
-                      color: status == 'lost' ? Colors.red : Colors.grey[700],
+                      color: status == 'LOST' ? Colors.red : Colors.grey[700],
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -52,10 +52,10 @@ class BuildStatusSelector extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color:
-                    status == 'found' ? Colors.green.shade50 : Colors.grey[100],
+                    status == 'FOUND' ? Colors.green.shade50 : Colors.grey[100],
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: status == 'found' ? Colors.green : Colors.grey[300]!,
+                  color: status == 'FOUND' ? Colors.green : Colors.grey[300]!,
                   width: 2,
                 ),
               ),
@@ -63,15 +63,15 @@ class BuildStatusSelector extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.check_circle_outline,
-                    color: status == 'found' ? Colors.green : Colors.grey[600],
+                    color: status == 'FOUND' ? Colors.green : Colors.grey[600],
                     size: 32,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Found',
+                    'FOUND',
                     style: TextStyle(
                       color:
-                          status == 'found' ? Colors.green : Colors.grey[700],
+                          status == 'FOUND' ? Colors.green : Colors.grey[700],
                       fontWeight: FontWeight.w600,
                     ),
                   ),

@@ -18,7 +18,10 @@ class UserModel extends HiveObject implements User, Equatable {
   final String token;
   @HiveField(4)
   final String refreshToken;
+  @HiveField(5)
+  final String user_id;
   UserModel({
+    required this.user_id,
     required this.name,
     required this.email,
     this.avatar = "/image/2024.png",
@@ -28,6 +31,7 @@ class UserModel extends HiveObject implements User, Equatable {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
+      user_id: json['user_id'],
       name: json['name'],
       email: json['email'],
       avatar: json['avatar'] ?? '/image/2024.png',
@@ -38,6 +42,7 @@ class UserModel extends HiveObject implements User, Equatable {
 
   Map<String, dynamic> toJson() {
     return {
+      'user_id': user_id,
       'name': name,
       'email': email,
       'avatar': avatar,
@@ -48,7 +53,8 @@ class UserModel extends HiveObject implements User, Equatable {
 
   @override
   // TODO: implement props
-  List<Object?> get props => [name, email, avatar, token, refreshToken];
+  List<Object?> get props =>
+      [name, email, avatar, token, refreshToken, user_id];
 
   @override
   // TODO: implement stringify

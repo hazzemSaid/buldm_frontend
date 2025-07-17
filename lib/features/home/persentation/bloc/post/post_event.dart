@@ -49,10 +49,10 @@ class AddPostEvent extends PostEvent {
   bool? get stringify => true;
 }
 
-class UpdatePostEvent extends PostEvent {
+class uploadPostEvent extends PostEvent {
   final UploadablePostModel post;
 
-  const UpdatePostEvent({required this.post});
+  const uploadPostEvent({required this.post});
 
   @override
   List<Object?> get props => [post];

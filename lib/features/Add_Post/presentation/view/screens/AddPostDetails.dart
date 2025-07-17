@@ -10,11 +10,14 @@ import 'package:buldm/features/Add_Post/presentation/view/widgets/buildImagesSec
 import 'package:buldm/features/Add_Post/presentation/view/widgets/buildLocationSelector.dart';
 import 'package:buldm/features/Add_Post/presentation/view/widgets/buildSectionCard.dart';
 import 'package:buldm/features/Add_Post/presentation/view/widgets/buildStatusSelector.dart';
+import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
+import 'package:buldm/features/auth/presentaion/view/bloc/auth_state.dart';
 import 'package:buldm/features/home/data/models/location_model.dart';
 import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:hive/hive.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -30,7 +33,7 @@ class _AddPostDetailsState extends State<AddPostDetails>
   List<XFile> images = [];
   final _formKey = GlobalKey<FormState>();
   final _scrollController = ScrollController();
-  final ValueNotifier<String> _statusNotifier = ValueNotifier<String>('found');
+  final ValueNotifier<String> _statusNotifier = ValueNotifier<String>('FOUND');
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _categoryController = TextEditingController();
@@ -65,6 +68,7 @@ class _AddPostDetailsState extends State<AddPostDetails>
 
   @override
   void initState() {
+    // loadModel();
     super.initState();
     if (context.read<ImagespickerCubit>().state is ImagespickerLoaded) {
       images = (context.read<ImagespickerCubit>().state as ImagespickerLoaded)
@@ -124,24 +128,26 @@ class _AddPostDetailsState extends State<AddPostDetails>
       _showErrorSnackBar("Please select a location");
       return;
     }
-    context.read<PostBloc>().add(UpdatePostEvent(
+    context.read<PostBloc>().add(uploadPostEvent(
             post: UploadablePostModel(
           title: "asdasd",
           description: _descriptionController.text.trim(),
           category: _categoryController.text.trim(),
           contactInfo: _contactInfoController.text.trim(),
-          status: _statusNotifier.value,
+          status: _statusNotifier.value.toLowerCase(),
           when: DateTime.now(),
           images: images,
           location: LocationModel(
               type: "Point",
               coordinates: [
-                _pickedLocation?.latitude ?? LatLng(0, 0).latitude,
-                _pickedLocation?.longitude ?? LatLng(0, 0).longitude
+                _pickedLocation.latitude,
+                _pickedLocation.longitude
               ],
               placeName: "Selected Location"),
           predictedItems: [],
-          user_id: "6862ee1eb389f2554cecea98",
+          user_id: context.read<AuthCubit>().state is Authenticated
+              ? (context.read<AuthCubit>().state as Authenticated).user.user_id
+              : Hive.box('user').get('user_id', defaultValue: ''),
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         )));
@@ -302,6 +308,7 @@ class _AddPostDetailsState extends State<AddPostDetails>
                     icon: Icons.category,
                     children: [
                       BuildCategorySelector(
+                        images: images,
                         categories: _categories,
                         categoryIcons: _categoryIcons,
                         categoryController: _categoryController,
@@ -323,7 +330,7 @@ class _AddPostDetailsState extends State<AddPostDetails>
                             status: status,
                             onStatusChanged: () {
                               final newStatus =
-                                  status == 'found' ? 'lost' : 'found';
+                                  status == 'FOUND' ? 'LOST' : 'FOUND';
                               _statusNotifier.value = newStatus;
                             },
                           );

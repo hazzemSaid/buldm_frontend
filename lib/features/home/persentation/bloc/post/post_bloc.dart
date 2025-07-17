@@ -27,7 +27,7 @@ class PostBloc extends Bloc<PostEvent, PostState> {
       : super(PostInitial()) {
     on<LoadPostEvent>(_onLoadPost);
     on<AddPostEvent>(_onAddPost);
-    on<UpdatePostEvent>(_onUpdatePost);
+    on<uploadPostEvent>(_onUpdatePost);
     on<DeletePostEvent>(_onDeletePost);
     on<FilterPostEvent>(_onFilterPost);
     on<LoadMorePostsEvent>(_onLoadMorePosts);
@@ -90,7 +90,7 @@ class PostBloc extends Bloc<PostEvent, PostState> {
   }
 
   Future<void> _onUpdatePost(
-      UpdatePostEvent event, Emitter<PostState> emit) async {
+      uploadPostEvent event, Emitter<PostState> emit) async {
     emit(PostLoading());
     try {
       final user = await getCurrentuserUsercase();

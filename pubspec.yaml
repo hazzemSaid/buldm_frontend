@@ -45,7 +45,8 @@ dependencies:
   geolocator: ^14.0.2
   latlong2: ^0.9.1
   flutter_map: ^8.1.1
-
+  tflite_flutter: ^0.11.0
+  image: ^4.0.17
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -64,6 +65,7 @@ flutter:
     - .env
     - assets/images/
     - assets/animations/
+    - assets/ai/buldm.tflite
 
   fonts:
     - family: SFProDisplay

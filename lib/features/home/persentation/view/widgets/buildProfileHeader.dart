@@ -1,4 +1,7 @@
+import 'package:buldm/core/Dependency_njection/service_locator.dart';
 import 'package:buldm/features/auth/domain/entities/userentities.dart';
+import 'package:buldm/features/auth/domain/usecases/get_currentuser_usercase.dart';
+import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
 import 'package:buldm/features/home/domain/entities/postentity.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_state.dart';
@@ -10,12 +13,30 @@ import 'package:shimmer/shimmer.dart';
 class buildProfileHeader extends StatelessWidget {
   final String? userId;
   final PostEntity post;
+  final GetCurrentuserUsercase showMoreButton =
+      sl<AuthCubit>().getCurrentuserUsercase;
 
-  const buildProfileHeader({
+  buildProfileHeader({
     super.key,
     required this.userId,
     required this.post,
   });
+  String _formatPostDate(DateTime createdAt) {
+    final now = DateTime.now();
+    final difference = now.difference(createdAt);
+
+    if (difference.inDays > 7) {
+      return DateFormat('MMM dd, yyyy').format(createdAt);
+    } else if (difference.inDays > 0) {
+      return '${difference.inDays}d ago';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}h ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}m ago';
+    } else {
+      return 'Just now';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,9 +77,7 @@ class buildProfileHeader extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      DateFormat('MMM d, yyyy • hh:mm a').format(
-                        post.createdAt,
-                      ),
+                      _formatPostDate(post.createdAt),
                       style: textTheme.bodySmall?.copyWith(
                         color: Colors.grey.shade600,
                         fontSize: 12,
@@ -70,19 +89,27 @@ class buildProfileHeader extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.green.shade50,
+                  color: post.status == "found"
+                      ? Colors.green.withOpacity(0.1)
+                      : Colors.red.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.check_circle,
-                        size: 16, color: Colors.green),
+                    Icon(
+                        post.status == "found"
+                            ? Icons.check_circle
+                            : Icons.error,
+                        size: 16,
+                        color:
+                            post.status == "found" ? Colors.green : Colors.red),
                     const SizedBox(width: 4),
                     Text(
-                      post.status,
-                      style: const TextStyle(
-                        color: Colors.green,
+                      post.status.toUpperCase(),
+                      style: TextStyle(
+                        color:
+                            post.status == "found" ? Colors.green : Colors.red,
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),
@@ -98,33 +125,42 @@ class buildProfileHeader extends StatelessWidget {
                   showModalBottomSheet(
                     context: context,
                     builder: (context) {
-                      return ListView(
-                        shrinkWrap: true,
-                        children: [
-                          ListTile(
-                              leading: const Icon(Icons.edit),
-                              title: const Text('Edit Post'),
-                              onTap: () {
-                                // Handle edit post action
-                                Navigator.pop(context);
-                              }),
-                          ListTile(
-                            leading: const Icon(Icons.delete),
-                            title: const Text('Delete Post'),
-                            onTap: () {
-                              // Handle delete post action
-                              Navigator.pop(context);
-                            },
-                          ),
-                          ListTile(
-                            leading: const Icon(Icons.report),
-                            title: const Text('Report Post'),
-                            onTap: () {
-                              // Handle report post action
-                              Navigator.pop(context);
-                            },
-                          ),
-                        ],
+                      return FutureBuilder(
+                        future: showMoreButton.call(),
+                        builder: (context, snapshot) {
+                          final currentUser = snapshot.data;
+                          return ListView(
+                            shrinkWrap: true,
+                            children: [
+                              if (currentUser != null &&
+                                  post.user_id == currentUser.user_id) ...[
+                                ListTile(
+                                    leading: const Icon(Icons.edit),
+                                    title: const Text('Edit Post'),
+                                    onTap: () {
+                                      // Handle edit post action
+                                      Navigator.pop(context);
+                                    }),
+                                ListTile(
+                                  leading: const Icon(Icons.delete),
+                                  title: const Text('Delete Post'),
+                                  onTap: () {
+                                    // Handle delete post action
+                                    Navigator.pop(context);
+                                  },
+                                ),
+                              ],
+                              ListTile(
+                                leading: const Icon(Icons.report),
+                                title: const Text('Report Post'),
+                                onTap: () {
+                                  // Handle report post action
+                                  Navigator.pop(context);
+                                },
+                              ),
+                            ],
+                          );
+                        },
                       );
                     },
                   );

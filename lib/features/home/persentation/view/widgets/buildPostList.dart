@@ -18,7 +18,28 @@ class buildPostList extends StatelessWidget {
         if (state is PostLoaded) {
           final posts = state.posts;
           final isLoadingMore = state.isLoadingMore;
-
+          if (posts.isEmpty) {
+            return SliverFillRemaining(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      'No posts have been in app , post your first post now! ',
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    Icon(
+                      Icons.sentiment_dissatisfied,
+                      size: 48,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
           return SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, index) {

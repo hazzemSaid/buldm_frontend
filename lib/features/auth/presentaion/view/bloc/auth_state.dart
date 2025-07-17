@@ -1,5 +1,5 @@
+import 'package:buldm/features/auth/data/model/usermodel.dart';
 import 'package:buldm/features/auth/domain/entities/registeruserentities.dart';
-import 'package:buldm/features/auth/domain/entities/userentities.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class AuthState extends Equatable {}
@@ -21,7 +21,7 @@ class SignUp extends AuthState {
 }
 
 class Authenticated extends AuthState {
-  final User user;
+  final UserModel user;
 
   Authenticated({
     required this.user,

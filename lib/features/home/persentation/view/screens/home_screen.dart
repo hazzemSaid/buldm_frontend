@@ -61,6 +61,8 @@ class _HomeScreenState extends State<HomeScreen> {
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () async {
+            //delete the cache
+
             _postBloc.add(
               LoadPostEvent(
                 category: null,
