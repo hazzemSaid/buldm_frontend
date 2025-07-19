@@ -4,6 +4,7 @@ import 'package:buldm/features/auth/domain/usecases/google_auth_usecase.dart';
 import 'package:buldm/features/auth/domain/usecases/signin_user_usecase.dart';
 import 'package:buldm/features/auth/domain/usecases/signout_usecase.dart';
 import 'package:buldm/features/auth/domain/usecases/signup_user_usecase.dart';
+import 'package:buldm/features/auth/domain/usecases/verifyEmailCode.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_state.dart';
 
 class AuthCubit extends Cubit<AuthState> {
@@ -12,7 +13,9 @@ class AuthCubit extends Cubit<AuthState> {
   final GoogleAuthUsecase googleAuthUsecase;
   final GetCurrentuserUsercase getCurrentuserUsercase;
   final SignOutUseCase signOutUseCase;
+  final VerifyEmailCode verifyEmailCode;
   AuthCubit({
+    required this.verifyEmailCode,
     required this.signOutUseCase,
     required this.getCurrentuserUsercase,
     required this.signInUserUseCase,
@@ -77,6 +80,16 @@ class AuthCubit extends Cubit<AuthState> {
     try {
       await signOutUseCase.signOut();
       emit(UnAuthenticated());
+    } catch (e) {
+      emit(AuthError(message: e.toString()));
+    }
+  }
+
+  Future<void> verifyEmail(
+      {required String code, required String email}) async {
+    try {
+      final response = await verifyEmailCode.call(code, email);
+      emit(Authenticated(user: response));
     } catch (e) {
       emit(AuthError(message: e.toString()));
     }

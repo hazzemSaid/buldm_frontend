@@ -1,40 +1,24 @@
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_state.dart';
-import 'package:buldm/features/auth/presentaion/view/screen/SignupScreen.dart';
+import 'package:buldm/features/auth/presentaion/view/screen/SignInScreen.dart';
+import 'package:buldm/features/auth/presentaion/view/screen/VerificationEmailScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class SignInScreen extends StatefulWidget {
-  const SignInScreen({super.key});
+class SignupScreen extends StatefulWidget {
+  const SignupScreen({super.key});
 
   @override
-  State<SignInScreen> createState() => _SignInScreenState();
+  State<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _SignInScreenState extends State<SignInScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+class _SignupScreenState extends State<SignupScreen> {
+  @override
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
   bool _rememberMe = false;
-  bool _navigated = false;
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _emailController.clear();
-    _passwordController.clear();
-    _rememberMe = false;
-    _navigated = false;
-  }
-
-  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
@@ -47,14 +31,14 @@ class _SignInScreenState extends State<SignInScreen> {
             children: [
               const SizedBox(height: 32.0),
               Text(
-                'Welcome Back 👋',
+                'Create an Account',
                 style: theme.textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 8.0),
               Text(
-                'Login to your account to continue',
+                'Sign up to get started with Buldm',
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: Colors.grey[600],
                 ),
@@ -68,7 +52,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   if (state is Loading) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Signing in with Google...'),
+                        content: Text('Signing up with Google...'),
                         duration: Duration(seconds: 2),
                       ),
                     );
@@ -94,7 +78,7 @@ class _SignInScreenState extends State<SignInScreen> {
                     width: 24.0,
                     fit: BoxFit.cover,
                   ),
-                  label: const Text('Continue with Google'),
+                  label: const Text('Sign up with Google'),
                   style: ElevatedButton.styleFrom(
                     //using theme.primaryColor for Google button
                     backgroundColor: theme.primaryColor,
@@ -116,7 +100,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
                     child: Text(
-                      'or use your email',
+                      'OR',
                       style: theme.textTheme.bodyMedium
                           ?.copyWith(color: Colors.grey[600]),
                     ),
@@ -131,6 +115,26 @@ class _SignInScreenState extends State<SignInScreen> {
                 key: _formKey,
                 child: Column(
                   children: [
+                    TextFormField(
+                      controller: _nameController,
+                      decoration: InputDecoration(
+                        labelText: 'Name',
+                        prefixIcon: const Icon(Icons.person_outline),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your name';
+                        }
+                        if (value.length < 2) {
+                          return 'Name must be at least 2 characters';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16.0),
                     TextFormField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
@@ -173,16 +177,13 @@ class _SignInScreenState extends State<SignInScreen> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 8.0),
-
-                    // Forgot Password
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () {},
-                        child: const Text('Forgot Password?'),
-                      ),
+                    Text(
+                      "The password must be at least 6 characters long and contain at least one uppercase letter, one lowercase letter, and one number.",
+                      style: theme.textTheme.bodySmall
+                          ?.copyWith(color: Colors.grey[600]),
                     ),
+                    const SizedBox(height: 16.0),
+                    // Forgot Password
 
                     // Remember Me
                     Row(
@@ -211,6 +212,23 @@ class _SignInScreenState extends State<SignInScreen> {
                             ),
                           );
                         }
+                        if (state is SignUp) {
+                          // screen for varification email
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                  'Please check your email for verification'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                              builder: (context) => VerificationEmailScreen(
+                                email: _emailController.text,
+                              ),
+                            ),
+                          );
+                        }
                       },
                       child: BlocBuilder<AuthCubit, AuthState>(
                         builder: (context, state) {
@@ -223,10 +241,12 @@ class _SignInScreenState extends State<SignInScreen> {
                           return ElevatedButton(
                             onPressed: () {
                               if (_formKey.currentState!.validate()) {
-                                context.read<AuthCubit>().signIn(
-                                      email: _emailController.text.trim(),
-                                      password: _passwordController.text.trim(),
+                                context.read<AuthCubit>().signUp(
+                                      _emailController.text,
+                                      _passwordController.text,
+                                      _nameController.text,
                                     );
+                                // Optionally, navigate to another screen after sign up
                               }
                             },
                             style: ElevatedButton.styleFrom(
@@ -237,7 +257,7 @@ class _SignInScreenState extends State<SignInScreen> {
                               backgroundColor: theme.primaryColor,
                               foregroundColor: Colors.white,
                             ),
-                            child: const Text('Sign In'),
+                            child: const Text(' Sign Up  '),
                           );
                         },
                       ),
@@ -249,16 +269,16 @@ class _SignInScreenState extends State<SignInScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text("Don't have an account? "),
+                        const Text("Already have an account? "),
                         TextButton(
                           onPressed: () {
                             Navigator.of(context).pushReplacement(
                               MaterialPageRoute(
-                                builder: (context) => const SignupScreen(),
+                                builder: (context) => const SignInScreen(),
                               ),
                             );
                           },
-                          child: const Text('Create an Account'),
+                          child: const Text('Sign In'),
                         ),
                       ],
                     ),

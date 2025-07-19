@@ -9,6 +9,7 @@ import 'package:buldm/features/auth/domain/usecases/google_auth_usecase.dart';
 import 'package:buldm/features/auth/domain/usecases/signin_user_usecase.dart';
 import 'package:buldm/features/auth/domain/usecases/signout_usecase.dart';
 import 'package:buldm/features/auth/domain/usecases/signup_user_usecase.dart';
+import 'package:buldm/features/auth/domain/usecases/verifyEmailCode.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
 import 'package:buldm/features/home/data/datasource/remote_post_data_source.dart';
 import 'package:buldm/features/home/data/repository/postrepositoryimp.dart';
@@ -118,10 +119,11 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GoogleAuthUsecase(authRepository: sl()));
   sl.registerLazySingleton(() => GetCurrentuserUsercase(authRepository: sl()));
   sl.registerLazySingleton(() => SignOutUseCase(authRepository: sl()));
-
+  sl.registerLazySingleton(() => VerifyEmailCode(authRepository: sl()));
   // Auth Cubit
   final authCubit = AuthCubit(
     signInUserUseCase: sl(),
+    verifyEmailCode: sl(),
     signUpUserUseCase: sl(),
     googleAuthUsecase: sl(),
     getCurrentuserUsercase: sl(),

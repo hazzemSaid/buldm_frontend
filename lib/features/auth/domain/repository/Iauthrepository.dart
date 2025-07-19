@@ -13,4 +13,7 @@ abstract class authRepositoryInterface {
   Future<void> updateProfile(String name, String photoUrl);
   Future<void> deleteAccount();
   Future<UserModel?> getCurrentUser();
+
+  Future<UserModel> verifyEmailCode(
+      {required String code, required String email});
 }

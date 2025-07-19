@@ -110,4 +110,17 @@ class AuthRepositoryImpl implements authRepositoryInterface {
     }
     return userBox.get('user'); // Retrieve the current user
   }
+
+  @override
+  Future<UserModel> verifyEmailCode(
+      {required String code, required String email}) async {
+    final userModel = await remoteDataSourceImpl.verifyEmailCode(
+      code: code,
+      email: email,
+    );
+
+    // Cache the user in the local data source
+    await localDataSourceImpl.cacheUser(userModel);
+    return userModel;
+  }
 }

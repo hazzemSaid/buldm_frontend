@@ -9,11 +9,19 @@ class SearchScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-          child: IconButton(
+          child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text("Not Implemented Yet",
+              style: Theme.of(context).textTheme.headlineMedium),
+          IconButton(
               onPressed: () {
                 BlocProvider.of<LocalizationCubit>(context).switchLanguage();
               },
-              icon: Icon(Icons.language))),
+              icon: Icon(Icons.language)),
+        ],
+      )),
     );
   }
 }

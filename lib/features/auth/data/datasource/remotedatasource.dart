@@ -3,6 +3,10 @@ import 'package:buldm/features/auth/data/model/usermodel.dart';
 import 'package:dio/dio.dart';
 
 abstract class AuthRemoteDataSource {
+  Future<UserModel> verifyEmailCode({
+    required String code,
+    required String email,
+  });
   Future<UserModel> signInWithEmailAndPassword({
     required String email,
     required String password,
@@ -78,7 +82,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<void> signOut() async {
-    // أنت ممكن تحذف التوكن من SharedPreferences هنا مثلاً
     return;
   }
 
@@ -91,5 +94,29 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       data: {'token': idToken},
     );
     return response;
+  }
+
+  @override
+  Future<UserModel> verifyEmailCode(
+      {required String code, required String email}) async {
+    // {{BASE_URL}}/api/v1/user/verifyemail
+    try {
+      final response = await dio.post(
+        '/user/verifyemail',
+        data: {
+          'code': code,
+          'email': email,
+        },
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return UserModel.fromJson(response.data['user']);
+      } else {
+        throw Exception('Failed to verify email code');
+      }
+    } on DioException catch (e) {
+      throw Exception(
+          'Email verification error: ${e.response?.data ?? e.message}');
+    }
   }
 }
