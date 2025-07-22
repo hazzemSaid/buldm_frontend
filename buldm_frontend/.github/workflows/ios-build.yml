@@ -1,0 +1,44 @@
+name: iOS Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 'latest'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build iOS app
+        run: flutter build ios --no-codesign
+
+      - name: Prepare IPA structure
+        run: |
+          mkdir -p build/ios/ipa
+          cp -R build/ios/iphoneos/*.app build/ios/ipa/
+
+      - name: Create IPA file
+        run: |
+          xcodebuild -exportArchive -archivePath build/ios/iphoneos/*.xcarchive -exportPath build/ios/ipa -exportOptionsPlist ios/ExportOptions.plist
+
+      - name: Upload IPA to GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: build/ios/ipa/*.ipa
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -82,7 +82,9 @@ class _PostWidgetState extends State<PostWidget>
             imagePaths: widget.post.images,
           ),
           const SizedBox(height: 8),
-          const BuildPostActions(),
+          BuildPostActions(
+            post: widget.post,
+          ),
         ],
       ),
     );

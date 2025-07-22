@@ -1,8 +1,10 @@
+import 'package:buldm/features/home/domain/entities/postentity.dart';
 import 'package:buldm/features/home/persentation/view/screens/CommentBottomSheet.dart';
 import 'package:flutter/material.dart';
 
 class BuildPostActions extends StatelessWidget {
-  const BuildPostActions({super.key});
+  const BuildPostActions({super.key, required this.post});
+  final PostEntity post;
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +46,11 @@ class BuildPostActions extends StatelessWidget {
           _glassAction(
             icon: Icons.pin_drop_outlined,
             label: "Location",
-            onTap: () {},
+            onTap: () {
+              //using a single tap to open a location screen for one location
+              print(
+                  "Location: ${post.location.coordinates[0]}, ${post.location.coordinates[1]}");
+            },
             iconColor: Colors.teal,
             surfaceColor: surfaceColor,
             textColor: textColor,
