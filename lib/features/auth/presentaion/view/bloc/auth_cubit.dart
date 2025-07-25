@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:buldm/core/Dependency_njection/service_locator.dart';
 import 'package:buldm/features/auth/domain/usecases/get_currentuser_usercase.dart';
 import 'package:buldm/features/auth/domain/usecases/google_auth_usecase.dart';
 import 'package:buldm/features/auth/domain/usecases/signin_user_usecase.dart';

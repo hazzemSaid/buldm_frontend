@@ -1,3 +1,4 @@
+import 'package:buldm/core/http/socket.io/socketserver.dart';
 import 'package:buldm/features/Add_Post/presentation/bloc/location_cubit/location_cubit.dart';
 import 'package:buldm/features/auth/data/datasource/localdatasource.dart';
 import 'package:buldm/features/auth/data/datasource/remotedatasource.dart';
@@ -11,6 +12,11 @@ import 'package:buldm/features/auth/domain/usecases/signout_usecase.dart';
 import 'package:buldm/features/auth/domain/usecases/signup_user_usecase.dart';
 import 'package:buldm/features/auth/domain/usecases/verifyEmailCode.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
+import 'package:buldm/features/chat/data/datasource/chat_remote_data_source.dart';
+import 'package:buldm/features/chat/data/repo/chatrepoimp.dart';
+import 'package:buldm/features/chat/domain/repo/chatrepo.dart';
+import 'package:buldm/features/chat/domain/usecases/getAllMessagesById.dart';
+import 'package:buldm/features/chat/domain/usecases/getMessagesByTId.dart';
 import 'package:buldm/features/home/data/datasource/remote_post_data_source.dart';
 import 'package:buldm/features/home/data/repository/postrepositoryimp.dart';
 import 'package:buldm/features/home/domain/repository/postrepository.dart';
@@ -108,10 +114,11 @@ Future<void> init() async {
       () => AuthRemoteDataSourceImpl(dio: sl()));
   sl.registerLazySingleton<AuthLocalDataSourceImpl>(
       () => AuthLocalDataSourceImpl(Hive.box<UserModel>('user')));
-
   // Repository
   sl.registerLazySingleton<authRepositoryInterface>(() => AuthRepositoryImpl(
-      remoteDataSourceImpl: sl(), localDataSourceImpl: sl()));
+        remoteDataSourceImpl: sl(),
+        localDataSourceImpl: sl(),
+      ));
 
   // Use Cases
   sl.registerLazySingleton(() => SignInUserUseCase(repository: sl()));
@@ -130,6 +137,7 @@ Future<void> init() async {
     signOutUseCase: sl(),
   );
   sl.registerSingleton<AuthCubit>(authCubit);
+
   authCubit.appStarted(); // Optional: check login on app start
 
   /// ✅ Home Module - Post
@@ -175,4 +183,13 @@ Future<void> init() async {
   sl.registerFactory(() => ProfileCubit(
         fetchpostUseCase: sl<Fetchpost>(),
       ));
+
+  sl.registerLazySingleton<ChatRemoteDataSource>(
+      () => ChatRemoteDataSourceImpl(dio: sl()));
+  sl.registerLazySingleton<ChatRepo>(
+      () => ChatRepoImpl(sl<ChatRemoteDataSource>()));
+  sl.registerLazySingleton(() => ChatRepoImpl(sl<ChatRemoteDataSource>()));
+  sl.registerLazySingleton(() => GetMessagesByTId(sl<ChatRepo>()));
+  sl.registerLazySingleton(() => GetAllMessagesById(sl<ChatRepo>()));
+  sl.registerLazySingleton(() => SocketService());
 }

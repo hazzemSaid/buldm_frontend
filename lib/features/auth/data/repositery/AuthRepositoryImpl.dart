@@ -65,17 +65,15 @@ class AuthRepositoryImpl implements authRepositoryInterface {
   Future<UserModel> signInWithEmailAndPassword({
     required String email,
     required String password,
-  }) {
-    var response = remoteDataSourceImpl.signInWithEmailAndPassword(
+  }) async {
+    final user = await remoteDataSourceImpl.signInWithEmailAndPassword(
       email: email,
       password: password,
     );
-    // Cache the user in the local data source
-    response = response.then((user) async {
-      await localDataSourceImpl.cacheUser(user);
-      return user;
-    });
-    return response;
+
+    await localDataSourceImpl.cacheUser(user);
+
+    return user;
   }
 
   @override
@@ -88,12 +86,16 @@ class AuthRepositoryImpl implements authRepositoryInterface {
     required String email,
     required String password,
     required String name,
-  }) {
-    return remoteDataSourceImpl.signUpWithEmailAndPassword(
+  }) async {
+    final result = await remoteDataSourceImpl.signUpWithEmailAndPassword(
       email: email,
       password: password,
       name: name,
     );
+    // cache the user in the local data source
+    final userModel = UserModel.fromJson(result.user);
+    await localDataSourceImpl.cacheUser(userModel);
+    return result;
   }
 
   @override

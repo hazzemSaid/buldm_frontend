@@ -77,9 +77,9 @@ class _HomeScreenState extends State<HomeScreen> {
           child: CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             controller: widget.scrollController,
-            slivers: [
+            slivers: const <Widget>[
               buildAppBar(),
-              const SliverToBoxAdapter(child: SizedBox(height: 8)),
+              SliverToBoxAdapter(child: SizedBox(height: 8)),
               buildPostList(),
             ],
           ),

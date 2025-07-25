@@ -1,4 +1,5 @@
 import 'package:buldm/core/Dependency_njection/service_locator.dart';
+import 'package:buldm/core/http/socket.io/socketserver.dart';
 import 'package:buldm/core/observe/blocobserve.dart';
 import 'package:buldm/features/auth/data/model/usermodel.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
@@ -54,6 +55,9 @@ void main() async {
     ],
     initLanguageCode: 'en',
   );
+  // Initialize Socket.IO client
+  final socketService = sl<SocketService>();
+  socketService.connect();
 
   runApp(
     MultiBlocProvider(
