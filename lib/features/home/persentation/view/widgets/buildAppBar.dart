@@ -1,6 +1,9 @@
+// features/home/persentation/view/widgets/buildAppBar.dart
 import 'package:buldm/features/chat/presentation/view/screens/Listofchats.dart';
+import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
 import 'package:buldm/utils/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class buildAppBar extends StatelessWidget {
@@ -27,8 +30,14 @@ class buildAppBar extends StatelessWidget {
         IconButton(
           icon: Icon(FontAwesomeIcons.telegram, color: theme.secondary),
           onPressed: () {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => ListOfChats()));
+            final userbloc = context.read<UserBloc>();
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => BlocProvider.value(
+                          value: userbloc,
+                          child: ListOfChats(),
+                        )));
           },
         ),
       ],

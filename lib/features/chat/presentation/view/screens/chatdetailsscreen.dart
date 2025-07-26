@@ -1,15 +1,21 @@
+// features/chat/presentation/view/screens/chatdetailsscreen.dart
 import 'package:buldm/core/Dependency_njection/service_locator.dart';
-import 'package:buldm/core/http/socket.io/socketserver.dart';
+import 'package:buldm/features/auth/data/model/usermodel.dart';
+import 'package:buldm/features/auth/domain/entities/userentities.dart';
 import 'package:buldm/features/chat/data/models/MessageModel.dart';
+import 'package:buldm/features/chat/presentation/bloc/chat_bloc.dart';
+import 'package:buldm/features/chat/presentation/bloc/chat_event.dart';
+import 'package:buldm/features/chat/presentation/bloc/chat_state.dart';
 import 'package:flutter/material.dart';
-import 'dart:async';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ChatDetailsScreen extends StatefulWidget {
   final String currentUserId;
   final String otherUserId;
-
+  final User user;
   const ChatDetailsScreen({
     super.key,
+    required this.user,
     required this.currentUserId,
     required this.otherUserId,
   });
@@ -21,81 +27,26 @@ class ChatDetailsScreen extends StatefulWidget {
 class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final List<MessageModel> _messages = [];
-  late final SocketService _socketService;
-
-  bool _isConnected = false;
-  bool _isSending = false;
-  StreamSubscription? _messageSubscription;
+  late final ChatBloc _chatBloc;
 
   @override
   void initState() {
     super.initState();
-    _socketService = sl<SocketService>();
-    _setupMessageListener();
-    _checkConnection();
-    _loadInitialMessages();
+    _chatBloc = sl<ChatBloc>();
+
+    // Connect to socket and register user
+    _chatBloc.add(ConnectToSocket());
+    _chatBloc.add(RegisterUser(widget.currentUserId));
+
+    // Load messages for this conversation (only once)
+    _chatBloc.add(LoadMessages(widget.currentUserId, widget.otherUserId));
   }
 
-  void _checkConnection() {
-    setState(() {
-      _isConnected = _socketService.isConnected;
-    });
-
-    // Periodically check connection status
-    Timer.periodic(const Duration(seconds: 5), (timer) {
-      if (!mounted) {
-        timer.cancel();
-        return;
-      }
-
-      final connected = _socketService.isConnected;
-      if (_isConnected != connected) {
-        setState(() {
-          _isConnected = connected;
-        });
-      }
-    });
-  }
-
-  void _setupMessageListener() {
-    _socketService.listenForMessages((data) {
-      try {
-        final message = MessageModel.fromJson(data);
-
-        // Only add messages relevant to this conversation
-        if ((message.from == widget.otherUserId &&
-                message.to == widget.currentUserId) ||
-            (message.from == widget.currentUserId &&
-                message.to == widget.otherUserId)) {
-          // Avoid duplicate messages by checking id first, then other properties
-          final existingIndex = _messages.indexWhere((m) =>
-              (m.id != null && message.id != null && m.id == message.id) ||
-              (m.timestamp == message.timestamp &&
-                  m.message == message.message &&
-                  m.from == message.from));
-
-          if (existingIndex == -1) {
-            setState(() {
-              _messages.add(message);
-              _messages.sort((a, b) => (a.timestamp ?? DateTime.now())
-                  .compareTo(b.timestamp ?? DateTime.now()));
-            });
-            _scrollToBottom();
-          }
-        }
-      } catch (e) {
-        print('Error parsing message in ChatDetailsScreen: $e');
-        print('Received data: $data');
-      }
-    });
-  }
-
-  void _loadInitialMessages() async {
-    // TODO: Load chat history from your backend/local storage
-    // This is where you'd fetch previous messages between these two users
-    print(
-        'Loading initial messages between ${widget.currentUserId} and ${widget.otherUserId}');
+  @override
+  void dispose() {
+    _messageController.dispose();
+    _scrollController.dispose();
+    super.dispose();
   }
 
   void _scrollToBottom() {
@@ -112,44 +63,16 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
 
   Future<void> _sendMessage() async {
     final content = _messageController.text.trim();
-    if (content.isEmpty || _isSending) return;
+    if (content.isEmpty) return;
 
-    if (!_isConnected) {
-      _showSnackBar('Not connected to server', Colors.red);
-      return;
-    }
+    _chatBloc.add(SendMessage(
+      message: content,
+      fromUserId: widget.currentUserId,
+      toUserId: widget.otherUserId,
+    ));
 
-    setState(() {
-      _isSending = true;
-    });
-
-    try {
-      final message = MessageModel(
-        message: content,
-        from: widget.currentUserId,
-        to: widget.otherUserId,
-        timestamp: DateTime.now(),
-      );
-
-      final success =
-          _socketService.sendMessage(widget.otherUserId, message.message);
-
-      if (success) {
-        setState(() {
-          _messages.add(message);
-        });
-        _messageController.clear();
-        _scrollToBottom();
-      } else {
-        _showSnackBar('Failed to send message', Colors.red);
-      }
-    } catch (e) {
-      _showSnackBar('Error sending message: $e', Colors.red);
-    } finally {
-      setState(() {
-        _isSending = false;
-      });
-    }
+    _messageController.clear();
+    _scrollToBottom();
   }
 
   void _showSnackBar(String message, Color color) {
@@ -165,6 +88,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   }
 
   Widget _buildMessageBubble(MessageModel message, bool isMe) {
+    final theme = Theme.of(context).colorScheme;
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
@@ -176,7 +100,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
         ),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: isMe ? Colors.blue : Colors.grey[300],
+          color: isMe ? theme.primary : theme.onPrimary,
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(16),
             topRight: const Radius.circular(16),
@@ -203,10 +127,10 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              _formatTimestamp(message.timestamp ?? DateTime.now()),
+              _formatTime(message.timestamp),
               style: TextStyle(
-                color: isMe ? Colors.white70 : Colors.grey[600],
-                fontSize: 11,
+                color: isMe ? Colors.white70 : Colors.black54,
+                fontSize: 12,
               ),
             ),
           ],
@@ -215,7 +139,8 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
     );
   }
 
-  String _formatTimestamp(DateTime timestamp) {
+  String _formatTime(DateTime? timestamp) {
+    if (timestamp == null) return '';
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final messageDate =
@@ -228,179 +153,207 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
     }
   }
 
-  Widget _buildConnectionStatus() {
-    if (_isConnected) return const SizedBox.shrink();
-
-    return Container(
-      width: double.infinity,
-      color: Colors.red.withOpacity(0.1),
-      padding: const EdgeInsets.all(8),
-      child: const Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.wifi_off, color: Colors.red, size: 16),
-          SizedBox(width: 8),
-          Text(
-            'Not connected to server',
-            style: TextStyle(color: Colors.red, fontSize: 12),
-          ),
-        ],
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    _messageController.dispose();
-    _scrollController.dispose();
-    _messageSubscription?.cancel();
-    super.dispose();
+  Widget _buildConnectionStatus(ChatState state) {
+    if (state is SocketConnecting) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        color: Colors.orange,
+        child: const Row(
+          children: [
+            SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            ),
+            SizedBox(width: 8),
+            Text(
+              'Connecting...',
+              style: TextStyle(color: Colors.white),
+            ),
+          ],
+        ),
+      );
+    } else if (state is SocketError) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        color: Colors.red,
+        child: Row(
+          children: [
+            const Icon(Icons.error, color: Colors.white, size: 16),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Connection error: ${state.message}',
+                style: const TextStyle(color: Colors.white),
+              ),
+            ),
+            TextButton(
+              onPressed: () => _chatBloc.add(ConnectToSocket()),
+              child: const Text(
+                'Retry',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    return const SizedBox.shrink();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Row(
+    final theme = Theme.of(context).colorScheme;
+    return BlocProvider.value(
+      value: _chatBloc,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Row(
+            children: [
+              CircleAvatar(
+                backgroundImage: NetworkImage(widget.user.avatar),
+              ),
+              Text(widget.user.name),
+            ],
+          ),
+          backgroundColor: theme.primary,
+          foregroundColor: theme.onPrimary,
+        ),
+        body: Column(
           children: [
-            CircleAvatar(
-              radius: 16,
-              backgroundColor: Colors.blue.shade100,
-              child: Text(
-                widget.otherUserId.substring(0, 1).toUpperCase(),
-                style: TextStyle(
-                  color: Colors.blue.shade800,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
+            BlocBuilder<ChatBloc, ChatState>(
+              builder: (context, state) {
+                return _buildConnectionStatus(state);
+              },
+            ),
+            Expanded(
+              child: BlocConsumer<ChatBloc, ChatState>(
+                listener: (context, state) {
+                  if (state is MessagesLoaded) {
+                    _scrollToBottom();
+                  } else if (state is ChatError) {
+                    _showSnackBar(state.message, Colors.red);
+                  }
+                },
+                builder: (context, state) {
+                  if (state is ChatLoading) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  } else if (state is MessagesLoaded ||
+                      state is ConversationSwitched) {
+                    final messages = state is MessagesLoaded
+                        ? (state as MessagesLoaded).messages
+                        : (state as ConversationSwitched).messages;
+
+                    if (messages.isEmpty) {
+                      return const Center(
+                        child: Text(
+                          'No messages yet. Start the conversation!',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      );
+                    }
+
+                    return ListView.builder(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.all(8),
+                      itemCount: messages.length,
+                      reverse: false, // Normal order
+                      itemBuilder: (context, index) {
+                        final message = messages[index];
+                        final isMe = message.from == widget.currentUserId;
+                        return _buildMessageBubble(message, isMe);
+                      },
+                    );
+                  } else if (state is ChatError) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.error_outline,
+                            size: 64,
+                            color: Colors.red,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Error: ${state.message}',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.red,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: () {
+                              _chatBloc.add(LoadMessages(
+                                widget.currentUserId,
+                                widget.otherUserId,
+                              ));
+                            },
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return const Center(
+                    child: Text('Loading messages...'),
+                  );
+                },
               ),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "User ${widget.otherUserId}",
-                    style: const TextStyle(fontSize: 16),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, -2),
                   ),
-                  Text(
-                    _isConnected ? "Online" : "Offline",
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: _isConnected ? Colors.green : Colors.red,
+                ],
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _messageController,
+                      decoration: const InputDecoration(
+                        hintText: 'Type a message...',
+                        border: InputBorder.none,
+                      ),
+                      maxLines: null,
+                      textInputAction: TextInputAction.send,
+                      onSubmitted: (_) => _sendMessage(),
                     ),
+                  ),
+                  const SizedBox(width: 8),
+                  BlocBuilder<ChatBloc, ChatState>(
+                    builder: (context, state) {
+                      final isConnected =
+                          state is SocketConnected || state is MessagesLoaded;
+                      return IconButton(
+                        onPressed: isConnected ? _sendMessage : null,
+                        icon: const Icon(Icons.send),
+                        color: isConnected ? theme.primary : Colors.grey,
+                      );
+                    },
                   ),
                 ],
               ),
             ),
           ],
         ),
-      ),
-      body: Column(
-        children: [
-          _buildConnectionStatus(),
-          Expanded(
-            child: _messages.isEmpty
-                ? const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.chat_bubble_outline,
-                            size: 64, color: Colors.grey),
-                        SizedBox(height: 16),
-                        Text(
-                          "No messages yet",
-                          style: TextStyle(fontSize: 18, color: Colors.grey),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          "Send a message to start the conversation",
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  )
-                : ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    itemCount: _messages.length,
-                    itemBuilder: (context, index) {
-                      final message = _messages[index];
-                      final isMe = message.from == widget.currentUserId;
-                      return _buildMessageBubble(message, isMe);
-                    },
-                  ),
-          ),
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 4,
-                  offset: const Offset(0, -2),
-                ),
-              ],
-            ),
-            padding: EdgeInsets.only(
-              left: 12,
-              right: 12,
-              top: 8,
-              bottom: MediaQuery.of(context).padding.bottom + 8,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _messageController,
-                    enabled: _isConnected && !_isSending,
-                    decoration: InputDecoration(
-                      hintText: _isConnected
-                          ? 'Type your message...'
-                          : 'Connecting...',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(24),
-                        borderSide: BorderSide.none,
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey[100],
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                    ),
-                    maxLines: null,
-                    textCapitalization: TextCapitalization.sentences,
-                    onSubmitted: (_) => _sendMessage(),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  decoration: BoxDecoration(
-                    color:
-                        _isConnected && !_isSending ? Colors.blue : Colors.grey,
-                    shape: BoxShape.circle,
-                  ),
-                  child: IconButton(
-                    icon: _isSending
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : const Icon(Icons.send, color: Colors.white),
-                    onPressed:
-                        _isConnected && !_isSending ? _sendMessage : null,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

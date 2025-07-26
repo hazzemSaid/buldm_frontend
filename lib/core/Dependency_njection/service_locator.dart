@@ -1,3 +1,4 @@
+// core/Dependency_njection/service_locator.dart
 import 'package:buldm/core/http/socket.io/socketserver.dart';
 import 'package:buldm/features/Add_Post/presentation/bloc/location_cubit/location_cubit.dart';
 import 'package:buldm/features/auth/data/datasource/localdatasource.dart';
@@ -17,6 +18,7 @@ import 'package:buldm/features/chat/data/repo/chatrepoimp.dart';
 import 'package:buldm/features/chat/domain/repo/chatrepo.dart';
 import 'package:buldm/features/chat/domain/usecases/getAllMessagesById.dart';
 import 'package:buldm/features/chat/domain/usecases/getMessagesByTId.dart';
+import 'package:buldm/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:buldm/features/home/data/datasource/remote_post_data_source.dart';
 import 'package:buldm/features/home/data/repository/postrepositoryimp.dart';
 import 'package:buldm/features/home/domain/repository/postrepository.dart';
@@ -188,8 +190,14 @@ Future<void> init() async {
       () => ChatRemoteDataSourceImpl(dio: sl()));
   sl.registerLazySingleton<ChatRepo>(
       () => ChatRepoImpl(sl<ChatRemoteDataSource>()));
-  sl.registerLazySingleton(() => ChatRepoImpl(sl<ChatRemoteDataSource>()));
   sl.registerLazySingleton(() => GetMessagesByTId(sl<ChatRepo>()));
   sl.registerLazySingleton(() => GetAllMessagesById(sl<ChatRepo>()));
   sl.registerLazySingleton(() => SocketService());
+
+  // Chat Bloc
+  sl.registerFactory(() => ChatBloc(
+        getAllMessagesById: sl<GetAllMessagesById>(),
+        getMessagesByTId: sl<GetMessagesByTId>(),
+        socketService: sl<SocketService>(),
+      ));
 }

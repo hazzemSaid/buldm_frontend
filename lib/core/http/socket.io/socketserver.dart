@@ -1,3 +1,4 @@
+// core/http/socket.io/socketserver.dart
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class SocketService {
@@ -110,7 +111,6 @@ class SocketService {
       _socket.emit('SendMessage', {
         'touserId': toUserId,
         'Message': message,
-        'timestamp': DateTime.now().millisecondsSinceEpoch,
       });
       print('📤 Message sent to $toUserId');
       return true;

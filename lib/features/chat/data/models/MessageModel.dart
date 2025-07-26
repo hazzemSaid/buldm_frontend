@@ -1,3 +1,4 @@
+// features/chat/data/models/MessageModel.dart
 // MessageModel.dart - Updated to handle the new server format
 class MessageModel {
   final String message;
@@ -26,10 +27,10 @@ class MessageModel {
           timestamp: messageEvent['timestamp'] != null
               ? DateTime.parse(messageEvent['timestamp'] as String)
               : null,
-          id: messageEvent['id'] as String?,
+          id: messageEvent['_id'] as String?,
         );
       }
-      // Handle direct message format (for backward compatibility)
+      // Handle direct message format (for HTTP responses)
       else {
         return MessageModel(
           message: json['message'] as String,
@@ -41,7 +42,7 @@ class MessageModel {
                   : DateTime.fromMillisecondsSinceEpoch(
                       json['timestamp'] as int))
               : null,
-          id: json['id'] as String?,
+          id: json['_id'] as String?,
         );
       }
     } catch (e) {
@@ -59,5 +60,42 @@ class MessageModel {
       'timestamp': timestamp?.toIso8601String(),
       'id': id,
     };
+  }
+
+  // Create a copy with updated fields
+  MessageModel copyWith({
+    String? message,
+    String? from,
+    String? to,
+    DateTime? timestamp,
+    String? id,
+  }) {
+    return MessageModel(
+      message: message ?? this.message,
+      from: from ?? this.from,
+      to: to ?? this.to,
+      timestamp: timestamp ?? this.timestamp,
+      id: id ?? this.id,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is MessageModel &&
+        other.message == message &&
+        other.from == from &&
+        other.to == to &&
+        other.timestamp == timestamp &&
+        other.id == id;
+  }
+
+  @override
+  int get hashCode {
+    return message.hashCode ^
+        from.hashCode ^
+        to.hashCode ^
+        timestamp.hashCode ^
+        id.hashCode;
   }
 }
