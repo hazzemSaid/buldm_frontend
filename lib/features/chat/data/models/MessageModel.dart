@@ -38,9 +38,10 @@ class MessageModel {
           to: json['to'] as String,
           timestamp: json['timestamp'] != null
               ? (json['timestamp'] is String
-                  ? DateTime.parse(json['timestamp'] as String)
+                  ? DateTime.parse(json['timestamp'] as String).toUtc()
                   : DateTime.fromMillisecondsSinceEpoch(
-                      json['timestamp'] as int))
+                          json['timestamp'] as int)
+                      .toUtc())
               : null,
           id: json['_id'] as String?,
         );

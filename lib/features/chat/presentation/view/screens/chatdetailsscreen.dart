@@ -1,6 +1,5 @@
 // features/chat/presentation/view/screens/chatdetailsscreen.dart
 import 'package:buldm/core/Dependency_njection/service_locator.dart';
-import 'package:buldm/features/auth/data/model/usermodel.dart';
 import 'package:buldm/features/auth/domain/entities/userentities.dart';
 import 'package:buldm/features/chat/data/models/MessageModel.dart';
 import 'package:buldm/features/chat/presentation/bloc/chat_bloc.dart';
@@ -212,11 +211,13 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
+              Text(widget.user.name),
+              SizedBox(width: 12),
               CircleAvatar(
                 backgroundImage: NetworkImage(widget.user.avatar),
               ),
-              Text(widget.user.name),
             ],
           ),
           backgroundColor: theme.primary,
@@ -314,7 +315,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: theme.surface,
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.1),

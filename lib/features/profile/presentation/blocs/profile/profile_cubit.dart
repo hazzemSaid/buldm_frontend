@@ -1,4 +1,7 @@
 import 'package:bloc/bloc.dart';
+import 'package:buldm/core/Dependency_njection/service_locator.dart';
+import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart'
+    show AuthCubit;
 import 'package:buldm/features/home/data/models/post_model.dart';
 import 'package:buldm/features/profile/domain/usecases/fetchpost.dart';
 import 'package:equatable/equatable.dart';
@@ -13,8 +16,11 @@ class ProfileCubit extends Cubit<ProfileState> {
   List<PostModel> _allPosts = [];
 
   // fetch from API, cache full list, and emit loaded
-  Future<void> fetchPost(
-      {required String token, required String userId}) async {
+  Future<void> fetchPost({required String userId}) async {
+    //take token from sl hive
+    final token = await sl<AuthCubit>()
+        .getCurrentuserUsercase()
+        .then((value) => value!.token);
     emit(ProfileLoading());
     try {
       final response =

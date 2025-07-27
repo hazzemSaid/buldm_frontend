@@ -1,6 +1,5 @@
 // features/chat/presentation/view/screens/Listofchats.dart
 import 'package:buldm/core/Dependency_njection/service_locator.dart';
-import 'package:buldm/features/auth/data/model/usermodel.dart';
 import 'package:buldm/features/auth/domain/entities/userentities.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_state.dart';
@@ -12,6 +11,7 @@ import 'package:buldm/features/chat/presentation/view/screens/chatdetailsscreen.
 import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_event.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_state.dart';
+import 'package:buldm/utils/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -284,44 +284,53 @@ class _ListOfChatsState extends State<ListOfChats> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context).colorScheme;
     return BlocProvider.value(
       value: _chatBloc,
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Chats'),
-          backgroundColor: Colors.blue,
-          foregroundColor: Colors.white,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: () {
-                _chatBloc.add(LoadConversations(currentUserId));
-              },
+        //remove the arrow back button
+
+        body: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              backgroundColor: theme.background,
+              floating: true,
+              snap: true,
+              elevation: 0,
+              //background appearance
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              iconTheme: IconThemeData(color: theme.primary),
+              title: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Text(
+                    "Buldm",
+                    style: AppTextStyles.headlineLarge(context).copyWith(
+                        color: theme.primary, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
-        body: Column(
-          children: [
             BlocBuilder<ChatBloc, ChatState>(
               builder: (context, state) {
-                return _buildConnectionStatus(state);
-              },
-            ),
-            Expanded(
-              child: BlocBuilder<ChatBloc, ChatState>(
-                builder: (context, state) {
-                  if (state is ChatLoading) {
-                    return const Center(
+                if (state is ChatLoading) {
+                  return const SliverFillRemaining(
+                    child: Center(
                       child: CircularProgressIndicator(),
-                    );
-                  } else if (state is ConversationsLoaded ||
-                      state is ConversationsUpdated) {
-                    final conversations = state is ConversationsLoaded
-                        ? state.conversations
-                        : (state as ConversationsUpdated).conversations;
+                    ),
+                  );
+                } else if (state is ConversationsLoaded ||
+                    state is ConversationsUpdated) {
+                  final conversations = state is ConversationsLoaded
+                      ? state.conversations
+                      : (state as ConversationsUpdated).conversations;
 
-                    if (conversations.isEmpty) {
-                      return const Center(
+                  if (conversations.isEmpty) {
+                    return const SliverFillRemaining(
+                      child: Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -347,19 +356,22 @@ class _ListOfChatsState extends State<ListOfChats> with WidgetsBindingObserver {
                             ),
                           ],
                         ),
-                      );
-                    }
+                      ),
+                    );
+                  }
 
-                    return RefreshIndicator(
+                  return SliverFillRemaining(
+                    child: RefreshIndicator(
                       onRefresh: () async {
                         _chatBloc.add(LoadConversations(currentUserId));
                       },
                       child: BlocBuilder<UserBloc, UserState>(
-                        builder: (context, state) {
+                        builder: (context, userState) {
                           return ListView.builder(
+                            physics: const NeverScrollableScrollPhysics(),
+                            shrinkWrap: true,
                             itemCount: conversations.length,
                             itemBuilder: (context, index) {
-                              // Load user data for each conversation
                               context.read<UserBloc>().add(LoadUserEvent(
                                     userId: conversations[index].user,
                                   ));
@@ -367,19 +379,20 @@ class _ListOfChatsState extends State<ListOfChats> with WidgetsBindingObserver {
                                   .read<UserBloc>()
                                   .userCache[conversations[index].user];
 
-                              if (state is UserLoaded && user != null) {
+                              if (userState is UserLoaded && user != null) {
                                 return _buildChatItem(
                                     conversations[index], user);
                               }
-                              // Show loading placeholder while user data loads
                               return SizedBox();
                             },
                           );
                         },
                       ),
-                    );
-                  } else if (state is ChatError) {
-                    return Center(
+                    ),
+                  );
+                } else if (state is ChatError) {
+                  return SliverFillRemaining(
+                    child: Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -405,14 +418,16 @@ class _ListOfChatsState extends State<ListOfChats> with WidgetsBindingObserver {
                           ),
                         ],
                       ),
-                    );
-                  }
-
-                  return const Center(
-                    child: Text('Loading conversations...'),
+                    ),
                   );
-                },
-              ),
+                }
+
+                return const SliverFillRemaining(
+                  child: Center(
+                    child: Text('Loading conversations...'),
+                  ),
+                );
+              },
             ),
           ],
         ),

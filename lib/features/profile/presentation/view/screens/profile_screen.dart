@@ -3,6 +3,7 @@ import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_state.dart';
 import 'package:buldm/features/profile/presentation/blocs/profile/profile_cubit.dart';
 import 'package:buldm/features/profile/presentation/view/widgets/ProfileOption.dart';
+import 'package:buldm/provider/localization/localization_cubit.dart';
 import 'package:buldm/utils/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -34,7 +35,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     if (user != null && user.token.isNotEmpty && user.user_id.isNotEmpty) {
       await context.read<ProfileCubit>().fetchPost(
-            token: user.token,
             userId: user.user_id,
           );
       context.read<ProfileCubit>().filterpost(status: status);
@@ -59,6 +59,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: ListView(
           children: [
             ProfileOption(icon: Icons.settings, title: 'Settings'),
+            // IconButton(
+            //   onPressed: () {
+            //     BlocProvider.of<LocalizationCubit>(context).switchLanguage();
+            //   },
+            //   icon: Icon(Icons.language),
+            // ),
+            ProfileOption(
+                icon: Icons.language,
+                title: 'Language',
+                onTap: () {
+                  BlocProvider.of<LocalizationCubit>(context).switchLanguage();
+                }),
             ProfileOption(icon: Icons.help, title: 'Help'),
             ProfileOption(
                 icon: Icons.logout,

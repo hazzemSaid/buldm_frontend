@@ -5,6 +5,8 @@ import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
 import 'package:buldm/features/home/domain/entities/postentity.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_state.dart';
+import 'package:buldm/features/profile/presentation/blocs/profile/profile_cubit.dart';
+import 'package:buldm/features/profile/presentation/view/screens/OtherUserProfileScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -45,7 +47,7 @@ class buildProfileHeader extends StatelessWidget {
     return BlocSelector<UserBloc, UserState, User?>(
       selector: (state) {
         if (state is UserLoaded && state.users.containsKey(userId)) {
-          return state.users[userId];
+          return state.users[userId]!;
         }
         return null;
       },
@@ -61,31 +63,47 @@ class buildProfileHeader extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: Row(
             children: [
-              CircleAvatar(
-                radius: 20,
-                backgroundImage: NetworkImage(user.avatar),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              GestureDetector(
+                onTap: () {
+                  // user.profile;
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => BlocProvider.value(
+                          value: sl<ProfileCubit>(),
+                          child: OtherUserProfileScreen(user: user),
+                        ),
+                      ));
+                },
+                child: Row(
                   children: [
-                    Text(
-                      user.name,
-                      style: textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundImage: NetworkImage(user.avatar),
                     ),
-                    Text(
-                      _formatPostDate(post.createdAt),
-                      style: textTheme.bodySmall?.copyWith(
-                        color: Colors.grey.shade600,
-                        fontSize: 12,
-                      ),
+                    const SizedBox(width: 8),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          user.name,
+                          style: textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          _formatPostDate(post.createdAt),
+                          style: textTheme.bodySmall?.copyWith(
+                            color: Colors.grey.shade600,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
+              Spacer(), // To push status and more button to right
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
