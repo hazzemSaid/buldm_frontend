@@ -31,7 +31,9 @@ import 'package:buldm/features/profile/data/datasource/profile_remote_data_resou
 import 'package:buldm/features/profile/data/repo/profilerepoimp.dart';
 import 'package:buldm/features/profile/domain/repo/ProfileRepository.dart';
 import 'package:buldm/features/profile/domain/usecases/fetchpost.dart';
+import 'package:buldm/features/profile/domain/usecases/searchByname.dart';
 import 'package:buldm/features/profile/presentation/blocs/profile/profile_cubit.dart';
+import 'package:buldm/features/search/presentation/bloc/ssearch/Search_Cubit.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive/hive.dart';
@@ -200,4 +202,9 @@ Future<void> init() async {
         getMessagesByTId: sl<GetMessagesByTId>(),
         socketService: sl<SocketService>(),
       ));
+
+  //search cubit
+  sl.registerLazySingleton(
+      () => SearchByName(profileRepository: sl<ProfileRepository>()));
+  sl.registerLazySingleton(() => SearchCubit(searchByName: sl<SearchByName>()));
 }

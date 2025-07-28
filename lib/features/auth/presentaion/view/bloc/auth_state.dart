@@ -51,3 +51,8 @@ class Loading extends AuthState {
   @override
   List<Object?> get props => [];
 }
+
+class GoogleLoading extends AuthState {
+  @override
+  List<Object?> get props => [];
+}

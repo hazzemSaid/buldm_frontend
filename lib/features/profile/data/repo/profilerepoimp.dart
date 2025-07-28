@@ -42,4 +42,11 @@ class Profilerepoimp extends ProfileRepository {
   }) {
     return profileRemoteDataResource.fetchPost(token: token, userId: userId);
   }
+
+  @override
+  Future<Response> searchByName({
+    required String name,
+  }) {
+    return profileRemoteDataResource.searchByName(name: name);
+  }
 }

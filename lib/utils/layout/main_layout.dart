@@ -7,6 +7,7 @@ import 'package:buldm/features/home/persentation/view/screens/home_screen.dart';
 import 'package:buldm/features/map_location/presentation/view/screens/map_location_screen.dart';
 import 'package:buldm/features/profile/presentation/blocs/profile/profile_cubit.dart';
 import 'package:buldm/features/profile/presentation/view/screens/profile_screen.dart';
+import 'package:buldm/features/search/presentation/bloc/ssearch/Search_Cubit.dart';
 import 'package:buldm/features/search/presentation/view/screens/search_screen.dart';
 import 'package:buldm/utils/widgets/custom_nav_bar.dart';
 import 'package:flutter/material.dart';
@@ -63,7 +64,10 @@ class _MainLayoutState extends State<MainLayout> {
               create: (context) => ImagespickerCubit(),
               child: PostUploadScreen(),
             ),
-            SearchScreen(),
+            BlocProvider(
+              create: (context) => sl<SearchCubit>(),
+              child: SearchScreen(),
+            ),
             BlocProvider(
               create: (context) => sl<ProfileCubit>(),
               child: ProfileScreen(),

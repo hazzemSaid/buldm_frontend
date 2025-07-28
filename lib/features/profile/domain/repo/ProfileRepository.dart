@@ -18,4 +18,7 @@ abstract class ProfileRepository {
     required String token,
     required String userId,
   });
+  Future<Response> searchByName({
+    required String name,
+  });
 }

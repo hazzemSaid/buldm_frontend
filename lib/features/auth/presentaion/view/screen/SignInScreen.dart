@@ -66,15 +66,24 @@ class _SignInScreenState extends State<SignInScreen> {
                 listener: (context, state) {
                   // for loading state
                   if (state is Loading) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Signing in with Google...'),
-                        duration: Duration(seconds: 2),
-                      ),
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          content: Row(
+                            children: [
+                              CircularProgressIndicator(),
+                              SizedBox(width: 16.0),
+                              Text('Signing in with Google...'),
+                            ],
+                          ),
+                        );
+                      },
                     );
                   }
                   // for error state
                   if (state is AuthError) {
+                    Navigator.of(context).pop(); // close loading dialog
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(state.message),
@@ -202,6 +211,21 @@ class _SignInScreenState extends State<SignInScreen> {
                     // Sign In Button
                     BlocListener<AuthCubit, AuthState>(
                       listener: (context, state) {
+                        if (state is Loading) {
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (context) => const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
+                        } else {
+                          // Close dialog if open
+                          if (Navigator.canPop(context)) {
+                            Navigator.of(context).pop();
+                          }
+                        }
+
                         if (state is AuthError) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
@@ -211,40 +235,28 @@ class _SignInScreenState extends State<SignInScreen> {
                             ),
                           );
                         }
+                        // You can add more state handling here if needed
                       },
-                      child: BlocBuilder<AuthCubit, AuthState>(
-                        builder: (context, state) {
-                          if (state is Loading) {
-                            return const Center(
-                              child: CircularProgressIndicator(),
-                            );
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (_formKey.currentState!.validate()) {
+                            context.read<AuthCubit>().signIn(
+                                  email: _emailController.text.trim(),
+                                  password: _passwordController.text.trim(),
+                                );
                           }
-
-                          return ElevatedButton(
-                            onPressed: () {
-                              if (_formKey.currentState!.validate()) {
-                                context.read<AuthCubit>().signIn(
-                                      email: _emailController.text.trim(),
-                                      password: _passwordController.text.trim(),
-                                    );
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              minimumSize: const Size(double.infinity, 50),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12.0),
-                              ),
-                              backgroundColor: theme.primaryColor,
-                              foregroundColor: Colors.white,
-                            ),
-                            child: const Text('Sign In'),
-                          );
                         },
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 50),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.0),
+                          ),
+                          backgroundColor: theme.primaryColor,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text('Sign In'),
                       ),
                     ),
-
-                    const SizedBox(height: 24.0),
-
                     // Sign Up Prompt
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,

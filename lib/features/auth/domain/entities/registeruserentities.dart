@@ -1,3 +1,5 @@
+import 'package:buldm/features/auth/data/model/Registerusere_model.dart';
+
 class UserRegistration {
   /*{
     "success": true,
@@ -10,7 +12,7 @@ class UserRegistration {
 
   final String state;
   final String message;
-  final Map<String, dynamic> user;
+  final userregister user;
   const UserRegistration({
     required this.state,
     required this.message,

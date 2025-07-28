@@ -49,12 +49,20 @@ class _SignupScreenState extends State<SignupScreen> {
               BlocListener<AuthCubit, AuthState>(
                 listener: (context, state) {
                   // for loading state
-                  if (state is Loading) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Signing up with Google...'),
-                        duration: Duration(seconds: 2),
-                      ),
+                  if (state is GoogleLoading) {
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          content: Row(
+                            children: [
+                              CircularProgressIndicator(),
+                              SizedBox(width: 16.0),
+                              Text('Signing up with Google...'),
+                            ],
+                          ),
+                        );
+                      },
                     );
                   }
                   // for error state
@@ -201,19 +209,38 @@ class _SignupScreenState extends State<SignupScreen> {
                     const SizedBox(height: 16.0),
 
                     // Sign In Button
-                    BlocListener<AuthCubit, AuthState>(
+                    BlocConsumer<AuthCubit, AuthState>(
                       listener: (context, state) {
-                        if (state is AuthError) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(state.message),
-                              backgroundColor: Colors.red,
-                              duration: const Duration(seconds: 2),
-                            ),
+                        // for loading state
+                        if (state is Loading) {
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (context) {
+                              return AlertDialog(
+                                content: Row(
+                                  children: [
+                                    CircularProgressIndicator(),
+                                    SizedBox(width: 16.0),
+                                    Text('Signing up...'),
+                                  ],
+                                ),
+                              );
+                            },
                           );
                         }
+                        if (state is AuthError) {
+                          Navigator.pop(context);
+                          // ScaffoldMessenger.of(context).showSnackBar(
+                          //   SnackBar(
+                          //     content: Text(state.message),
+                          //     backgroundColor: Colors.red,
+                          //     duration: const Duration(microseconds: 6000),
+                          //   ),
+                          // );
+                        }
                         if (state is SignUp) {
-                          // screen for varification email
+                          // screen for verification email
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text(
@@ -230,37 +257,34 @@ class _SignupScreenState extends State<SignupScreen> {
                           );
                         }
                       },
-                      child: BlocBuilder<AuthCubit, AuthState>(
-                        builder: (context, state) {
-                          if (state is Loading) {
-                            return const Center(
-                              child: CircularProgressIndicator(),
-                            );
-                          }
-
-                          return ElevatedButton(
-                            onPressed: () {
-                              if (_formKey.currentState!.validate()) {
-                                context.read<AuthCubit>().signUp(
-                                      _emailController.text,
-                                      _passwordController.text,
-                                      _nameController.text,
-                                    );
-                                // Optionally, navigate to another screen after sign up
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              minimumSize: const Size(double.infinity, 50),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12.0),
-                              ),
-                              backgroundColor: theme.primaryColor,
-                              foregroundColor: Colors.white,
-                            ),
-                            child: const Text(' Sign Up  '),
+                      builder: (context, state) {
+                        if (state is Loading) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
                           );
-                        },
-                      ),
+                        }
+
+                        return ElevatedButton(
+                          onPressed: () {
+                            if (_formKey.currentState!.validate()) {
+                              context.read<AuthCubit>().signUp(
+                                    _emailController.text,
+                                    _passwordController.text,
+                                    _nameController.text,
+                                  );
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: const Size(double.infinity, 50),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                            ),
+                            backgroundColor: theme.primaryColor,
+                            foregroundColor: Colors.white,
+                          ),
+                          child: const Text(' Sign Up  '),
+                        );
+                      },
                     ),
 
                     const SizedBox(height: 24.0),

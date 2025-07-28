@@ -82,7 +82,7 @@ class AuthRepositoryImpl implements authRepositoryInterface {
   }
 
   @override
-  Future<RegisterusereModel> signUpWithEmailAndPassword({
+  Future<RegisterUserModel> signUpWithEmailAndPassword({
     required String email,
     required String password,
     required String name,
@@ -93,8 +93,6 @@ class AuthRepositoryImpl implements authRepositoryInterface {
       name: name,
     );
     // cache the user in the local data source
-    final userModel = UserModel.fromJson(result.user);
-    await localDataSourceImpl.cacheUser(userModel);
     return result;
   }
 

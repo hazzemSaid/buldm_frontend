@@ -1,5 +1,5 @@
 import 'package:bloc/bloc.dart';
-import 'package:buldm/core/Dependency_njection/service_locator.dart';
+import 'package:buldm/core/failure/failure.dart';
 import 'package:buldm/features/auth/domain/usecases/get_currentuser_usercase.dart';
 import 'package:buldm/features/auth/domain/usecases/google_auth_usecase.dart';
 import 'package:buldm/features/auth/domain/usecases/signin_user_usecase.dart';
@@ -15,6 +15,7 @@ class AuthCubit extends Cubit<AuthState> {
   final GetCurrentuserUsercase getCurrentuserUsercase;
   final SignOutUseCase signOutUseCase;
   final VerifyEmailCode verifyEmailCode;
+
   AuthCubit({
     required this.verifyEmailCode,
     required this.signOutUseCase,
@@ -25,6 +26,7 @@ class AuthCubit extends Cubit<AuthState> {
   }) : super(AuthInitial());
   // Method to handle user sign-in
   Future<void> signIn({required String email, required String password}) async {
+    emit(Loading());
     try {
       final user = await signInUserUseCase(
         email: email,
@@ -32,12 +34,14 @@ class AuthCubit extends Cubit<AuthState> {
       );
       emit(Authenticated(user: user));
     } catch (e) {
-      emit(AuthError(message: e.toString()));
+      final Failure failure = Failure(error: e);
+      emit(AuthError(message: failure.message));
     }
   }
 
   // Method to handle user sign-up
   Future<void> signUp(String email, String password, String name) async {
+    emit(Loading());
     try {
       final userRegistration = await signUpUserUseCase(
         email: email,
@@ -51,16 +55,19 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   Future<void> authWithGoogle() async {
+    emit(GoogleLoading());
     try {
       final result = await googleAuthUsecase.signInWithGoogle();
       print("Google Auth Result: $result");
       if (result.isLeft) {
         emit(AuthError(message: result.left));
+        return;
       } else {
         emit(Authenticated(user: result.right));
       }
     } catch (e) {
-      emit(AuthError(message: e.toString()));
+      final Failure failure = Failure(error: e);
+      emit(AuthError(message: failure.message));
     }
   }
 
@@ -73,7 +80,8 @@ class AuthCubit extends Cubit<AuthState> {
         emit(UnAuthenticated());
       }
     } catch (e) {
-      emit(AuthError(message: e.toString()));
+      final Failure failure = Failure(error: e);
+      emit(AuthError(message: failure.message));
     }
   }
 
@@ -82,7 +90,8 @@ class AuthCubit extends Cubit<AuthState> {
       await signOutUseCase.signOut();
       emit(UnAuthenticated());
     } catch (e) {
-      emit(AuthError(message: e.toString()));
+      final Failure failure = Failure(error: e);
+      emit(AuthError(message: failure.message));
     }
   }
 
@@ -92,7 +101,8 @@ class AuthCubit extends Cubit<AuthState> {
       final response = await verifyEmailCode.call(code, email);
       emit(Authenticated(user: response));
     } catch (e) {
-      emit(AuthError(message: e.toString()));
+      final Failure failure = Failure(error: e);
+      emit(AuthError(message: failure.message));
     }
   }
 }

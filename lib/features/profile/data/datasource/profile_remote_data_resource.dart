@@ -1,3 +1,6 @@
+import 'package:buldm/core/Dependency_njection/service_locator.dart';
+import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
+import 'package:buldm/features/auth/presentaion/view/bloc/auth_state.dart';
 import 'package:dio/dio.dart';
 
 abstract class ProfileRemoteDataResource {
@@ -14,6 +17,9 @@ abstract class ProfileRemoteDataResource {
   Future<Response> fetchPost({
     required String token,
     required String userId,
+  });
+  Future<Response> searchByName({
+    required String name,
   });
 }
 
@@ -60,5 +66,13 @@ class ProfileRemoteDataResourceImpl implements ProfileRemoteDataResource {
         data: profileData,
         options: Options(headers: {'Authorization': 'Bearer $token'}));
     return response;
+  }
+
+  @override
+  Future<Response> searchByName({required String name}) {
+    // add token to headers
+    final token = (sl<AuthCubit>().state as Authenticated).user.token;
+    return dio.get('/user/find/$name',
+        options: Options(headers: {'Authorization': 'Bearer $token'}));
   }
 }

@@ -1,16 +1,25 @@
 import 'package:buldm/features/auth/domain/entities/registeruserentities.dart';
 
-class RegisterusereModel extends UserRegistration {
-  RegisterusereModel({
+class RegisterUserModel extends UserRegistration {
+  RegisterUserModel({
     required super.state,
     required super.message,
     required super.user,
   });
-  factory RegisterusereModel.fromJson(Map<String, dynamic> json) {
-    return RegisterusereModel(
+  /*{
+    "success": true,
+    "message": "verification code sent to your email",
+    "user": {
+        "name": "example_name",
+        "email": "example@email.com"
+    }
+}*/
+
+  factory RegisterUserModel.fromJson(Map<String, dynamic> json) {
+    return RegisterUserModel(
       state: json['success'] ? 'success' : 'error',
       message: json['message'],
-      user: json['user'],
+      user: userregister.fromJson(json['user'] as Map<String, dynamic>),
     );
   }
   Map<String, dynamic> toJson() {
@@ -23,6 +32,28 @@ class RegisterusereModel extends UserRegistration {
 
   @override
   String toString() {
-    return 'RegisterusereModel(state: $state, message: $message, user: $user)';
+    return 'RegisterUserModel(state: $state, message: $message, user: $user)';
+  }
+}
+
+class userregister {
+  final email;
+  final name;
+  userregister({
+    required this.email,
+    required this.name,
+  });
+  Map<String, dynamic> toJson() {
+    return {
+      'email': email,
+      'name': name,
+    };
+  }
+
+  factory userregister.fromJson(Map<String, dynamic> json) {
+    return userregister(
+      email: json['email'],
+      name: json['name'],
+    );
   }
 }

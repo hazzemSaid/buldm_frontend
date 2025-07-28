@@ -12,7 +12,7 @@ abstract class AuthRemoteDataSource {
     required String password,
   });
 
-  Future<RegisterusereModel> signUpWithEmailAndPassword({
+  Future<RegisterUserModel> signUpWithEmailAndPassword({
     required String email,
     required String password,
     required String name,
@@ -50,12 +50,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         throw Exception('Failed to sign in');
       }
     } on DioException catch (e) {
-      throw Exception('Sign in error: ${e.response?.data ?? e.message}');
+      throw Exception(
+          "Sign in error: ${e.response?.data['error'] ?? e.message}");
     }
   }
 
   @override
-  Future<RegisterusereModel> signUpWithEmailAndPassword({
+  Future<RegisterUserModel> signUpWithEmailAndPassword({
     required String email,
     required String password,
     required String name,
@@ -71,12 +72,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return RegisterusereModel.fromJson(response.data);
+        return RegisterUserModel.fromJson(response.data);
       } else {
         throw Exception('Failed to sign up');
       }
     } on DioException catch (e) {
-      throw Exception('Sign up error: ${e.response?.data ?? e.message}');
+      throw Exception(
+          'Sign up error: ${e.response?.data['error'] ?? e.message}');
     }
   }
 
@@ -116,7 +118,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
     } on DioException catch (e) {
       throw Exception(
-          'Email verification error: ${e.response?.data ?? e.message}');
+          'Email verification error: ${e.response?.data['error'] ?? e.message}');
     }
   }
 }

@@ -166,8 +166,3 @@ class PostBloc extends Bloc<PostEvent, PostState> {
     }
   }
 }
-
-class Failure {
-  final String message;
-  const Failure(this.message);
-}
