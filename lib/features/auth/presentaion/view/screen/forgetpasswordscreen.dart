@@ -11,7 +11,7 @@ class Forgetpasswordscreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    var _formKey = GlobalKey<FormState>();
+    var formKey = GlobalKey<FormState>();
     var emailController = TextEditingController();
     final localization = AppLocalizations.of(context)!;
     return BlocListener<AuthCubit, AuthState>(
@@ -84,7 +84,7 @@ class Forgetpasswordscreen extends StatelessWidget {
                   const SizedBox(height: 24.0),
                   Center(
                     child: Form(
-                      key: _formKey,
+                      key: formKey,
                       child: SizedBox(
                         width:
                             350, // or MediaQuery.of(context).size.width * 0.8
@@ -126,7 +126,7 @@ class Forgetpasswordscreen extends StatelessWidget {
                         width: 350, // Match the width of the form
                         child: ElevatedButton(
                           onPressed: () {
-                            if (_formKey.currentState?.validate() ?? false) {
+                            if (formKey.currentState?.validate() ?? false) {
                               // Handle password reset logic here
                               context.read<AuthCubit>().forgotPassword(
                                     email: emailController.text.trim(),

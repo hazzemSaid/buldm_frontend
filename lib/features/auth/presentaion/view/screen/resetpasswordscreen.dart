@@ -2,7 +2,6 @@ import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_state.dart';
 import 'package:buldm/features/auth/presentaion/view/screen/SignInScreen.dart';
 import 'package:buldm/l10n/app_localizations.dart';
-import 'package:buldm/utils/layout/main_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

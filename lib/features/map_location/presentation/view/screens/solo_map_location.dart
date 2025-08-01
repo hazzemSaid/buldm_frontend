@@ -1,6 +1,5 @@
 import 'package:buldm/core/services/LocationService.dart';
 import 'package:buldm/features/Add_Post/data/model/mapstyledata_model.dart';
-import 'package:buldm/features/home/data/models/post_model.dart';
 import 'package:buldm/features/home/domain/entities/postentity.dart';
 import 'package:buldm/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
