@@ -5,6 +5,7 @@ import 'package:buldm/features/Add_Post/presentation/view/screens/PostView.dart'
 import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
 import 'package:buldm/features/home/persentation/view/screens/PostWidget.dart';
+import 'package:buldm/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -69,6 +70,7 @@ class _MapLocationScreen extends State<MapLocationScreen>
 
   @override
   Widget build(BuildContext context) {
+    final localization = AppLocalizations.of(context)!;
     final tileUrl =
         'https://api.maptiler.com/maps/$_selectedStyle/256/{z}/{x}/{y}.png?key=$_apiKey';
 
@@ -175,7 +177,7 @@ class _MapLocationScreen extends State<MapLocationScreen>
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text(
-                                        'Post: ${post.description}\nStatus: ${post.status}',
+                                        '${localization.post}: ${post.description}\n${localization.status}: ${post.status}',
                                       ),
                                     ),
                                   );

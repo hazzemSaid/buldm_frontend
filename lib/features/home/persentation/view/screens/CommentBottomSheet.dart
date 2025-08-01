@@ -1,3 +1,4 @@
+import 'package:buldm/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class CommentBottomSheet extends StatefulWidget {
@@ -66,11 +67,11 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-
+    final localization = AppLocalizations.of(context)!;
     return Container(
       height: MediaQuery.of(context).size.height * 0.98,
       decoration: BoxDecoration(
-        color: colorScheme.background,
+        color: colorScheme.surface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(

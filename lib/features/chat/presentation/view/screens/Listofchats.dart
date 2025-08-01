@@ -11,6 +11,8 @@ import 'package:buldm/features/chat/presentation/view/screens/chatdetailsscreen.
 import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_event.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_state.dart';
+import 'package:buldm/features/profile/presentation/view/screens/OtherUserProfileScreen.dart';
+import 'package:buldm/l10n/app_localizations.dart';
 import 'package:buldm/utils/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -70,7 +72,7 @@ class _ListOfChatsState extends State<ListOfChats> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  void _navigateToChat(String otherUserId, User user) {
+  void _navigateToChat(String otherUserId, ViewerUser user) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -84,8 +86,9 @@ class _ListOfChatsState extends State<ListOfChats> with WidgetsBindingObserver {
   }
 
   Widget _buildChatItemLoading(ChatContactDirectory conversation, User user) {
+    final localization = AppLocalizations.of(context)!;
     final lastMessage = conversation.lastMessage;
-    final lastMessageText = lastMessage?.message ?? 'No messages yet';
+    final lastMessageText = lastMessage?.message ?? localization.noMessagesYet;
     final lastMessageTime = lastMessage?.timestamp;
 
     return ListTile(
@@ -100,7 +103,7 @@ class _ListOfChatsState extends State<ListOfChats> with WidgetsBindingObserver {
         ),
       ),
       title: Text(
-        'User ${conversation.user}',
+        localization.userName(conversation.user),
         style: const TextStyle(
           fontWeight: FontWeight.w600,
           fontSize: 16,
@@ -145,16 +148,23 @@ class _ListOfChatsState extends State<ListOfChats> with WidgetsBindingObserver {
               ),
             )
           : null,
-      onTap: () => _navigateToChat(conversation.user, user),
+      onTap: () => _navigateToChat(
+          conversation.user,
+          ViewerUser(
+              avatar: user.avatar,
+              id: user.user_id,
+              name: user.name,
+              email: user.email)),
     );
   }
 
   Widget _buildConnectionStatus(ChatState state) {
+    final localizations = AppLocalizations.of(context)!;
     if (state is SocketConnecting) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         color: Colors.orange,
-        child: const Row(
+        child:  Row(
           children: [
             SizedBox(
               width: 16,
@@ -166,7 +176,7 @@ class _ListOfChatsState extends State<ListOfChats> with WidgetsBindingObserver {
             ),
             SizedBox(width: 8),
             Text(
-              'Connecting to chat server...',
+              localizations.socketConnecting,
               style: TextStyle(color: Colors.white),
             ),
           ],
@@ -182,14 +192,14 @@ class _ListOfChatsState extends State<ListOfChats> with WidgetsBindingObserver {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                'Connection error: ${state.message}',
+                localizations.socketError(state.message),
                 style: const TextStyle(color: Colors.white),
               ),
             ),
             TextButton(
               onPressed: () => _chatBloc.add(ConnectToSocket()),
-              child: const Text(
-                'Retry',
+              child: Text(
+                localizations.retry,
                 style: TextStyle(color: Colors.white),
               ),
             ),
@@ -201,8 +211,9 @@ class _ListOfChatsState extends State<ListOfChats> with WidgetsBindingObserver {
   }
 
   Widget _buildChatItem(ChatContactDirectory conversation, User user) {
+    final localization = AppLocalizations.of(context)!;
     final lastMessage = conversation.lastMessage;
-    final lastMessageText = lastMessage?.message ?? 'No messages yet';
+    final lastMessageText = lastMessage?.message ?? localization.noMessagesYet;
     final lastMessageTime = lastMessage?.timestamp;
 
     return ListTile(
@@ -263,7 +274,13 @@ class _ListOfChatsState extends State<ListOfChats> with WidgetsBindingObserver {
               ),
             )
           : null,
-      onTap: () => _navigateToChat(conversation.user, user),
+      onTap: () => _navigateToChat(
+          conversation.user,
+          ViewerUser(
+              avatar: user.avatar,
+              id: user.user_id,
+              name: user.name,
+              email: user.email)),
     );
   }
 
@@ -285,6 +302,7 @@ class _ListOfChatsState extends State<ListOfChats> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context).colorScheme;
+    final localization = AppLocalizations.of(context)!;
     return BlocProvider.value(
       value: _chatBloc,
       child: Scaffold(
@@ -293,7 +311,7 @@ class _ListOfChatsState extends State<ListOfChats> with WidgetsBindingObserver {
         body: CustomScrollView(
           slivers: [
             SliverAppBar(
-              backgroundColor: theme.background,
+              backgroundColor: theme.surface,
               floating: true,
               snap: true,
               elevation: 0,
@@ -329,7 +347,7 @@ class _ListOfChatsState extends State<ListOfChats> with WidgetsBindingObserver {
                       : (state as ConversationsUpdated).conversations;
 
                   if (conversations.isEmpty) {
-                    return const SliverFillRemaining(
+                    return SliverFillRemaining(
                       child: Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -341,7 +359,7 @@ class _ListOfChatsState extends State<ListOfChats> with WidgetsBindingObserver {
                             ),
                             SizedBox(height: 16),
                             Text(
-                              'No conversations yet',
+                              localization.noChatsFound,
                               style: TextStyle(
                                 fontSize: 18,
                                 color: Colors.grey,
@@ -349,7 +367,7 @@ class _ListOfChatsState extends State<ListOfChats> with WidgetsBindingObserver {
                             ),
                             SizedBox(height: 8),
                             Text(
-                              'Start chatting with other users!',
+                              localization.startChattingWithFriends,
                               style: TextStyle(
                                 color: Colors.grey,
                               ),
@@ -403,7 +421,7 @@ class _ListOfChatsState extends State<ListOfChats> with WidgetsBindingObserver {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'Error: ${state.message}',
+                            localization.chatError(state.message),
                             style: const TextStyle(
                               fontSize: 16,
                               color: Colors.red,
@@ -414,7 +432,7 @@ class _ListOfChatsState extends State<ListOfChats> with WidgetsBindingObserver {
                             onPressed: () {
                               _chatBloc.add(LoadConversations(currentUserId));
                             },
-                            child: const Text('Retry'),
+                            child: Text(localization.retry),
                           ),
                         ],
                       ),
@@ -422,9 +440,9 @@ class _ListOfChatsState extends State<ListOfChats> with WidgetsBindingObserver {
                   );
                 }
 
-                return const SliverFillRemaining(
+                return SliverFillRemaining(
                   child: Center(
-                    child: Text('Loading conversations...'),
+                    child: Text(localization.unknownError),
                   ),
                 );
               },

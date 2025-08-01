@@ -5,6 +5,7 @@ import 'package:buldm/features/Add_Post/presentation/bloc/imagespicker_cubit/ima
 import 'package:buldm/features/Add_Post/presentation/bloc/location_cubit/location_cubit.dart';
 import 'package:buldm/features/Add_Post/presentation/view/screens/AddPostDetails.dart';
 import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
+import 'package:buldm/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
@@ -14,9 +15,9 @@ class PostUploadScreen extends StatelessWidget {
 
   Future<void> _selectImages(BuildContext context) async {
     final ImagePicker picker = ImagePicker();
-    final List<XFile>? selectedImages = await picker.pickMultiImage();
+    final List<XFile> selectedImages = await picker.pickMultiImage();
 
-    if (selectedImages != null && selectedImages.isNotEmpty) {
+    if (selectedImages.isNotEmpty) {
       context.read<ImagespickerCubit>().selectImages(selectedImages);
     }
   }
@@ -51,6 +52,7 @@ class PostUploadScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
     return BlocBuilder<ImagespickerCubit, ImagespickerState>(
       builder: (context, state) {
         if (state is ImagespickerLoaded) {
@@ -60,7 +62,7 @@ class PostUploadScreen extends StatelessWidget {
               title: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text("Post Upload"),
+                  Text(localizations.postUploadTitle),
                   IconButton(
                     icon: const Icon(Icons.close),
                     onPressed: () => _clearImages(context),
@@ -71,8 +73,8 @@ class PostUploadScreen extends StatelessWidget {
                 if (pickedImages.isNotEmpty)
                   TextButton(
                     onPressed: () => _goNext(context, pickedImages),
-                    child: const Text(
-                      "التالي",
+                    child: Text(
+                      localizations.next,
                       style: TextStyle(color: Colors.white),
                     ),
                   )
@@ -108,12 +110,12 @@ class PostUploadScreen extends StatelessWidget {
         } else {
           return Scaffold(
             appBar: AppBar(
-              title: const Text("Post Upload"),
+              title:  Text(localizations.postUploadTitle),
             ),
             body: Center(
               child: ElevatedButton(
                 onPressed: () => _selectImages(context),
-                child: const Text("Select Images"),
+                child:  Text(localizations.selectImages),
               ),
             ),
           );

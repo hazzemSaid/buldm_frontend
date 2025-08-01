@@ -1,19 +1,29 @@
+import 'package:buldm/core/failure/failure.dart';
 import 'package:buldm/features/auth/data/model/Registerusere_model.dart';
 import 'package:buldm/features/auth/data/model/usermodel.dart';
 import 'package:either_dart/either.dart';
 
 abstract class authRepositoryInterface {
-  Future<UserModel> signInWithEmailAndPassword(
+  Future<Either<Failure, UserModel>> signInWithEmailAndPassword(
       {required String email, required String password});
-  Future<RegisterUserModel> signUpWithEmailAndPassword(
+  Future<Either<Failure, RegisterUserModel>> signUpWithEmailAndPassword(
       {required String email, required String password, required String name});
   Future<Either<String, UserModel>> authwithgoogle();
   Future<void> signOut();
-  Future<void> resetPassword(String email);
-  Future<void> updateProfile(String name, String photoUrl);
-  Future<void> deleteAccount();
+  Future<Either<Failure, void>> forgotPassword({required String email});
+  Future<Either<Failure, void>> verifyCode(
+      {required String email, required String code});
+  Future<Either<Failure, void>> resetpassword({
+    required String email,
+    required String newPassword,
+  });
+
+  Future<Either<Failure, void>> deleteAccount();
   Future<UserModel?> getCurrentUser();
 
-  Future<UserModel> verifyEmailCode(
+  Future<Either<Failure, UserModel>> verifyEmailCode(
       {required String code, required String email});
+
+  Future<Either<Failure, void>> sendVerificationEmailAgain(
+      {required String email});
 }

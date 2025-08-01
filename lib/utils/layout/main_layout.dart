@@ -6,6 +6,7 @@ import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
 import 'package:buldm/features/home/persentation/view/screens/home_screen.dart';
 import 'package:buldm/features/map_location/presentation/view/screens/map_location_screen.dart';
 import 'package:buldm/features/profile/presentation/blocs/profile/profile_cubit.dart';
+import 'package:buldm/features/profile/presentation/blocs/profilechanges/profilechanges_cubit.dart';
 import 'package:buldm/features/profile/presentation/view/screens/profile_screen.dart';
 import 'package:buldm/features/search/presentation/bloc/ssearch/Search_Cubit.dart';
 import 'package:buldm/features/search/presentation/view/screens/search_screen.dart';
@@ -68,8 +69,15 @@ class _MainLayoutState extends State<MainLayout> {
               create: (context) => sl<SearchCubit>(),
               child: SearchScreen(),
             ),
-            BlocProvider(
-              create: (context) => sl<ProfileCubit>(),
+            MultiBlocProvider(
+              providers: [
+                BlocProvider<ProfileCubit>(
+                  create: (context) => sl<ProfileCubit>(),
+                ),
+                BlocProvider<ProfilechangesCubit>(
+                  create: (context) => sl<ProfilechangesCubit>(),
+                ),
+              ],
               child: ProfileScreen(),
             ),
           ];

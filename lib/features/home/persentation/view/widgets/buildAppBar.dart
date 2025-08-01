@@ -15,7 +15,7 @@ class buildAppBar extends StatelessWidget {
     return SliverAppBar(
       floating: true,
       snap: true,
-      backgroundColor: theme.background,
+      backgroundColor: theme.surface,
       elevation: 0,
       title: Text(
         "Buldm",

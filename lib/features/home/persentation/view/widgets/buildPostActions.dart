@@ -1,6 +1,12 @@
+import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
+import 'package:buldm/features/auth/presentaion/view/bloc/auth_state.dart';
+import 'package:buldm/features/chat/presentation/view/screens/chatdetailsscreen.dart';
 import 'package:buldm/features/home/domain/entities/postentity.dart';
-import 'package:buldm/features/home/persentation/view/screens/CommentBottomSheet.dart';
+import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
+import 'package:buldm/features/map_location/presentation/view/screens/solo_map_location.dart';
+import 'package:buldm/features/profile/presentation/view/screens/OtherUserProfileScreen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class BuildPostActions extends StatelessWidget {
   const BuildPostActions({super.key, required this.post});
@@ -30,14 +36,23 @@ class BuildPostActions extends StatelessWidget {
           ),
           _glassAction(
             icon: Icons.mode_comment_outlined,
-            label: "Comment",
-            onTap: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                builder: (_) => const CommentBottomSheet(),
-              );
+            label: "Contact",
+            onTap: () async {
+              final authState = context.read<AuthCubit>().state;
+              final currentUserId =
+                  (authState is Authenticated) ? authState.user.user_id : '';
+              final otheruser =
+                  await context.read<UserBloc>().getuserbyid(post.user_id);
+              Navigator.push(context, MaterialPageRoute(builder: (context) {
+                return ChatDetailsScreen(
+                    currentUserId: currentUserId,
+                    user: ViewerUser(
+                        avatar: otheruser.avatar,
+                        id: otheruser.user_id,
+                        name: otheruser.name,
+                        email: otheruser.email),
+                    otherUserId: otheruser.user_id);
+              }));
             },
             iconColor: Colors.deepPurpleAccent,
             surfaceColor: surfaceColor,
@@ -47,9 +62,10 @@ class BuildPostActions extends StatelessWidget {
             icon: Icons.pin_drop_outlined,
             label: "Location",
             onTap: () {
-              //using a single tap to open a location screen for one location
-              print(
-                  "Location: ${post.location.coordinates[0]}, ${post.location.coordinates[1]}");
+              final route = MaterialPageRoute(
+                builder: (context) => SoloPostLocation(post: post),
+              );
+              Navigator.push(context, route);
             },
             iconColor: Colors.teal,
             surfaceColor: surfaceColor,

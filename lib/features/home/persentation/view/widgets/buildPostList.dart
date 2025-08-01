@@ -1,6 +1,7 @@
 // ✅ في buildPostList.dart
 import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
 import 'package:buldm/features/home/persentation/view/screens/PostWidget.dart';
+import 'package:buldm/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shimmer/shimmer.dart';
@@ -13,6 +14,7 @@ class buildPostList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localization = AppLocalizations.of(context)!;
     return BlocBuilder<PostBloc, PostState>(
       builder: (context, state) {
         if (state is PostLoaded) {
@@ -26,7 +28,7 @@ class buildPostList extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Text(
-                      'No posts have been in app , post your first post now! ',
+                      localization.noPostsAvailable,
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 16),
@@ -109,7 +111,7 @@ class PostShimmerWidget extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: theme.colorScheme.background,
+          color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(

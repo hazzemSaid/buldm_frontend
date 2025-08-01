@@ -1,9 +1,10 @@
 import 'package:buldm/features/profile/data/datasource/profile_remote_data_resource.dart';
 import 'package:buldm/features/profile/domain/repo/ProfileRepository.dart';
 import 'package:dio/dio.dart';
+import 'package:image_picker/image_picker.dart';
 
 class Profilerepoimp extends ProfileRepository {
-  final ProfileRemoteDataResource profileRemoteDataResource;
+  final ProfileRemoteDataResourceImpl profileRemoteDataResource;
 
   Profilerepoimp({required this.profileRemoteDataResource});
 
@@ -48,5 +49,18 @@ class Profilerepoimp extends ProfileRepository {
     required String name,
   }) {
     return profileRemoteDataResource.searchByName(name: name);
+  }
+
+  @override
+  Future<Response> updateProfileAvatar({
+    required String userId,
+    required String token,
+    required XFile imagePath,
+  }) {
+    return profileRemoteDataResource.updateProfileAvatar(
+      userId: userId,
+      token: token,
+      imagePath: imagePath, // Pass the XFile object
+    );
   }
 }

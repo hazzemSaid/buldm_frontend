@@ -6,18 +6,24 @@ part 'usermodel.g.dart';
 
 @HiveType(typeId: 0)
 class UserModel extends HiveObject implements User, Equatable {
+  @override
   @HiveField(0)
   final String name;
 
+  @override
   @HiveField(1)
   final String email;
 
+  @override
   @HiveField(2)
   final String avatar;
+  @override
   @HiveField(3)
   final String token;
+  @override
   @HiveField(4)
   final String refreshToken;
+  @override
   @HiveField(5)
   final String user_id;
   UserModel({

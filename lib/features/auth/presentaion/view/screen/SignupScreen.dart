@@ -2,6 +2,7 @@ import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_state.dart';
 import 'package:buldm/features/auth/presentaion/view/screen/SignInScreen.dart';
 import 'package:buldm/features/auth/presentaion/view/screen/VerificationEmailScreen.dart';
+import 'package:buldm/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -19,9 +20,10 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   bool _rememberMe = false;
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
+    final localization = AppLocalizations.of(context)!;
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -31,14 +33,14 @@ class _SignupScreenState extends State<SignupScreen> {
             children: [
               const SizedBox(height: 32.0),
               Text(
-                'Create an Account',
+                localization.createAccount,
                 style: theme.textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 8.0),
               Text(
-                'Sign up to get started with Buldm',
+                localization.signUpToYourAccount,
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: Colors.grey[600],
                 ),
@@ -58,7 +60,7 @@ class _SignupScreenState extends State<SignupScreen> {
                             children: [
                               CircularProgressIndicator(),
                               SizedBox(width: 16.0),
-                              Text('Signing up with Google...'),
+                              Text(localization.signingInWithGoogle),
                             ],
                           ),
                         );
@@ -86,7 +88,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     width: 24.0,
                     fit: BoxFit.cover,
                   ),
-                  label: const Text('Sign up with Google'),
+                  label: Text(localization.continueWithGoogle),
                   style: ElevatedButton.styleFrom(
                     //using theme.primaryColor for Google button
                     backgroundColor: theme.primaryColor,
@@ -108,7 +110,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
                     child: Text(
-                      'OR',
+                      localization.orUseYourEmail,
                       style: theme.textTheme.bodyMedium
                           ?.copyWith(color: Colors.grey[600]),
                     ),
@@ -126,7 +128,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     TextFormField(
                       controller: _nameController,
                       decoration: InputDecoration(
-                        labelText: 'Name',
+                        labelText: localization.name,
                         prefixIcon: const Icon(Icons.person_outline),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12.0),
@@ -134,10 +136,10 @@ class _SignupScreenState extends State<SignupScreen> {
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter your name';
+                          return localization.nameRequired;
                         }
                         if (value.length < 2) {
-                          return 'Name must be at least 2 characters';
+                          return localization.nameTooShort;
                         }
                         return null;
                       },
@@ -147,7 +149,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
-                        labelText: 'Email',
+                        labelText: localization.email,
                         prefixIcon: const Icon(Icons.email_outlined),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12.0),
@@ -155,11 +157,11 @@ class _SignupScreenState extends State<SignupScreen> {
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter your email';
+                          return localization.emailRequired;
                         }
                         if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
                             .hasMatch(value)) {
-                          return 'Please enter a valid email';
+                          return localization.invalidEmail;
                         }
                         return null;
                       },
@@ -169,7 +171,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       controller: _passwordController,
                       obscureText: true,
                       decoration: InputDecoration(
-                        labelText: 'Password',
+                        labelText: localization.password,
                         prefixIcon: const Icon(Icons.lock_outline),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12.0),
@@ -177,16 +179,16 @@ class _SignupScreenState extends State<SignupScreen> {
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter your password';
+                          return localization.passwordRequired;
                         }
                         if (value.length < 6) {
-                          return 'Password must be at least 6 characters';
+                          return localization.passwordTooShort;
                         }
                         return null;
                       },
                     ),
                     Text(
-                      "The password must be at least 6 characters long and contain at least one uppercase letter, one lowercase letter, and one number.",
+                      localization.passwordHint,
                       style: theme.textTheme.bodySmall
                           ?.copyWith(color: Colors.grey[600]),
                     ),
@@ -202,7 +204,7 @@ class _SignupScreenState extends State<SignupScreen> {
                             setState(() => _rememberMe = value ?? false);
                           },
                         ),
-                        Text('Remember Me', style: theme.textTheme.bodyMedium),
+                        Text(localization.rememberMe, style: theme.textTheme.bodyMedium),
                       ],
                     ),
 
@@ -222,7 +224,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                   children: [
                                     CircularProgressIndicator(),
                                     SizedBox(width: 16.0),
-                                    Text('Signing up...'),
+                                    Text(localization.signingUp),
                                   ],
                                 ),
                               );
@@ -231,20 +233,23 @@ class _SignupScreenState extends State<SignupScreen> {
                         }
                         if (state is AuthError) {
                           Navigator.pop(context);
-                          // ScaffoldMessenger.of(context).showSnackBar(
-                          //   SnackBar(
-                          //     content: Text(state.message),
-                          //     backgroundColor: Colors.red,
-                          //     duration: const Duration(microseconds: 6000),
-                          //   ),
-                          // );
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(state.message),
+                              backgroundColor: Colors.red,
+                              duration: const Duration(microseconds: 6000),
+                            ),
+                          );
                         }
                         if (state is SignUp) {
+                          Navigator.pop(context);
+
                           // screen for verification email
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
+                             SnackBar(
                               content: Text(
-                                  'Please check your email for verification'),
+                                  localization.verificationEmailSent),
                               duration: Duration(seconds: 2),
                             ),
                           );
@@ -258,12 +263,6 @@ class _SignupScreenState extends State<SignupScreen> {
                         }
                       },
                       builder: (context, state) {
-                        if (state is Loading) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        }
-
                         return ElevatedButton(
                           onPressed: () {
                             if (_formKey.currentState!.validate()) {
@@ -282,7 +281,7 @@ class _SignupScreenState extends State<SignupScreen> {
                             backgroundColor: theme.primaryColor,
                             foregroundColor: Colors.white,
                           ),
-                          child: const Text(' Sign Up  '),
+                          child: Text(localization.signUp),
                         );
                       },
                     ),
@@ -293,7 +292,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text("Already have an account? "),
+                        Text(localization.alreadyHaveAnAccount),
                         TextButton(
                           onPressed: () {
                             Navigator.of(context).pushReplacement(
@@ -302,7 +301,7 @@ class _SignupScreenState extends State<SignupScreen> {
                               ),
                             );
                           },
-                          child: const Text('Sign In'),
+                          child: Text(localization.signIn),
                         ),
                       ],
                     ),

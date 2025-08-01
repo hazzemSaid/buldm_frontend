@@ -7,6 +7,7 @@ import 'package:buldm/features/profile/presentation/blocs/profile/profile_cubit.
 import 'package:buldm/features/profile/presentation/view/screens/OtherUserProfileScreen.dart';
 import 'package:buldm/features/profile/presentation/view/screens/profile_screen.dart';
 import 'package:buldm/features/search/presentation/bloc/ssearch/Search_Cubit.dart';
+import 'package:buldm/l10n/app_localizations.dart';
 import 'package:buldm/utils/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,13 +18,14 @@ class SearchScreen extends StatelessWidget {
   static Timer? _debounce;
   @override
   Widget build(BuildContext context) {
+    final localization = AppLocalizations.of(context)!;
     return Scaffold(
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
             floating: true,
             snap: true,
-            backgroundColor: Theme.of(context).colorScheme.background,
+            backgroundColor: Theme.of(context).colorScheme.surface,
             elevation: 0,
             title: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -53,7 +55,7 @@ class SearchScreen extends StatelessWidget {
                   });
                 },
                 decoration: InputDecoration(
-                  hintText: 'Search...',
+                  hintText: localization.searchUsers,
                   prefixIcon: Icon(Icons.search),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -72,7 +74,7 @@ class SearchScreen extends StatelessWidget {
                 final items = state.users;
                 if (items.isEmpty) {
                   return SliverFillRemaining(
-                    child: Center(child: Text('No results found')),
+                    child: Center(child: Text(localization.noUsersFound)),
                   );
                 }
                 return SliverList(
@@ -86,7 +88,7 @@ class SearchScreen extends StatelessWidget {
                               (context.read<AuthCubit>().state as Authenticated)
                                       .user
                                       .user_id ==
-                                  items[index].user_id) {
+                                  items[index].id) {
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -98,12 +100,16 @@ class SearchScreen extends StatelessWidget {
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => BlocProvider.value(
-                                    value: sl<ProfileCubit>(),
-                                    child: OtherUserProfileScreen(
-                                        user: items[index]),
-                                  ),
-                                ));
+                                    builder: (context) => BlocProvider.value(
+                                          value: sl<ProfileCubit>(),
+                                          child: OtherUserProfileScreen(
+                                            user: ViewerUser(
+                                                avatar: items[index].avatar,
+                                                id: items[index].id,
+                                                name: items[index].name,
+                                                email: items[index].email),
+                                          ),
+                                        )));
                           }
                         },
                         child: ListTile(

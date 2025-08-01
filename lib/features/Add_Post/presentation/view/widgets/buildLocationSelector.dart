@@ -2,6 +2,7 @@
 import 'package:buldm/features/Add_Post/presentation/bloc/location_cubit/location_cubit.dart';
 import 'package:buldm/features/Add_Post/presentation/view/screens/LostItemLocationPicker.dart';
 import 'package:buldm/features/home/data/models/location_model.dart';
+import 'package:buldm/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -27,6 +28,7 @@ class _BuildLocationSelectorState extends State<BuildLocationSelector> {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
     return GestureDetector(
       onTap: () async {
         final locationCubit = context.read<LocationCubit>();
@@ -52,7 +54,7 @@ class _BuildLocationSelectorState extends State<BuildLocationSelector> {
                 selectedLocation.longitude,
                 selectedLocation.latitude
               ],
-              placeName: 'Selected Location',
+              placeName: localizations.locationSelected,
             );
           });
         }
@@ -80,8 +82,8 @@ class _BuildLocationSelectorState extends State<BuildLocationSelector> {
                 children: [
                   Text(
                     _pickedLocation != null
-                        ? 'Location Selected'
-                        : 'Select Location',
+                        ? localizations.locationSelected
+                        : localizations.selectLocation,
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
                       color: _pickedLocation != null

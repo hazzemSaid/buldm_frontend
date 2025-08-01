@@ -7,7 +7,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 class LostItemLocationPicker extends StatefulWidget {
-  LostItemLocationPicker({super.key});
+  const LostItemLocationPicker({super.key});
 
   @override
   State<LostItemLocationPicker> createState() => _LostItemLocationPickerState();
@@ -156,11 +156,11 @@ class _LostItemLocationPickerState extends State<LostItemLocationPicker>
       ),
       body: BlocBuilder<LocationCubit, LocationState>(
         builder: (context, state) {
-          LatLng? _pickedLatLng;
+          LatLng? pickedLatLng;
           if (state is LocationSelected) {
-            _pickedLatLng = (state).location;
+            pickedLatLng = (state).location;
           }
-          print('Picked LatLng: $_pickedLatLng');
+          print('Picked LatLng: $pickedLatLng');
           return Stack(
             children: [
               // Map
@@ -178,11 +178,11 @@ class _LostItemLocationPickerState extends State<LostItemLocationPicker>
                       urlTemplate: tileUrl,
                       userAgentPackageName: 'com.example.buldm',
                     ),
-                    if (_pickedLatLng != null)
+                    if (pickedLatLng != null)
                       MarkerLayer(
                         markers: [
                           Marker(
-                            point: _pickedLatLng,
+                            point: pickedLatLng,
                             width: 40,
                             height: 40,
                             child: ScaleTransition(
@@ -285,7 +285,7 @@ class _LostItemLocationPickerState extends State<LostItemLocationPicker>
               ),
 
               // Instruction Card
-              if (_pickedLatLng == null)
+              if (pickedLatLng == null)
                 Positioned(
                   top: 140,
                   left: 16,
@@ -343,7 +343,7 @@ class _LostItemLocationPickerState extends State<LostItemLocationPicker>
                 ),
 
               // Selected Location Info
-              if (_pickedLatLng != null)
+              if (pickedLatLng != null)
                 Positioned(
                   top: 140,
                   left: 16,
@@ -408,14 +408,14 @@ class _LostItemLocationPickerState extends State<LostItemLocationPicker>
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Lat: ${_pickedLatLng.latitude.toStringAsFixed(6)}',
+                            'Lat: ${pickedLatLng.latitude.toStringAsFixed(6)}',
                             style: TextStyle(
                               color: Colors.grey[600],
                               fontSize: 12,
                             ),
                           ),
                           Text(
-                            'Lng: ${_pickedLatLng.longitude.toStringAsFixed(6)}',
+                            'Lng: ${pickedLatLng.longitude.toStringAsFixed(6)}',
                             style: TextStyle(
                               color: Colors.grey[600],
                               fontSize: 12,
@@ -428,7 +428,7 @@ class _LostItemLocationPickerState extends State<LostItemLocationPicker>
                 ),
 
               // Confirm Button
-              if (_pickedLatLng != null)
+              if (pickedLatLng != null)
                 Positioned(
                   bottom: 30,
                   left: 16,

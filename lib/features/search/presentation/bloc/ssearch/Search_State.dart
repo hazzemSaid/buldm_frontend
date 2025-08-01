@@ -14,7 +14,7 @@ class SearchLoading extends SearchState {
 }
 
 class SearchLoaded extends SearchState {
-  final List<UserModel> users;
+  final List<ViewerUser> users;
 
   SearchLoaded({required this.users});
 

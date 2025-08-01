@@ -2,14 +2,17 @@ import 'package:buldm/features/auth/data/model/usermodel.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_state.dart';
 import 'package:buldm/features/profile/presentation/blocs/profile/profile_cubit.dart';
+import 'package:buldm/features/profile/presentation/blocs/profilechanges/profilechanges_cubit.dart';
 import 'package:buldm/features/profile/presentation/view/widgets/ProfileOption.dart';
+import 'package:buldm/l10n/app_localizations.dart';
 import 'package:buldm/provider/localization/localization_cubit.dart';
 import 'package:buldm/utils/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({Key? key}) : super(key: key);
+  const ProfileScreen({super.key});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -18,8 +21,14 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   @override
   bool status = false;
+  late UserModel usermodel;
+  @override
   void initState() {
     super.initState();
+    final authState = context.read<AuthCubit>().state;
+    if (authState is Authenticated) {
+      usermodel = authState.user;
+    }
     _fetchUserPosts(
       status: status,
     );
@@ -41,12 +50,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } else {
       // Handle case where user is not logged in
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('User not logged in')),
+        SnackBar(content: Text("User not logged in")),
       );
     }
   }
 
+  @override
   Widget build(BuildContext context) {
+    final localization = AppLocalizations.of(context)!;
+
     return Scaffold(
       endDrawer: Drawer(
         surfaceTintColor: Theme.of(context).colorScheme.surface,
@@ -58,23 +70,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
         elevation: 0,
         child: ListView(
           children: [
-            ProfileOption(icon: Icons.settings, title: 'Settings'),
-            // IconButton(
-            //   onPressed: () {
-            //     BlocProvider.of<LocalizationCubit>(context).switchLanguage();
-            //   },
-            //   icon: Icon(Icons.language),
-            // ),
+            ProfileOption(icon: Icons.settings, title: localization.settings),
             ProfileOption(
                 icon: Icons.language,
-                title: 'Language',
+                title: localization.language,
                 onTap: () {
                   BlocProvider.of<LocalizationCubit>(context).switchLanguage();
                 }),
-            ProfileOption(icon: Icons.help, title: 'Help'),
+            ProfileOption(icon: Icons.help, title: localization.help),
             ProfileOption(
                 icon: Icons.logout,
-                title: 'Logout',
+                title: localization.logout,
                 onTap: () {
                   context.read<AuthCubit>().signOut();
 
@@ -89,7 +95,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           SliverAppBar(
             floating: true,
             snap: true,
-            backgroundColor: Theme.of(context).colorScheme.background,
+            backgroundColor: Theme.of(context).colorScheme.surface,
             elevation: 0,
             title: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -117,215 +123,234 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
 
           const SliverToBoxAdapter(child: SizedBox(height: 16)),
-
-          // معلومات المستخدم
-          BlocBuilder<AuthCubit, AuthState>(
-            builder: (context, state) {
-              if (state is Authenticated) {
-                return SliverList(
-                  delegate: SliverChildListDelegate(
-                    [
-                      // صورة الـ cover + avatar
+          SliverList(
+            delegate: SliverChildListDelegate(
+              [
+                // صورة الـ cover + avatar
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    image: const DecorationImage(
+                      image: AssetImage('assets/images/pngwing.png'),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  height: 160,
+                  width: double.infinity,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
                       Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 16),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(16),
-                          image: const DecorationImage(
-                            image: AssetImage('assets/images/pngwing.png'),
-                            fit: BoxFit.cover,
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withOpacity(0.3),
+                            ],
                           ),
                         ),
-                        height: 160,
-                        width: double.infinity,
-                        child: Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(16),
-                                gradient: LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [
-                                    Colors.transparent,
-                                    Colors.black.withOpacity(0.3),
-                                  ],
-                                ),
-                              ),
+                      ),
+                      Positioned(
+                        bottom: -25,
+                        left: 0,
+                        right: 0,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Theme.of(context).colorScheme.surface,
+                              width: 4,
                             ),
-                            Positioned(
-                              bottom: -25,
-                              left: 0,
-                              right: 0,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color:
-                                        Theme.of(context).colorScheme.surface,
-                                    width: 4,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.2),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 2),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: GestureDetector(
+                            onTap: () async {
+                              // Pick image and update avatar
+                              final ImagePicker picker = ImagePicker();
+                              final XFile? image = await picker.pickImage(
+                                  source: ImageSource.gallery);
+                              if (image != null) {
+                                await context
+                                    .read<ProfilechangesCubit>()
+                                    .updateProfileAvatar(
+                                      userId: usermodel.user_id,
+                                      token: usermodel.token,
+                                      imagePath: image,
+                                    );
+                              }
+                            },
+                            child: BlocBuilder<ProfilechangesCubit,
+                                ProfilechangesState>(
+                              builder: (context, state) {
+                                String avatarUrl = usermodel.avatar;
+                                if (state
+                                    is ProfileChangesAvatarUpdatedSuccess) {
+                                  avatarUrl = state.imageurl;
+                                } else if (state
+                                    is ProfileChangesAvatarUpdatedError) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(state.message),
                                     ),
-                                  ],
-                                ),
-                                child: CircleAvatar(
+                                  );
+                                } else if (state
+                                    is ProfileChangesAvatarUpdatedLoading) {
+                                  return const Center(
+                                    child: CircularProgressIndicator(),
+                                  );
+                                }
+                                return CircleAvatar(
                                   radius: 45,
                                   backgroundColor: Colors.transparent,
                                   child: ClipOval(
                                     child: Image.network(
-                                      state.user.avatar,
+                                      avatarUrl,
                                       width: 90,
                                       height: 90,
                                       fit: BoxFit.cover,
                                     ),
                                   ),
-                                ),
-                              ),
+                                );
+                              },
                             ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 40),
-                      Align(
-                        alignment: Alignment.center,
-                        child: Text(
-                          state.user.name,
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineSmall
-                              ?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // زرار الفلترة
-                      Center(
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 16),
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                Theme.of(context)
-                                    .colorScheme
-                                    .primary
-                                    .withOpacity(0.1),
-                                Theme.of(context)
-                                    .colorScheme
-                                    .secondary
-                                    .withOpacity(0.1),
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .outline
-                                  .withOpacity(0.2),
-                              width: 1,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 8,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          height: 50,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              GestureDetector(
-                                onTap: () {
-                                  context
-                                      .read<ProfileCubit>()
-                                      .filterpost(status: false);
-                                  status = false;
-                                },
-                                child: Row(
-                                  children: [
-                                    Text(
-                                      'items Find',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyLarge
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    ImageIcon(
-                                      const AssetImage(
-                                          "assets/images/find.png"),
-                                      color:
-                                          Theme.of(context).colorScheme.primary,
-                                      size: 35,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                width: 1,
-                                height: 30,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .outline
-                                    .withOpacity(0.3),
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  context
-                                      .read<ProfileCubit>()
-                                      .filterpost(status: true);
-                                  status = true;
-                                },
-                                child: Row(
-                                  children: [
-                                    Text(
-                                      'items Lost',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyLarge
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    ImageIcon(
-                                      const AssetImage(
-                                          "assets/images/lost.png"),
-                                      color:
-                                          Theme.of(context).colorScheme.primary,
-                                      size: 45,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
                           ),
                         ),
                       ),
                     ],
                   ),
-                );
-              } else {
-                return const SliverToBoxAdapter(
-                  child: Center(child: CircularProgressIndicator()),
-                );
-              }
-            },
+                ),
+                const SizedBox(height: 40),
+                Align(
+                  alignment: Alignment.center,
+                  child: Text(
+                    usermodel.name,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // زرار الفلترة
+                Center(
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16),
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withOpacity(0.1),
+                          Theme.of(context)
+                              .colorScheme
+                              .secondary
+                              .withOpacity(0.1),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .outline
+                            .withOpacity(0.2),
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    height: 50,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            context
+                                .read<ProfileCubit>()
+                                .filterpost(status: false);
+                            status = false;
+                          },
+                          child: Row(
+                            children: [
+                              Text(
+                                localization.itemsFound,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyLarge
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                              ),
+                              const SizedBox(width: 10),
+                              ImageIcon(
+                                const AssetImage("assets/images/find.png"),
+                                color: Theme.of(context).colorScheme.primary,
+                                size: 35,
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          width: 1,
+                          height: 30,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .outline
+                              .withOpacity(0.3),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            context
+                                .read<ProfileCubit>()
+                                .filterpost(status: true);
+                            status = true;
+                          },
+                          child: Row(
+                            children: [
+                              Text(
+                                localization.itemsLost,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyLarge
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                              ),
+                              const SizedBox(width: 10),
+                              ImageIcon(
+                                const AssetImage("assets/images/lost.png"),
+                                color: Theme.of(context).colorScheme.primary,
+                                size: 45,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 16)),
           // بوستات المستخدم
@@ -359,7 +384,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'No posts available',
+                            localization.noPostsAvailable,
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyLarge

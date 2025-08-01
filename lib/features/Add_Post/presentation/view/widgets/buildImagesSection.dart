@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:buldm/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class BuildImagesSection extends StatelessWidget {
@@ -8,6 +9,7 @@ class BuildImagesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -37,7 +39,7 @@ class BuildImagesSection extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Text(
-                'Selected Images',
+                localizations.imagesSectionTitle,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
@@ -53,7 +55,7 @@ class BuildImagesSection extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  '${images.length} photos',
+                  '${images.length} ${localizations.images}',
                   style: const TextStyle(
                     color: Colors.purple,
                     fontWeight: FontWeight.w500,

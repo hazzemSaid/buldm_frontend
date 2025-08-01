@@ -1,6 +1,6 @@
 import 'package:bloc/bloc.dart';
-import 'package:buldm/features/auth/data/model/usermodel.dart';
 import 'package:buldm/features/profile/domain/usecases/searchByname.dart';
+import 'package:buldm/features/profile/presentation/view/screens/OtherUserProfileScreen.dart';
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -23,8 +23,8 @@ class SearchCubit extends Cubit<SearchState> {
         emit(SearchError(message: 'Failed to fetch users'));
         return;
       }
-      final List<UserModel> users = (response.data['users'] as List)
-          .map((user) => UserModel.fromJson(user))
+      final List<ViewerUser> users = (response.data['users'] as List)
+          .map((user) => ViewerUser.fromJson(user))
           .toList();
       emit(SearchLoaded(users: users));
     } catch (e) {

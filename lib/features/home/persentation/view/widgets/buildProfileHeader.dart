@@ -7,6 +7,7 @@ import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_state.dart';
 import 'package:buldm/features/profile/presentation/blocs/profile/profile_cubit.dart';
 import 'package:buldm/features/profile/presentation/view/screens/OtherUserProfileScreen.dart';
+import 'package:buldm/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -42,8 +43,8 @@ class buildProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localization = AppLocalizations.of(context)!;
     // ✅ إرسال event فقط لو المستخدم غير موجود بالكاش
-
     return BlocSelector<UserBloc, UserState, User?>(
       selector: (state) {
         if (state is UserLoaded && state.users.containsKey(userId)) {
@@ -71,7 +72,12 @@ class buildProfileHeader extends StatelessWidget {
                       MaterialPageRoute(
                         builder: (context) => BlocProvider.value(
                           value: sl<ProfileCubit>(),
-                          child: OtherUserProfileScreen(user: user),
+                          child: OtherUserProfileScreen(
+                              user: ViewerUser(
+                                  avatar: user.avatar,
+                                  id: user.user_id,
+                                  name: user.name,
+                                  email: user.email)),
                         ),
                       ));
                 },
@@ -154,14 +160,14 @@ class buildProfileHeader extends StatelessWidget {
                                   post.user_id == currentUser.user_id) ...[
                                 ListTile(
                                     leading: const Icon(Icons.edit),
-                                    title: const Text('Edit Post'),
+                                    title:  Text(localization.editPost),
                                     onTap: () {
                                       // Handle edit post action
                                       Navigator.pop(context);
                                     }),
                                 ListTile(
                                   leading: const Icon(Icons.delete),
-                                  title: const Text('Delete Post'),
+                                  title:  Text(localization.deletePost),
                                   onTap: () {
                                     // Handle delete post action
                                     Navigator.pop(context);
@@ -170,7 +176,7 @@ class buildProfileHeader extends StatelessWidget {
                               ],
                               ListTile(
                                 leading: const Icon(Icons.report),
-                                title: const Text('Report Post'),
+                                title:  Text(localization.reportPost),
                                 onTap: () {
                                   // Handle report post action
                                   Navigator.pop(context);

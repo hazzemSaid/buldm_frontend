@@ -1,3 +1,4 @@
+import 'package:buldm/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class BuildDateSelector extends StatefulWidget {
@@ -21,6 +22,7 @@ class _BuildDateSelectorState extends State<BuildDateSelector> {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
     return GestureDetector(
       onTap: () async {
         final picked = await showDatePicker(
@@ -55,7 +57,7 @@ class _BuildDateSelectorState extends State<BuildDateSelector> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _selectedDate != null ? 'Date Selected' : 'Select Date',
+                    _selectedDate != null ? localizations.dateSelected : localizations.selectDate,
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
                       color: _selectedDate != null

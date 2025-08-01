@@ -1,17 +1,18 @@
 // features/chat/presentation/view/screens/chatdetailsscreen.dart
 import 'package:buldm/core/Dependency_njection/service_locator.dart';
-import 'package:buldm/features/auth/domain/entities/userentities.dart';
 import 'package:buldm/features/chat/data/models/MessageModel.dart';
 import 'package:buldm/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:buldm/features/chat/presentation/bloc/chat_event.dart';
 import 'package:buldm/features/chat/presentation/bloc/chat_state.dart';
+import 'package:buldm/features/profile/presentation/view/screens/OtherUserProfileScreen.dart';
+import 'package:buldm/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ChatDetailsScreen extends StatefulWidget {
   final String currentUserId;
   final String otherUserId;
-  final User user;
+  final ViewerUser user;
   const ChatDetailsScreen({
     super.key,
     required this.user,
@@ -153,11 +154,12 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   }
 
   Widget _buildConnectionStatus(ChatState state) {
+    final localization = AppLocalizations.of(context)!;
     if (state is SocketConnecting) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         color: Colors.orange,
-        child: const Row(
+        child: Row(
           children: [
             SizedBox(
               width: 16,
@@ -169,7 +171,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
             ),
             SizedBox(width: 8),
             Text(
-              'Connecting...',
+              localization.socketConnecting,
               style: TextStyle(color: Colors.white),
             ),
           ],
@@ -185,14 +187,14 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                'Connection error: ${state.message}',
+                localization.socketError(state.message),
                 style: const TextStyle(color: Colors.white),
               ),
             ),
             TextButton(
               onPressed: () => _chatBloc.add(ConnectToSocket()),
-              child: const Text(
-                'Retry',
+              child: Text(
+                localization.retry,
                 style: TextStyle(color: Colors.white),
               ),
             ),
@@ -206,6 +208,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context).colorScheme;
+    final localization = AppLocalizations.of(context)!;
     return BlocProvider.value(
       value: _chatBloc,
       child: Scaffold(
@@ -247,13 +250,13 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                   } else if (state is MessagesLoaded ||
                       state is ConversationSwitched) {
                     final messages = state is MessagesLoaded
-                        ? (state as MessagesLoaded).messages
+                        ? (state).messages
                         : (state as ConversationSwitched).messages;
 
                     if (messages.isEmpty) {
-                      return const Center(
+                      return Center(
                         child: Text(
-                          'No messages yet. Start the conversation!',
+                          localization.noMessages,
                           style: TextStyle(
                             fontSize: 16,
                             color: Colors.grey,
@@ -299,15 +302,18 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                                 widget.otherUserId,
                               ));
                             },
-                            child: const Text('Retry'),
+                            child: Text(
+                              localization.retry,
+                              style: TextStyle(color: Colors.white),
+                            ),
                           ),
                         ],
                       ),
                     );
                   }
 
-                  return const Center(
-                    child: Text('Loading messages...'),
+                  return Center(
+                    child: Text(localization.loadingMessages),
                   );
                 },
               ),
@@ -329,8 +335,8 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                   Expanded(
                     child: TextField(
                       controller: _messageController,
-                      decoration: const InputDecoration(
-                        hintText: 'Type a message...',
+                      decoration: InputDecoration(
+                        hintText: localization.typeAMessage,
                         border: InputBorder.none,
                       ),
                       maxLines: null,

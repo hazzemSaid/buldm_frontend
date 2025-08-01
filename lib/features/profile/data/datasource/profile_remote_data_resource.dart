@@ -1,7 +1,10 @@
 import 'package:buldm/core/Dependency_njection/service_locator.dart';
+import 'package:buldm/features/auth/data/datasource/localdatasource.dart';
+import 'package:buldm/features/auth/data/model/usermodel.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_state.dart';
 import 'package:dio/dio.dart';
+import 'package:image_picker/image_picker.dart';
 
 abstract class ProfileRemoteDataResource {
   Future<Response> updateProfile(
@@ -10,10 +13,7 @@ abstract class ProfileRemoteDataResource {
       required String token});
 
   Future<void> deleteProfile();
-  Future<void> changePassword({
-    required String oldPassword,
-    required String newPassword,
-  });
+
   Future<Response> fetchPost({
     required String token,
     required String userId,
@@ -21,19 +21,19 @@ abstract class ProfileRemoteDataResource {
   Future<Response> searchByName({
     required String name,
   });
+  Future<Response> updateProfileAvatar({
+    required String userId,
+    required String token,
+    required XFile imagePath,
+  });
 }
 
 class ProfileRemoteDataResourceImpl implements ProfileRemoteDataResource {
   // Implementation of the methods defined in the interface
   final Dio dio;
-  ProfileRemoteDataResourceImpl({required this.dio});
-
-  @override
-  Future<void> changePassword(
-      {required String oldPassword, required String newPassword}) {
-    // TODO: implement changePassword
-    throw UnimplementedError();
-  }
+  final AuthLocalDataSourceImpl authLocalDataSourceImpl;
+  ProfileRemoteDataResourceImpl(
+      {required this.dio, required this.authLocalDataSourceImpl});
 
   @override
   Future<void> deleteProfile() {
@@ -61,11 +61,32 @@ class ProfileRemoteDataResourceImpl implements ProfileRemoteDataResource {
       {Map<String, dynamic>? profileData,
       required String userId,
       required String token}) async {
-    //put ID/:id
-    final response = await dio.put("/ID/$userId",
+    // If profileData contains an 'avatar' XFile, send as multipart/form-data
+    if (profileData != null && profileData['avatar'] is XFile) {
+      final avatarFile = profileData['avatar'] as XFile;
+      final formData = FormData.fromMap({
+        ...profileData..remove('avatar'),
+        'avatar': await MultipartFile.fromFile(avatarFile.path),
+      });
+      final response = await dio.put(
+        "/ID/$userId",
+        data: formData,
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'multipart/form-data',
+          },
+        ),
+      );
+      return response;
+    } else {
+      final response = await dio.put(
+        "/ID/$userId",
         data: profileData,
-        options: Options(headers: {'Authorization': 'Bearer $token'}));
-    return response;
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      return response;
+    }
   }
 
   @override
@@ -74,5 +95,27 @@ class ProfileRemoteDataResourceImpl implements ProfileRemoteDataResource {
     final token = (sl<AuthCubit>().state as Authenticated).user.token;
     return dio.get('/user/find/$name',
         options: Options(headers: {'Authorization': 'Bearer $token'}));
+  }
+
+  @override
+  Future<Response> updateProfileAvatar({
+    required String userId,
+    required String token,
+    required XFile imagePath,
+  }) async {
+    final response = await dio.put(
+      "/user/ID/$userId",
+      data: FormData.fromMap({
+        'avatar': await MultipartFile.fromFile(imagePath.path),
+      }),
+      options: Options(headers: {'Authorization': 'Bearer $token'}),
+    );
+    if (response.statusCode == 200) {
+      //check if the response is successful
+      final user = await authLocalDataSourceImpl.cacheUser(
+        UserModel.fromJson(response.data['user']),
+      );
+    }
+    return response;
   }
 }

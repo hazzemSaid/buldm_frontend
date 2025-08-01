@@ -1,6 +1,8 @@
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_state.dart';
 import 'package:buldm/features/auth/presentaion/view/screen/SignupScreen.dart';
+import 'package:buldm/features/auth/presentaion/view/screen/forgetpasswordscreen.dart';
+import 'package:buldm/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -37,7 +39,7 @@ class _SignInScreenState extends State<SignInScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
+    final localization = AppLocalizations.of(context)!;
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -47,14 +49,14 @@ class _SignInScreenState extends State<SignInScreen> {
             children: [
               const SizedBox(height: 32.0),
               Text(
-                'Welcome Back 👋',
+                localization.welcomeBack,
                 style: theme.textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 8.0),
               Text(
-                'Login to your account to continue',
+                localization.loginToYourAccount,
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: Colors.grey[600],
                 ),
@@ -65,7 +67,7 @@ class _SignInScreenState extends State<SignInScreen> {
               BlocListener<AuthCubit, AuthState>(
                 listener: (context, state) {
                   // for loading state
-                  if (state is Loading) {
+                  if (state is GoogleLoading) {
                     showDialog(
                       context: context,
                       builder: (context) {
@@ -74,7 +76,7 @@ class _SignInScreenState extends State<SignInScreen> {
                             children: [
                               CircularProgressIndicator(),
                               SizedBox(width: 16.0),
-                              Text('Signing in with Google...'),
+                              Text(localization.signingInWithGoogle),
                             ],
                           ),
                         );
@@ -82,7 +84,7 @@ class _SignInScreenState extends State<SignInScreen> {
                     );
                   }
                   // for error state
-                  if (state is AuthError) {
+                  if (state is GoogleAuthError) {
                     Navigator.of(context).pop(); // close loading dialog
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -103,7 +105,7 @@ class _SignInScreenState extends State<SignInScreen> {
                     width: 24.0,
                     fit: BoxFit.cover,
                   ),
-                  label: const Text('Continue with Google'),
+                  label: Text(localization.continueWithGoogle),
                   style: ElevatedButton.styleFrom(
                     //using theme.primaryColor for Google button
                     backgroundColor: theme.primaryColor,
@@ -125,7 +127,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
                     child: Text(
-                      'or use your email',
+                      localization.orUseYourEmail,
                       style: theme.textTheme.bodyMedium
                           ?.copyWith(color: Colors.grey[600]),
                     ),
@@ -144,7 +146,7 @@ class _SignInScreenState extends State<SignInScreen> {
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
-                        labelText: 'Email',
+                        labelText: localization.email,
                         prefixIcon: const Icon(Icons.email_outlined),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12.0),
@@ -152,11 +154,11 @@ class _SignInScreenState extends State<SignInScreen> {
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter your email';
+                          return localization.emailRequired;
                         }
                         if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
                             .hasMatch(value)) {
-                          return 'Please enter a valid email';
+                          return localization.invalidEmail;
                         }
                         return null;
                       },
@@ -166,7 +168,7 @@ class _SignInScreenState extends State<SignInScreen> {
                       controller: _passwordController,
                       obscureText: true,
                       decoration: InputDecoration(
-                        labelText: 'Password',
+                        labelText: localization.password,
                         prefixIcon: const Icon(Icons.lock_outline),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12.0),
@@ -174,10 +176,10 @@ class _SignInScreenState extends State<SignInScreen> {
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter your password';
+                          return localization.passwordRequired;
                         }
                         if (value.length < 6) {
-                          return 'Password must be at least 6 characters';
+                          return localization.passwordTooShort;
                         }
                         return null;
                       },
@@ -188,8 +190,15 @@ class _SignInScreenState extends State<SignInScreen> {
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
-                        onPressed: () {},
-                        child: const Text('Forgot Password?'),
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const Forgetpasswordscreen(),
+                            ),
+                          );
+                        },
+                        child: Text(localization.forgotPassword),
                       ),
                     ),
 
@@ -202,7 +211,8 @@ class _SignInScreenState extends State<SignInScreen> {
                             setState(() => _rememberMe = value ?? false);
                           },
                         ),
-                        Text('Remember Me', style: theme.textTheme.bodyMedium),
+                        Text(localization.rememberMe,
+                            style: theme.textTheme.bodyMedium),
                       ],
                     ),
 
@@ -219,14 +229,24 @@ class _SignInScreenState extends State<SignInScreen> {
                               child: CircularProgressIndicator(),
                             ),
                           );
-                        } else {
-                          // Close dialog if open
-                          if (Navigator.canPop(context)) {
-                            Navigator.of(context).pop();
+                        }
+                        if (state is Authenticated) {
+                          Navigator.of(context).pop(); // close loading dialog
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                  '${localization.welcomeBack} ${state.user.name}!'),
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                          if (!_navigated) {
+                            _navigated = true;
+                            Navigator.pushReplacementNamed(
+                                context, '/home'); // Adjust route as needed
                           }
                         }
-
                         if (state is AuthError) {
+                          Navigator.of(context).pop(); // close loading dialog
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(state.message),
@@ -254,14 +274,14 @@ class _SignInScreenState extends State<SignInScreen> {
                           backgroundColor: theme.primaryColor,
                           foregroundColor: Colors.white,
                         ),
-                        child: const Text('Sign In'),
+                        child: Text(localization.signIn),
                       ),
                     ),
                     // Sign Up Prompt
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text("Don't have an account? "),
+                        Text(localization.dontHaveAnAccount),
                         TextButton(
                           onPressed: () {
                             Navigator.of(context).pushReplacement(
@@ -270,7 +290,7 @@ class _SignInScreenState extends State<SignInScreen> {
                               ),
                             );
                           },
-                          child: const Text('Create an Account'),
+                          child: Text(localization.createAccount),
                         ),
                       ],
                     ),

@@ -80,11 +80,9 @@ class AppTheme {
     colorScheme: const ColorScheme.light(
       primary: primaryColor,
       secondary: accentColor,
-      background: backgroundColor,
       surface: surfaceColor,
       onPrimary: Colors.white,
       onSecondary: Colors.black,
-      onBackground: textColor,
       onSurface: textColor,
     ),
     textTheme: const TextTheme(
@@ -178,11 +176,9 @@ class AppTheme {
     colorScheme: const ColorScheme.dark(
       primary: primaryColor,
       secondary: accentColor,
-      background: Color(0xFF121212),
       surface: Color(0xFF1E1E1E),
       onPrimary: Colors.white,
       onSecondary: Colors.white,
-      onBackground: Colors.white,
       onSurface: Colors.white,
     ),
     textTheme: const TextTheme(

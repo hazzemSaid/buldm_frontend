@@ -1,18 +1,21 @@
 import 'package:buldm/features/auth/data/model/Registerusere_model.dart';
 import 'package:buldm/features/auth/data/model/usermodel.dart';
 import 'package:dio/dio.dart';
+import 'package:either_dart/either.dart';
+
+import '../../../../core/failure/failure.dart';
 
 abstract class AuthRemoteDataSource {
-  Future<UserModel> verifyEmailCode({
+  Future<Either<Failure, UserModel>> verifyEmailCode({
     required String code,
     required String email,
   });
-  Future<UserModel> signInWithEmailAndPassword({
+  Future<Either<Failure, UserModel>> signInWithEmailAndPassword({
     required String email,
     required String password,
   });
 
-  Future<RegisterUserModel> signUpWithEmailAndPassword({
+  Future<Either<Failure, RegisterUserModel>> signUpWithEmailAndPassword({
     required String email,
     required String password,
     required String name,
@@ -20,8 +23,18 @@ abstract class AuthRemoteDataSource {
 
   Future<void> signOut();
 
-  Future<void> google_auth_service({
+  Future<Either<Failure, UserModel>> googleAuthService({
     required String idToken,
+  });
+  Future<Either<Failure, void>> sendVerificationEmailAgain({
+    required String email,
+  });
+  Future<Either<Failure, void>> forgotPassword({required String email});
+  Future<Either<Failure, void>> verifyCode(
+      {required String email, required String code});
+  Future<Either<Failure, void>> resetPassword({
+    required String email,
+    required String newPassword,
   });
 }
 
@@ -31,7 +44,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   AuthRemoteDataSourceImpl({required this.dio});
 
   @override
-  Future<UserModel> signInWithEmailAndPassword({
+  Future<Either<Failure, UserModel>> signInWithEmailAndPassword({
     required String email,
     required String password,
   }) async {
@@ -43,20 +56,28 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           'password': password,
         },
       );
-
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return UserModel.fromJson(response.data['user']);
+        return Right(UserModel.fromJson(response.data['user']));
+      } else if (response.statusCode == 422) {
+        return Left(
+            Failure(error: response.data['error'] ?? 'Password is incorrect'));
       } else {
-        throw Exception('Failed to sign in');
+        return Left(
+            Failure(error: response.data['error'] ?? 'Failed to sign in'));
       }
     } on DioException catch (e) {
-      throw Exception(
-          "Sign in error: ${e.response?.data['error'] ?? e.message}");
+      String errorMsg = 'Failed to sign in';
+      if (e.response != null && e.response?.data != null) {
+        errorMsg = e.response?.data['error']?.toString() ?? errorMsg;
+      }
+      return Left(Failure(error: errorMsg));
+    } catch (e) {
+      return Left(Failure(error: e.toString()));
     }
   }
 
   @override
-  Future<RegisterUserModel> signUpWithEmailAndPassword({
+  Future<Either<Failure, RegisterUserModel>> signUpWithEmailAndPassword({
     required String email,
     required String password,
     required String name,
@@ -70,15 +91,20 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           'password': password,
         },
       );
-
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return RegisterUserModel.fromJson(response.data);
+        return Right(RegisterUserModel.fromJson(response.data));
       } else {
-        throw Exception('Failed to sign up');
+        return Left(
+            Failure(error: response.data['error'] ?? 'Failed to sign up'));
       }
     } on DioException catch (e) {
-      throw Exception(
-          'Sign up error: ${e.response?.data['error'] ?? e.message}');
+      String errorMsg = 'Failed to sign up';
+      if (e.response != null && e.response?.data != null) {
+        errorMsg = e.response?.data['error']?.toString() ?? errorMsg;
+      }
+      return Left(Failure(error: errorMsg));
+    } catch (e) {
+      return Left(Failure(error: e.toString()));
     }
   }
 
@@ -88,20 +114,34 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<Response> google_auth_service({
+  Future<Either<Failure, UserModel>> googleAuthService({
     required String idToken,
-  }) {
-    final response = dio.post(
-      '/user/google_auth',
-      data: {'token': idToken},
-    );
-    return response;
+  }) async {
+    try {
+      final response = await dio.post(
+        '/user/google_auth',
+        data: {'token': idToken},
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return Right(UserModel.fromJson(response.data['user']));
+      } else {
+        return Left(
+            Failure(error: response.data['error'] ?? 'Failed to sign in'));
+      }
+    } on DioException catch (e) {
+      String errorMsg = 'Failed to sign in with Google';
+      if (e.response != null && e.response?.data != null) {
+        errorMsg = e.response?.data['error']?.toString() ?? errorMsg;
+      }
+      return Left(Failure(error: errorMsg));
+    } catch (e) {
+      return Left(Failure(error: e.toString()));
+    }
   }
 
   @override
-  Future<UserModel> verifyEmailCode(
+  Future<Either<Failure, UserModel>> verifyEmailCode(
       {required String code, required String email}) async {
-    // {{BASE_URL}}/api/v1/user/verifyemail
     try {
       final response = await dio.post(
         '/user/verifyemail',
@@ -110,15 +150,129 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           'email': email,
         },
       );
-
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return UserModel.fromJson(response.data['user']);
+        return Right(UserModel.fromJson(response.data['user']));
       } else {
-        throw Exception('Failed to verify email code');
+        return Left(
+            Failure(error: response.data['error'] ?? 'Failed to verify email'));
       }
     } on DioException catch (e) {
-      throw Exception(
-          'Email verification error: ${e.response?.data['error'] ?? e.message}');
+      String errorMsg = 'Failed to verify email';
+      if (e.response != null && e.response?.data != null) {
+        errorMsg = e.response?.data['error']?.toString() ?? errorMsg;
+      }
+      return Left(Failure(error: errorMsg));
+    } catch (e) {
+      return Left(Failure(error: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> sendVerificationEmailAgain(
+      {required String email}) async {
+    try {
+      final response = await dio.post(
+        '/user/resendverificationcode',
+        data: {'email': email},
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return Right(null);
+      } else {
+        return Left(Failure(
+            error: response.data['error'] ??
+                'Failed to resend verification email'));
+      }
+    } on DioException catch (e) {
+      String errorMsg = 'Failed to resend verification email';
+      if (e.response != null && e.response?.data != null) {
+        errorMsg = e.response?.data['error']?.toString() ?? errorMsg;
+      }
+      return Left(Failure(error: errorMsg));
+    } catch (e) {
+      return Left(Failure(error: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> forgotPassword({required String email}) async {
+    try {
+      final response = await dio.post(
+        '/user/forgotpassword',
+        data: {'email': email},
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return Right(null);
+      } else {
+        return Left(
+            Failure(error: response.data['error'] ?? 'Failed to send email'));
+      }
+    } on DioException catch (e) {
+      String errorMsg = 'Failed to send forgot password email';
+      if (e.response != null && e.response?.data != null) {
+        errorMsg = e.response?.data['error']?.toString() ?? errorMsg;
+      }
+      return Left(Failure(error: errorMsg));
+    } catch (e) {
+      return Left(Failure(error: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> resetPassword(
+      {required String email, required String newPassword}) async {
+    try {
+      final response = await dio.post(
+        '/user/resetpassword',
+        data: {
+          'email': email,
+          'password': newPassword,
+        },
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return Right(null);
+      } else {
+        return Left(Failure(
+            error: response.data['error'] ?? 'Failed to reset password'));
+      }
+    } on DioException catch (e) {
+      String errorMsg = 'Failed to reset password';
+      if (e.response != null && e.response?.data != null) {
+        errorMsg = e.response?.data['error']?.toString() ?? errorMsg;
+      }
+      return Left(Failure(error: errorMsg));
+    } catch (e) {
+      return Left(Failure(error: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> verifyCode(
+      {required String email, required String code}) async {
+    try {
+      final response = await dio.post(
+        '/user/verifycode',
+        data: {
+          'email': email,
+          'code': code,
+        },
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return Right(null);
+      } else {
+        return Left(
+            Failure(error: response.data['error'] ?? 'Failed to verify code'));
+      }
+    } on DioException catch (e) {
+      String errorMsg = 'Failed to verify code';
+      if (e.response != null && e.response?.data != null) {
+        errorMsg = e.response?.data['error']?.toString() ?? errorMsg;
+      } else if (e.type == DioExceptionType.badResponse &&
+          e.response?.statusCode == 401) {
+        errorMsg = 'Unauthorized: Invalid email or code';
+      }
+      return Left(Failure(error: errorMsg));
+    } catch (e) {
+      return Left(Failure(error: e.toString()));
     }
   }
 }

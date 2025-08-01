@@ -1,3 +1,4 @@
+import 'package:buldm/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
@@ -151,11 +152,13 @@ class _BuildCategorySelectorState extends State<BuildCategorySelector> {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Select Category',
+          localizations.selectCategory,
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w500,
@@ -184,7 +187,7 @@ class _BuildCategorySelectorState extends State<BuildCategorySelector> {
                 decoration: BoxDecoration(
                   color: isSelected
                       ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context).colorScheme.surfaceVariant,
+                      : Theme.of(context).colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(25),
                   border: Border.all(
                     color: isSelected

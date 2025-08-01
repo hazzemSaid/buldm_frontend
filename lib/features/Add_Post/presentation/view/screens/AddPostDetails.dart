@@ -14,6 +14,7 @@ import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_state.dart';
 import 'package:buldm/features/home/data/models/location_model.dart';
 import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
+import 'package:buldm/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -43,8 +44,7 @@ class _AddPostDetailsState extends State<AddPostDetails>
   late AnimationController _slideController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
-
-  final List<String> _categories = [
+  final List<String> _categoriesEng = [
     'Electronics',
     'Clothing',
     'Documents',
@@ -54,7 +54,17 @@ class _AddPostDetailsState extends State<AddPostDetails>
     'Books',
     'Other'
   ];
-
+  final List<String> _categoriesAr = [
+    'إلكترونيات',
+    'ملابس',
+    'مستندات',
+    'مجوهرات',
+    'مفاتيح',
+    'حقائب',
+    'كتب',
+    'أخرى'
+  ];
+  final List<String> _categories = [];
   final List<IconData> _categoryIcons = [
     Icons.phone_android,
     Icons.checkroom,
@@ -69,6 +79,7 @@ class _AddPostDetailsState extends State<AddPostDetails>
   @override
   void initState() {
     // loadModel();
+
     super.initState();
     if (context.read<ImagespickerCubit>().state is ImagespickerLoaded) {
       images = (context.read<ImagespickerCubit>().state as ImagespickerLoaded)
@@ -98,6 +109,17 @@ class _AddPostDetailsState extends State<AddPostDetails>
   }
 
   @override
+  void didChangeDependencies() {
+    final localizations = AppLocalizations.of(context)!;
+    if (localizations.localeName.startsWith('ar')) {
+      _categories.addAll(_categoriesAr);
+    } else {
+      _categories.addAll(_categoriesEng);
+    }
+    super.didChangeDependencies();
+  }
+
+  @override
   void dispose() {
     _fadeController.dispose();
     _slideController.dispose();
@@ -108,24 +130,25 @@ class _AddPostDetailsState extends State<AddPostDetails>
   void _submit() async {
     //handel this later with bloc
     //here we have a problem with _pickedLocation being null
+    final localizations = AppLocalizations.of(context)!;
 
     if (!_formKey.currentState!.validate()) {
       _scrollToFirstError();
       return;
     }
     if (_descriptionController.text.trim().isEmpty) {
-      _showErrorSnackBar("Description cannot be empty");
+      _showErrorSnackBar(localizations.descriptionRequired);
       return;
     }
 
     final locationpiker = context.read<LocationCubit>();
     final currentState = locationpiker.state;
-    LatLng? _pickedLocation = null;
+    LatLng? pickedLocation;
     if (currentState is LocationSelected) {
-      _pickedLocation = currentState.location;
+      pickedLocation = currentState.location;
     }
-    if (_pickedLocation == null) {
-      _showErrorSnackBar("Please select a location");
+    if (pickedLocation == null) {
+      _showErrorSnackBar(localizations.selectLocation);
       return;
     }
     context.read<PostBloc>().add(uploadPostEvent(
@@ -134,15 +157,13 @@ class _AddPostDetailsState extends State<AddPostDetails>
           description: _descriptionController.text.trim(),
           category: _categoryController.text.trim(),
           contactInfo: _contactInfoController.text.trim(),
-          status: _statusNotifier.value.toLowerCase(),
+          status:
+              _statusNotifier.value == localizations.found ? "found" : "lost",
           when: DateTime.now(),
           images: images,
           location: LocationModel(
               type: "Point",
-              coordinates: [
-                _pickedLocation.latitude,
-                _pickedLocation.longitude
-              ],
+              coordinates: [pickedLocation.latitude, pickedLocation.longitude],
               placeName: "Selected Location"),
           predictedItems: [],
           user_id: context.read<AuthCubit>().state is Authenticated
@@ -152,7 +173,7 @@ class _AddPostDetailsState extends State<AddPostDetails>
           updatedAt: DateTime.now(),
         )));
     // go back to home page
-    _showSuccessSnackBar("Post submitted successfully!");
+    _showSuccessSnackBar(localizations.postSubmittedSuccessfully);
     context.read<ImagespickerCubit>().clearImages();
     Navigator.pop(context);
   }
@@ -202,6 +223,8 @@ class _AddPostDetailsState extends State<AddPostDetails>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final localizations = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
@@ -221,7 +244,7 @@ class _AddPostDetailsState extends State<AddPostDetails>
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Item Details',
+          localizations.itemDetails,
           style: TextStyle(
             color: theme.colorScheme.onPrimary,
             fontSize: 20,
@@ -234,7 +257,7 @@ class _AddPostDetailsState extends State<AddPostDetails>
               if (state is PostError) {
                 _showErrorSnackBar(state.message);
               } else if (state is postCreatedState) {
-                _showSuccessSnackBar('Post created successfully!');
+                _showSuccessSnackBar(localizations.postCreatedSuccessfully);
                 Navigator.pop(context);
               }
             },
@@ -256,9 +279,9 @@ class _AddPostDetailsState extends State<AddPostDetails>
                     : TextButton.icon(
                         onPressed: _submit,
                         icon: const Icon(Icons.publish, color: Colors.white),
-                        label: const Text(
-                          'Publish',
-                          style: TextStyle(
+                        label: Text(
+                          localizations.publish,
+                          style: const TextStyle(
                               color: Colors.white, fontWeight: FontWeight.w600),
                         ),
                       ),
@@ -287,13 +310,13 @@ class _AddPostDetailsState extends State<AddPostDetails>
 
                   // Basic Information Section
                   BuildSectionCard(
-                    title: 'Basic Information',
+                    title: localizations.basicInformation,
                     icon: Icons.info_outline,
                     children: [
                       BuildCustomTextField(
                         controller: _descriptionController,
-                        label: 'Description',
-                        hint: 'Describe the item in detail...',
+                        label: localizations.description,
+                        hint: localizations.descriptionHint,
                         icon: FontAwesomeIcons.fileAlt,
                         maxLines: 3,
                       ),
@@ -304,7 +327,7 @@ class _AddPostDetailsState extends State<AddPostDetails>
 
                   // Category Section
                   BuildSectionCard(
-                    title: 'Category',
+                    title: localizations.category,
                     icon: Icons.category,
                     children: [
                       BuildCategorySelector(
@@ -320,7 +343,7 @@ class _AddPostDetailsState extends State<AddPostDetails>
 
                   // Status Section
                   BuildSectionCard(
-                    title: 'Status',
+                    title: localizations.status,
                     icon: Icons.flag,
                     children: [
                       ValueListenableBuilder(
@@ -329,8 +352,9 @@ class _AddPostDetailsState extends State<AddPostDetails>
                           return BuildStatusSelector(
                             status: status,
                             onStatusChanged: () {
-                              final newStatus =
-                                  status == 'FOUND' ? 'LOST' : 'FOUND';
+                              final newStatus = status == localizations.found
+                                  ? localizations.lost
+                                  : localizations.found;
                               _statusNotifier.value = newStatus;
                             },
                           );
@@ -343,7 +367,7 @@ class _AddPostDetailsState extends State<AddPostDetails>
 
                   // Location & Date Section
                   BuildSectionCard(
-                    title: 'Location & Date',
+                    title: localizations.locationAndDate,
                     icon: Icons.place,
                     children: [
                       // Location Selector screen
@@ -357,13 +381,13 @@ class _AddPostDetailsState extends State<AddPostDetails>
 
                   // Contact Information Section
                   BuildSectionCard(
-                    title: 'Contact Information',
+                    title: localizations.contactInformation,
                     icon: Icons.contact_phone,
                     children: [
                       BuildCustomTextField(
                         controller: _contactInfoController,
-                        label: 'Contact Info',
-                        hint: 'Phone, email, or other contact details',
+                        label: localizations.contactInfo,
+                        hint: localizations.contactInfoHint,
                         icon: Icons.phone,
                         keyboardType: TextInputType.phone,
                       ),

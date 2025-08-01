@@ -1,17 +1,18 @@
 import 'package:buldm/core/Dependency_njection/service_locator.dart';
-import 'package:buldm/features/auth/domain/entities/userentities.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_state.dart';
 import 'package:buldm/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:buldm/features/chat/presentation/view/screens/chatdetailsscreen.dart';
 import 'package:buldm/features/profile/presentation/blocs/profile/profile_cubit.dart';
+import 'package:buldm/l10n/app_localizations.dart';
 import 'package:buldm/utils/app_theme.dart';
+import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class OtherUserProfileScreen extends StatefulWidget {
-  final User user;
+  final ViewerUser user;
   const OtherUserProfileScreen({super.key, required this.user});
 
   @override
@@ -22,13 +23,15 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
   @override
   bool status = false;
 
+  @override
   void initState() {
     super.initState();
-    context.read<ProfileCubit>().fetchPost(userId: widget.user.user_id);
+    context.read<ProfileCubit>().fetchPost(userId: widget.user.id);
   }
 
   @override
   Widget build(BuildContext context) {
+    final localization = AppLocalizations.of(context)!;
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -36,7 +39,7 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
           SliverAppBar(
             floating: true,
             snap: true,
-            backgroundColor: Theme.of(context).colorScheme.background,
+            backgroundColor: Theme.of(context).colorScheme.surface,
             elevation: 0,
             title: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -55,7 +58,7 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
                   onPressed: () {
                     setState(() {
                       status = !status;
-                      _fetchUserPosts(status: status, user: widget.user);
+                      _fetchUserPosts(status: status, userid: widget.user.id);
                     });
                   },
                 ),
@@ -74,7 +77,7 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
                                               .state as Authenticated)
                                           .user
                                           .user_id,
-                                      otherUserId: widget.user.user_id,
+                                      otherUserId: widget.user.id,
                                     ),
                                   )));
                     },
@@ -218,7 +221,7 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
                           child: Row(
                             children: [
                               Text(
-                                'items Find',
+                                localization.itemsFound,
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodyLarge
@@ -253,7 +256,7 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
                           child: Row(
                             children: [
                               Text(
-                                'items Lost',
+                                localization.itemsLost,
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodyLarge
@@ -309,7 +312,7 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'No posts available',
+                            localization.noPostsAvailable,
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyLarge
@@ -318,7 +321,7 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
                           IconButton(
                             icon: const Icon(Icons.refresh),
                             onPressed: () => _fetchUserPosts(
-                                status: status, user: widget.user),
+                                status: status, userid: widget.user.id),
                           ),
                         ],
                       ),
@@ -375,20 +378,71 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
     );
   }
 
-  void _fetchUserPosts({status = false, required User user}) async {
+  void _fetchUserPosts({status = false, required String userid}) async {
     // Fetch posts when the screen is initialized
+    final localization = AppLocalizations.of(context)!;
     if (!mounted) return;
 
-    if (user != null && user.token.isNotEmpty && user.user_id.isNotEmpty) {
+    if (userid.isNotEmpty) {
       await context.read<ProfileCubit>().fetchPost(
-            userId: user.user_id,
+            userId: userid,
           );
       context.read<ProfileCubit>().filterpost(status: status);
     } else {
-      // Handle case where user is not logged in
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('User not logged in')),
+        SnackBar(content: Text(localization.userNotLoggedIn)),
       );
     }
+  }
+}
+
+class ViewerUser extends Equatable {
+  final String id;
+  final String name;
+  final String email;
+  final String avatar;
+  const ViewerUser({
+    required this.avatar,
+    required this.id,
+    required this.name,
+    required this.email,
+  });
+  ViewerUser copyWith({
+    String? id,
+    String? name,
+    String? email,
+    String? avatar,
+  }) {
+    return ViewerUser(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      avatar: avatar ?? this.avatar,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'user_id': id,
+      'name': name,
+      'email': email,
+      'avatar': avatar,
+    };
+  }
+
+  factory ViewerUser.fromJson(Map<String, dynamic> json) {
+    return ViewerUser(
+      id: json['user_id'],
+      name: json['name'],
+      email: json['email'],
+      avatar: json['avatar'],
+    );
+  }
+
+  @override
+  List<Object?> get props => [id, name, email, avatar];
+  @override
+  String toString() {
+    return 'ViewerUser(id: $id, name: $name, email: $email, avatar: $avatar)';
   }
 }

@@ -4,6 +4,7 @@ import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart'
     show AuthCubit;
 import 'package:buldm/features/home/data/models/post_model.dart';
 import 'package:buldm/features/profile/domain/usecases/fetchpost.dart';
+import 'package:buldm/features/profile/presentation/view/screens/OtherUserProfileScreen.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -11,6 +12,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'profile_state.dart';
 
 class ProfileCubit extends Cubit<ProfileState> {
+  // final UpdateProfileAvatarUseCase updateProfileAvatarUsecase;
   ProfileCubit({required this.fetchpostUseCase}) : super(ProfileInitial());
   final Fetchpost fetchpostUseCase;
   List<PostModel> _allPosts = [];
@@ -45,4 +47,6 @@ class ProfileCubit extends Cubit<ProfileState> {
         .toList();
     emit(fetchpost(posts: filtered));
   }
+
+  // update profile avatar
 }

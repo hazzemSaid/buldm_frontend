@@ -5,12 +5,15 @@ import 'package:buldm/features/auth/data/datasource/localdatasource.dart';
 import 'package:buldm/features/auth/data/datasource/remotedatasource.dart';
 import 'package:buldm/features/auth/data/model/usermodel.dart';
 import 'package:buldm/features/auth/data/repositery/AuthRepositoryImpl.dart';
-import 'package:buldm/features/auth/domain/repository/Iauthrepository.dart';
+import 'package:buldm/features/auth/domain/usecases/forgotPasswordusecase.dart';
 import 'package:buldm/features/auth/domain/usecases/get_currentuser_usercase.dart';
 import 'package:buldm/features/auth/domain/usecases/google_auth_usecase.dart';
+import 'package:buldm/features/auth/domain/usecases/resetpasswordusecase.dart';
+import 'package:buldm/features/auth/domain/usecases/sendVerificationEmailAgain_usecase.dart';
 import 'package:buldm/features/auth/domain/usecases/signin_user_usecase.dart';
 import 'package:buldm/features/auth/domain/usecases/signout_usecase.dart';
 import 'package:buldm/features/auth/domain/usecases/signup_user_usecase.dart';
+import 'package:buldm/features/auth/domain/usecases/verifyCodeusecase.dart';
 import 'package:buldm/features/auth/domain/usecases/verifyEmailCode.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
 import 'package:buldm/features/chat/data/datasource/chat_remote_data_source.dart';
@@ -32,7 +35,9 @@ import 'package:buldm/features/profile/data/repo/profilerepoimp.dart';
 import 'package:buldm/features/profile/domain/repo/ProfileRepository.dart';
 import 'package:buldm/features/profile/domain/usecases/fetchpost.dart';
 import 'package:buldm/features/profile/domain/usecases/searchByname.dart';
+import 'package:buldm/features/profile/domain/usecases/updateProfileAvatar_usecase.dart';
 import 'package:buldm/features/profile/presentation/blocs/profile/profile_cubit.dart';
+import 'package:buldm/features/profile/presentation/blocs/profilechanges/profilechanges_cubit.dart';
 import 'package:buldm/features/search/presentation/bloc/ssearch/Search_Cubit.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
@@ -112,28 +117,57 @@ Future<void> init() async {
   sl.registerLazySingleton<Dio>(() => dio);
 
   /// ✅ Auth Module
-
+  sl.registerLazySingleton<ProfileRemoteDataResourceImpl>(
+    () => ProfileRemoteDataResourceImpl(
+        dio: sl(), authLocalDataSourceImpl: sl<AuthLocalDataSourceImpl>()),
+  );
   // Data Sources
+  sl.registerLazySingleton<ProfileRepository>(() => Profilerepoimp(
+      profileRemoteDataResource: sl<ProfileRemoteDataResourceImpl>()));
   sl.registerLazySingleton<AuthRemoteDataSourceImpl>(
       () => AuthRemoteDataSourceImpl(dio: sl()));
   sl.registerLazySingleton<AuthLocalDataSourceImpl>(
       () => AuthLocalDataSourceImpl(Hive.box<UserModel>('user')));
   // Repository
-  sl.registerLazySingleton<authRepositoryInterface>(() => AuthRepositoryImpl(
+  sl.registerLazySingleton<AuthRepositoryImpl>(() => AuthRepositoryImpl(
         remoteDataSourceImpl: sl(),
         localDataSourceImpl: sl(),
       ));
-
   // Use Cases
-  sl.registerLazySingleton(() => SignInUserUseCase(repository: sl()));
-  sl.registerLazySingleton(() => SignUpUserUseCase(repository: sl()));
-  sl.registerLazySingleton(() => GoogleAuthUsecase(authRepository: sl()));
-  sl.registerLazySingleton(() => GetCurrentuserUsercase(authRepository: sl()));
-  sl.registerLazySingleton(() => SignOutUseCase(authRepository: sl()));
-  sl.registerLazySingleton(() => VerifyEmailCode(authRepository: sl()));
+  sl.registerLazySingleton(
+      () => UpdateProfileAvatarUseCase(sl<ProfileRepository>()));
+  sl.registerLazySingleton(
+      () => SignInUserUseCase(repository: sl<AuthRepositoryImpl>()));
+  sl.registerLazySingleton(
+      () => SignUpUserUseCase(repository: sl<AuthRepositoryImpl>()));
+  sl.registerLazySingleton(
+      () => GoogleAuthUsecase(authRepository: sl<AuthRepositoryImpl>()));
+  sl.registerLazySingleton(
+      () => GetCurrentuserUsercase(authRepository: sl<AuthRepositoryImpl>()));
+  sl.registerLazySingleton(
+      () => SignOutUseCase(authRepository: sl<AuthRepositoryImpl>()));
+  sl.registerLazySingleton(
+      () => VerifyEmailCode(authRepository: sl<AuthRepositoryImpl>()));
+  sl.registerLazySingleton(() =>
+      SendVerificationEmailAgainUseCase(repository: sl<AuthRepositoryImpl>()));
+  sl.registerLazySingleton(
+      () => ForgotPasswordUseCase(repository: sl<AuthRepositoryImpl>()));
+  sl.registerLazySingleton(
+      () => ResetPassword(repository: sl<AuthRepositoryImpl>()));
+  sl.registerLazySingleton(
+      () => VerifyCode(repository: sl<AuthRepositoryImpl>()));
   // Auth Cubit
+  // ProfilechangesCubit
+  sl.registerFactory(() => ProfilechangesCubit(
+        updateProfileAvatarUsecase: sl(),
+      ));
   final authCubit = AuthCubit(
+    // updateProfileAvatarUsecase: sl(),
+    forgotPasswordUseCase: sl(),
+    passwordResetRequest: sl(),
+    verificationCode: sl(),
     signInUserUseCase: sl(),
+    sendVerificationEmailAgain: sl(),
     verifyEmailCode: sl(),
     signUpUserUseCase: sl(),
     googleAuthUsecase: sl(),
@@ -172,17 +206,13 @@ Future<void> init() async {
   sl.registerFactory(() => UserBloc(getuserbyid: sl()));
   // location cubit
   sl.registerFactory(() => LocationCubit());
-  sl.registerLazySingleton<ProfileRemoteDataResource>(
-    () => ProfileRemoteDataResourceImpl(dio: sl()),
-  );
 
   // Profile Repository (reusing existing RemotePostDataSource)
-  sl.registerLazySingleton<ProfileRepository>(() => Profilerepoimp(
-      profileRemoteDataResource: sl<ProfileRemoteDataResource>()));
 
   // fetch post UseCase
   sl.registerLazySingleton(
       () => Fetchpost(profileRepository: sl<ProfileRepository>()));
+
   // Profile cubit
   sl.registerFactory(() => ProfileCubit(
         fetchpostUseCase: sl<Fetchpost>(),

@@ -3,6 +3,7 @@ import 'package:buldm/features/onboarding/presentation/view/widgets/OnboardingPa
 import 'package:buldm/features/onboarding/presentation/view/widgets/transition_widget.dart';
 import 'package:buldm/l10n/app_localizations.dart';
 import 'package:buldm/provider/localization/localization_cubit.dart';
+import 'package:buldm/routes/routes.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -39,7 +40,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     super.dispose();
   }
 
-  void _goToAuth() {
+  void _goToAuth() async {
+    await setFirstLaunchComplete();
     Navigator.push(context, MaterialPageRoute(builder: (context) {
       return SignInScreen();
     }));

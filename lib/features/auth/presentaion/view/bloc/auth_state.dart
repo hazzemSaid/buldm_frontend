@@ -56,3 +56,117 @@ class GoogleLoading extends AuthState {
   @override
   List<Object?> get props => [];
 }
+
+class GoogleAuthSuccess extends AuthState {
+  final UserModel user;
+
+  GoogleAuthSuccess({
+    required this.user,
+  });
+
+  @override
+  List<Object?> get props => [user];
+}
+
+class GoogleAuthError extends AuthState {
+  final String message;
+
+  GoogleAuthError({
+    required this.message,
+  });
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class resendVerificationCode extends AuthState {
+  final String message;
+
+  resendVerificationCode({
+    required this.message,
+  });
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class ForgotPasswordLoading extends AuthState {
+  @override
+  List<Object?> get props => [];
+}
+
+class ForgotPasswordSuccess extends AuthState {
+  final String message;
+
+  ForgotPasswordSuccess({
+    required this.message,
+  });
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class ForgotPasswordError extends AuthState {
+  final String message;
+
+  ForgotPasswordError({
+    required this.message,
+  });
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class ResetPasswordLoading extends AuthState {
+  @override
+  List<Object?> get props => [];
+}
+
+class ResetPasswordSuccess extends AuthState {
+  final String message;
+
+  ResetPasswordSuccess({
+    required this.message,
+  });
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class ResetPasswordError extends AuthState {
+  final String message;
+
+  ResetPasswordError({
+    required this.message,
+  });
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class Verifycodeloading extends AuthState {
+  @override
+  List<Object?> get props => [];
+}
+
+class Verifycodesuccess extends AuthState {
+  final String message;
+
+  Verifycodesuccess({
+    required this.message,
+  });
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class Verifycodeerror extends AuthState {
+  final String message;
+
+  Verifycodeerror({
+    required this.message,
+  });
+
+  @override
+  List<Object?> get props => [message];
+}

@@ -28,3 +28,12 @@ class ProfileLoading extends ProfileState {
   @override
   List<Object> get props => [];
 }
+
+class ProfileAvatarState extends ProfileState {
+  final ViewerUser user;
+
+  ProfileAvatarState({required this.user});
+
+  @override
+  List<Object> get props => [user];
+}

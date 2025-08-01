@@ -2,6 +2,7 @@
 	"postman.settings.dotenv-detection-notification-visibility": false,
 	"cmake.sourceDirectory": "E:/pre_build/front_mobileapp_with_flutter/buldm/linux",
 	"cSpell.words": [
-		"Postrepository"
+		"Postrepository",
+		"Profilechanges"
 	]
 }
