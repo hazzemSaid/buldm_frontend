@@ -73,14 +73,23 @@ Flutter frontend for the **BULDM** (Bring Up Lost or Discovered Material) platfo
 <img width="225" height="450" alt="Image" src="https://github.com/user-attachments/assets/e41caa63-4f29-49db-97b2-37c1d4d2ed27" />
 <img width="225" height="450" alt="Image" src="https://github.com/user-attachments/assets/f7c3b9ad-3244-4d0f-859d-32e6d5e68dbe" />
 <img width="225" height="450" alt="Image" src="https://github.com/user-attachments/assets/b3701a6b-8d8e-4dc5-bf12-d83fabb4ffb0" />
+
 <img width="225" height="450" alt="Image" src="https://github.com/user-attachments/assets/653f93f5-2ef6-49d9-b1a7-d306cd6ffdaf" />
 <img width="225" height="450" alt="Image" src="https://github.com/user-attachments/assets/b9481474-2e91-49f5-b9e5-9a9d8ffd8855" />
 <img width="225" height="450" alt="Image" src="https://github.com/user-attachments/assets/374d43ec-2724-46a5-aaa9-2a4d86bb0c7e" />
 <img width="225" height="450" alt="Image" src="https://github.com/user-attachments/assets/008ddb7a-2e45-4039-8d22-d503a8980dbc" />
+
 <img width="225" height="450" alt="Image" src="https://github.com/user-attachments/assets/41fb4fdc-c5ca-4531-9587-ad2c52796fce" />
 <img width="225" height="450" alt="Image" src="https://github.com/user-attachments/assets/e1e52b40-a190-45f9-aa00-7d557860a16e" />
 <img width="225" height="450" alt="Image" src="https://github.com/user-attachments/assets/0f0d2229-554d-4279-8e04-960cbf2c91ce" />
 <img width="225" height="450" alt="Image" src="https://github.com/user-attachments/assets/45f047d0-6df5-4202-b932-5750508b6c47" />
+
+<img width="225" height="450" alt="Image" src="https://github.com/user-attachments/assets/40eec375-e8ac-4609-ae28-a4395acd54d8" />
+<img width="225" height="450" alt="Image" src="https://github.com/user-attachments/assets/5f085624-4060-4597-965e-deb00445a96d" />
+<img width="225" height="450" alt="Image" src="https://github.com/user-attachments/assets/e589d5e8-c33e-4dc3-8bf6-1a75417f1365" />
+<img width="225" height="450" alt="Image" src="https://github.com/user-attachments/assets/0f54f30a-114b-400e-9be2-dc767d934d49" />
+
+
 
 ## 🛠️ Tech Stack
 
