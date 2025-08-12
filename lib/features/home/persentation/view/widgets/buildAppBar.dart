@@ -5,6 +5,8 @@ import 'package:buldm/utils/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:go_router/go_router.dart';
+import 'package:buldm/routes/routes.dart';
 
 class buildAppBar extends StatelessWidget {
   const buildAppBar({super.key});
@@ -30,14 +32,7 @@ class buildAppBar extends StatelessWidget {
         IconButton(
           icon: Icon(FontAwesomeIcons.telegram, color: theme.secondary),
           onPressed: () {
-            final userbloc = context.read<UserBloc>();
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => BlocProvider.value(
-                          value: userbloc,
-                          child: ListOfChats(),
-                        )));
+            context.push(paths[AppRoute.chatsList.name]!);
           },
         ),
       ],

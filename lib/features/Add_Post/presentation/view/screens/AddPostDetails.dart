@@ -18,7 +18,6 @@ import 'package:buldm/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:hive/hive.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -166,9 +165,8 @@ class _AddPostDetailsState extends State<AddPostDetails>
               coordinates: [pickedLocation.latitude, pickedLocation.longitude],
               placeName: "Selected Location"),
           predictedItems: [],
-          user_id: context.read<AuthCubit>().state is Authenticated
-              ? (context.read<AuthCubit>().state as Authenticated).user.user_id
-              : Hive.box('user').get('user_id', defaultValue: ''),
+          user_id:
+              (context.read<AuthCubit>().state as Authenticated).user.user_id,
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         )));
@@ -256,7 +254,7 @@ class _AddPostDetailsState extends State<AddPostDetails>
             listener: (context, state) {
               if (state is PostError) {
                 _showErrorSnackBar(state.message);
-              } else if (state is postCreatedState) {
+              } else if (state is PostCreatedState) {
                 _showSuccessSnackBar(localizations.postCreatedSuccessfully);
                 Navigator.pop(context);
               }

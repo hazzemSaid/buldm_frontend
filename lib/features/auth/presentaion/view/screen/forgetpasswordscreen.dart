@@ -4,6 +4,8 @@ import 'package:buldm/features/auth/presentaion/view/screen/verfiycodescreen.dar
 import 'package:buldm/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:buldm/routes/routes.dart';
 
 class Forgetpasswordscreen extends StatelessWidget {
   const Forgetpasswordscreen({super.key});
@@ -25,8 +27,11 @@ class Forgetpasswordscreen extends StatelessWidget {
                 child:
                     CircularProgressIndicator()), // Replace with your loading widget
           );
+        } else {
+          // Close dialog if open
+          final nav = Navigator.of(context, rootNavigator: true);
+          if (nav.canPop()) nav.pop();
         }
-        Navigator.of(context).pop(); // Close the loading dialog
         if (state is ForgotPasswordError) {
           // Show error message
           ScaffoldMessenger.of(context).showSnackBar(
@@ -42,14 +47,12 @@ class Forgetpasswordscreen extends StatelessWidget {
               ),
             ),
           );
+          // Navigate to verify code screen via GoRouter, pass email
+          context.push(
+            paths[AppRoute.verify.name]!,
+            extra: emailController.text.trim(),
+          );
         }
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => VerifyCodeScreen(
-                email: emailController.text.trim(),
-              ),
-            ));
       },
       child: Scaffold(
         body: SafeArea(
@@ -133,7 +136,7 @@ class Forgetpasswordscreen extends StatelessWidget {
                                   );
                             }
                           },
-                          child:  Text(localization.resetLinkSent),
+                          child: Text(localization.forgotPasswordButtonText),
                         ),
                       ),
                     ),

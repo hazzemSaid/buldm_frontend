@@ -5,6 +5,8 @@ import 'package:buldm/features/auth/presentaion/view/screen/forgetpasswordscreen
 import 'package:buldm/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:buldm/routes/routes.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -67,6 +69,7 @@ class _SignInScreenState extends State<SignInScreen> {
               BlocListener<AuthCubit, AuthState>(
                 listener: (context, state) {
                   // for loading state
+
                   if (state is GoogleLoading) {
                     showDialog(
                       context: context,
@@ -85,7 +88,8 @@ class _SignInScreenState extends State<SignInScreen> {
                   }
                   // for error state
                   if (state is GoogleAuthError) {
-                    Navigator.of(context).pop(); // close loading dialog
+                    final nav = Navigator.of(context, rootNavigator: true);
+                    if (nav.canPop()) nav.pop(); // close loading dialog safely
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(state.message),
@@ -191,17 +195,12 @@ class _SignInScreenState extends State<SignInScreen> {
                       alignment: Alignment.centerRight,
                       child: TextButton(
                         onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const Forgetpasswordscreen(),
-                            ),
-                          );
+                          // Use GoRouter to navigate to Forgot Password
+                          context.push(paths[AppRoute.forgot.name]!);
                         },
                         child: Text(localization.forgotPassword),
                       ),
                     ),
-
                     // Remember Me
                     Row(
                       children: [
@@ -230,23 +229,10 @@ class _SignInScreenState extends State<SignInScreen> {
                             ),
                           );
                         }
-                        if (state is Authenticated) {
-                          Navigator.of(context).pop(); // close loading dialog
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                  '${localization.welcomeBack} ${state.user.name}!'),
-                              duration: const Duration(seconds: 2),
-                            ),
-                          );
-                          if (!_navigated) {
-                            _navigated = true;
-                            Navigator.pushReplacementNamed(
-                                context, '/home'); // Adjust route as needed
-                          }
-                        }
+
                         if (state is AuthError) {
-                          Navigator.of(context).pop(); // close loading dialog
+                          final nav = Navigator.of(context, rootNavigator: true);
+                          if (nav.canPop()) nav.pop(); // close loading dialog safely
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(state.message),
@@ -284,11 +270,8 @@ class _SignInScreenState extends State<SignInScreen> {
                         Text(localization.dontHaveAnAccount),
                         TextButton(
                           onPressed: () {
-                            Navigator.of(context).pushReplacement(
-                              MaterialPageRoute(
-                                builder: (context) => const SignupScreen(),
-                              ),
-                            );
+                            // Replace current route with Signup using GoRouter
+                            context.go(paths[AppRoute.signup.name]!);
                           },
                           child: Text(localization.createAccount),
                         ),

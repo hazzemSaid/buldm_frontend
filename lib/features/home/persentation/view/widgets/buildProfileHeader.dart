@@ -5,11 +5,12 @@ import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
 import 'package:buldm/features/home/domain/entities/postentity.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_state.dart';
-import 'package:buldm/features/profile/presentation/blocs/profile/profile_cubit.dart';
 import 'package:buldm/features/profile/presentation/view/screens/OtherUserProfileScreen.dart';
 import 'package:buldm/l10n/app_localizations.dart';
+import 'package:buldm/routes/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -66,20 +67,16 @@ class buildProfileHeader extends StatelessWidget {
             children: [
               GestureDetector(
                 onTap: () {
-                  // user.profile;
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => BlocProvider.value(
-                          value: sl<ProfileCubit>(),
-                          child: OtherUserProfileScreen(
-                              user: ViewerUser(
-                                  avatar: user.avatar,
-                                  id: user.user_id,
-                                  name: user.name,
-                                  email: user.email)),
-                        ),
-                      ));
+                  // Navigate to other user's profile via GoRouter
+                  context.push(
+                    paths[AppRoute.profileOther.name]!,
+                    extra: ViewerUser(
+                      avatar: user.avatar,
+                      id: user.user_id,
+                      name: user.name,
+                      email: user.email,
+                    ),
+                  );
                 },
                 child: Row(
                   children: [
@@ -130,7 +127,9 @@ class buildProfileHeader extends StatelessWidget {
                             post.status == "found" ? Colors.green : Colors.red),
                     const SizedBox(width: 4),
                     Text(
-                      post.status.toUpperCase(),
+                      post.status.toUpperCase() == "FOUND"
+                          ? localization.status_found
+                          : localization.status_lost,
                       style: TextStyle(
                         color:
                             post.status == "found" ? Colors.green : Colors.red,
@@ -160,14 +159,14 @@ class buildProfileHeader extends StatelessWidget {
                                   post.user_id == currentUser.user_id) ...[
                                 ListTile(
                                     leading: const Icon(Icons.edit),
-                                    title:  Text(localization.editPost),
+                                    title: Text(localization.editPost),
                                     onTap: () {
                                       // Handle edit post action
                                       Navigator.pop(context);
                                     }),
                                 ListTile(
                                   leading: const Icon(Icons.delete),
-                                  title:  Text(localization.deletePost),
+                                  title: Text(localization.deletePost),
                                   onTap: () {
                                     // Handle delete post action
                                     Navigator.pop(context);
@@ -176,7 +175,7 @@ class buildProfileHeader extends StatelessWidget {
                               ],
                               ListTile(
                                 leading: const Icon(Icons.report),
-                                title:  Text(localization.reportPost),
+                                title: Text(localization.reportPost),
                                 onTap: () {
                                   // Handle report post action
                                   Navigator.pop(context);

@@ -195,7 +195,7 @@
   "joinChatSuccess": "You have joined the chat successfully",
   "chatError": "Error: {message}",
   "unknownError": "An unknown error occurred. Please try again later.",
-  "noPostsAvailable": "No posts have been made in the app, post your first post now!",
+  "noPostsAvailable": "No posts available at the moment",
   "postYourFirstPost": "Post your first post now!",
   "reply": "Reply",
   "replyToPost": "Reply to Post",
@@ -209,12 +209,17 @@
   "userProfileUpdateError": "Error updating user profile",
   "help": "Help",
   "searchUsers": "Search Users",
-  "noUsersFound": "No users found matching your search criteria"
-,"home": "Home",
+  "noUsersFound": "No users found matching your search criteria",
+  "home": "Home",
   "map": "Map",
   "add": "Add",
   "search": "Search",
   "profile": "Profile",
   "locationPermissionRequired": "Location permission is required to use this feature.",
-  "locationServicesRequired": "Location services must be enabled to use this feature."
+  "locationServicesRequired": "Location services must be enabled to use this feature.",
+  "forgotPasswordButtonText": "send reset link",
+  "backToSignIn": "Back to Sign In",
+  "enterNewPassword": "Enter New Password",
+  "status_found": "found",
+  "status_lost": "lost"
 }

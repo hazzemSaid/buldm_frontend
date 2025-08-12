@@ -212,9 +212,14 @@
   "userPosts": "منشورات المستخدم",
   "userChats": "محادثات المستخدم",
   "home": "الرئيسية",
+  "backToSignIn": "العودة إلى تسجيل الدخول",
+  "enterNewPassword": "أدخل كلمة مرور جديدة",
   "map": "الخريطة",
   "add": "إضافة",
   "search": "بحث",
   "locationPermission": "إذن الموقع",
-  "locationServices": "خدمات الموقع"
+  "locationServices": "خدمات الموقع",
+  "forgotPasswordButtonText": "إرسال رابط إعادة التعيين",
+  "status_found": "تم العثور عليه",
+  "status_lost": "مفقود"
 }

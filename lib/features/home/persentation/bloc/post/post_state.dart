@@ -53,4 +53,11 @@ class PostError extends PostState {
   bool? get stringify => true;
 }
 
-class postCreatedState extends PostState {}
+ class PostCreatedState extends PostState {
+   final String userId;
+
+   const PostCreatedState({required this.userId});
+
+   @override
+   List<Object?> get props => [userId];
+ }

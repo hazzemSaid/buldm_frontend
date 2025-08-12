@@ -5,6 +5,8 @@ import 'package:buldm/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:buldm/routes/routes.dart';
 
 class VerifyCodeScreen extends StatefulWidget {
   const VerifyCodeScreen({super.key, required this.email});
@@ -49,30 +51,40 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
     final localization = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: Text(localization.verificationEmailSent),
+        title: Text(localization.verifyYourCode),
         centerTitle: true,
       ),
       body: BlocListener<AuthCubit, AuthState>(
         listener: (context, state) {
-          if (state is Loading) {
+          if (state is Codeloading) {
             setState(() => isLoading = true);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(localization.sendingVerificationCode)),
-            );
+            showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    content: Row(
+                      children: [
+                        CircularProgressIndicator(),
+                        SizedBox(width: 16),
+                        Text(localization.sendingVerificationCode),
+                      ],
+                    ),
+                  );
+                });
           } else {
             setState(() => isLoading = false);
           }
+          final nav = Navigator.of(context, rootNavigator: true);
+          if (nav.canPop()) nav.pop();
           if (state is Verifycodesuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.message)),
             );
-            Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => Resetpasswordscreen(
-                    email: widget.email,
-                  ),
-                ));
+            // Navigate to reset password using GoRouter
+            context.push(
+              paths[AppRoute.reset.name]!,
+              extra: widget.email,
+            );
           }
           if (state is Verifycodeerror) {
             ScaffoldMessenger.of(context).showSnackBar(

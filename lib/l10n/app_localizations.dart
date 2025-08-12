@@ -1262,7 +1262,7 @@ abstract class AppLocalizations {
   /// No description provided for @noPostsAvailable.
   ///
   /// In en, this message translates to:
-  /// **'No posts have been made in the app, post your first post now!'**
+  /// **'No posts available at the moment'**
   String get noPostsAvailable;
 
   /// No description provided for @postYourFirstPost.
@@ -1372,6 +1372,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Search'**
   String get search;
+
+  /// No description provided for @forgotPasswordButtonText.
+  ///
+  /// In en, this message translates to:
+  /// **'send reset link'**
+  String get forgotPasswordButtonText;
+
+  /// No description provided for @backToSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to Sign In'**
+  String get backToSignIn;
+
+  /// No description provided for @enterNewPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter New Password'**
+  String get enterNewPassword;
+
+  /// No description provided for @status_found.
+  ///
+  /// In en, this message translates to:
+  /// **'found'**
+  String get status_found;
+
+  /// No description provided for @status_lost.
+  ///
+  /// In en, this message translates to:
+  /// **'lost'**
+  String get status_lost;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

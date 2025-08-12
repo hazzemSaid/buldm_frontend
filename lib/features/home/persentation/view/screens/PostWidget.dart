@@ -1,3 +1,4 @@
+// features/home/persentation/view/screens/PostWidget.dart
 import 'package:buldm/features/home/domain/entities/postentity.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_event.dart';
@@ -38,7 +39,7 @@ class _PostWidgetState extends State<PostWidget>
     if (currentState is UserLoaded &&
         !currentState.users.containsKey(widget.post.user_id)) {
       userBloc
-          .add(LoadUserEvent(userId: widget.post.user_id, forceRefresh: false));
+          .add(LoadUserEvent(userId: widget.post.user_id, forceRefresh: true));
     }
   }
 

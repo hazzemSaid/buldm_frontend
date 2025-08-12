@@ -390,10 +390,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 .bodyLarge
                                 ?.copyWith(color: Colors.grey),
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.refresh),
-                            onPressed: () => _fetchUserPosts(status: status),
-                          ),
                         ],
                       ),
                     ),

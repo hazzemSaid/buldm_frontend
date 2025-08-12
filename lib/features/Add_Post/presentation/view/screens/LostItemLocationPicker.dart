@@ -1,9 +1,11 @@
+import 'package:buldm/core/services/LocationService.dart';
 import 'package:buldm/features/Add_Post/data/model/mapstyledata_model.dart';
 import 'package:buldm/features/Add_Post/presentation/bloc/location_cubit/location_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
 class LostItemLocationPicker extends StatefulWidget {
@@ -104,23 +106,30 @@ class _LostItemLocationPickerState extends State<LostItemLocationPicker>
         elevation: 0,
         backgroundColor: Colors.transparent,
         leading: Container(
-          margin: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.9),
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black87),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ),
+            margin: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.9),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.my_location, color: Colors.black87),
+              onPressed: () async {
+                LocationService locationService = LocationService();
+                Position? position =
+                    await LocationService.requestAndGetLocation(context);
+                if (position != null) {
+                  mapController.move(
+                      LatLng(position.latitude, position.longitude), 21);
+                }
+              },
+            )),
         title: SlideTransition(
           position: Tween<Offset>(
             begin: const Offset(0, -1),

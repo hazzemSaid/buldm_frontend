@@ -652,4 +652,19 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get search => 'بحث';
+
+  @override
+  String get forgotPasswordButtonText => 'إرسال رابط إعادة التعيين';
+
+  @override
+  String get backToSignIn => 'العودة إلى تسجيل الدخول';
+
+  @override
+  String get enterNewPassword => 'أدخل كلمة مرور جديدة';
+
+  @override
+  String get status_found => 'تم العثور عليه';
+
+  @override
+  String get status_lost => 'مفقود';
 }

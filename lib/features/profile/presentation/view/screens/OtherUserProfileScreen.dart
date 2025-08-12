@@ -10,6 +10,8 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:go_router/go_router.dart';
+import 'package:buldm/routes/routes.dart';
 
 class OtherUserProfileScreen extends StatefulWidget {
   final ViewerUser user;
@@ -64,22 +66,19 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
                 ),
                 IconButton(
                     onPressed: () {
-                      //message
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => BlocProvider.value(
-                                    value: sl<ChatBloc>(),
-                                    child: ChatDetailsScreen(
-                                      user: widget.user,
-                                      currentUserId: (context
-                                              .read<AuthCubit>()
-                                              .state as Authenticated)
-                                          .user
-                                          .user_id,
-                                      otherUserId: widget.user.id,
-                                    ),
-                                  )));
+                      // Navigate to chat details using GoRouter
+                      final currentUserId =
+                          (context.read<AuthCubit>().state as Authenticated)
+                              .user
+                              .user_id;
+                      context.push(
+                        paths[AppRoute.chat.name]!,
+                        extra: {
+                          'user': widget.user,
+                          'currentUserId': currentUserId,
+                          'otherUserId': widget.user.id,
+                        },
+                      );
                     },
                     icon: Icon(FontAwesomeIcons.facebookMessenger,
                         color: Theme.of(context).colorScheme.primary))

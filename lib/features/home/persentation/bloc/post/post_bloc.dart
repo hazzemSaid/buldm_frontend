@@ -74,7 +74,7 @@ class PostBloc extends Bloc<PostEvent, PostState> {
       });
       await createPostUsecase(data: formData, token: token);
 
-      emit(postCreatedState());
+      emit(PostCreatedState(userId: postModel.user_id));
       // Optionally, you can reload posts after adding a new one
       add(LoadPostEvent(
         category: null,
@@ -106,7 +106,7 @@ class PostBloc extends Bloc<PostEvent, PostState> {
       });
       await createPostUsecase(data: formData, token: token);
 
-      emit(postCreatedState());
+      emit(PostCreatedState(userId: uploadpostmodel.user_id));
       // Optionally, you can reload posts after adding a new one
       add(LoadPostEvent(
         category: null,

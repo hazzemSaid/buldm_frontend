@@ -1,6 +1,8 @@
 import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
 import 'package:buldm/features/home/persentation/view/widgets/buildAppBar.dart';
 import 'package:buldm/features/home/persentation/view/widgets/buildPostList.dart';
+import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
+import 'package:buldm/features/home/persentation/bloc/user/user_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -61,7 +63,8 @@ class _HomeScreenState extends State<HomeScreen> {
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () async {
-            //delete the cache
+            // delete the cache for the users
+            context.read<UserBloc>().add(ClearUserCacheEvent());
 
             _postBloc.add(
               LoadPostEvent(

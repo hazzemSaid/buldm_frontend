@@ -11,6 +11,8 @@ import 'package:buldm/l10n/app_localizations.dart';
 import 'package:buldm/utils/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:buldm/routes/routes.dart';
 
 class SearchScreen extends StatelessWidget {
   const SearchScreen({super.key});
@@ -89,27 +91,19 @@ class SearchScreen extends StatelessWidget {
                                       .user
                                       .user_id ==
                                   items[index].id) {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => BlocProvider.value(
-                                      value: sl<ProfileCubit>(),
-                                      child: ProfileScreen()),
-                                ));
+                            // Navigate to self profile
+                            context.push(paths[AppRoute.profileSelf.name]!);
                           } else {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => BlocProvider.value(
-                                          value: sl<ProfileCubit>(),
-                                          child: OtherUserProfileScreen(
-                                            user: ViewerUser(
-                                                avatar: items[index].avatar,
-                                                id: items[index].id,
-                                                name: items[index].name,
-                                                email: items[index].email),
-                                          ),
-                                        )));
+                            // Navigate to other user's profile
+                            context.push(
+                              paths[AppRoute.profileOther.name]!,
+                              extra: ViewerUser(
+                                avatar: items[index].avatar,
+                                id: items[index].id,
+                                name: items[index].name,
+                                email: items[index].email,
+                              ),
+                            );
                           }
                         },
                         child: ListTile(

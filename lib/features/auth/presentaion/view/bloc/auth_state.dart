@@ -4,6 +4,16 @@ import 'package:equatable/equatable.dart';
 
 abstract class AuthState extends Equatable {}
 
+class passwordLoading extends AuthState {
+  @override
+  List<Object?> get props => [];
+}
+
+class Codeloading extends AuthState {
+  @override
+  List<Object?> get props => [];
+}
+
 // Initial state of the authentication
 class AuthInitial extends AuthState {
   @override

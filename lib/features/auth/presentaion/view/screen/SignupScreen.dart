@@ -5,6 +5,8 @@ import 'package:buldm/features/auth/presentaion/view/screen/VerificationEmailScr
 import 'package:buldm/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:buldm/routes/routes.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -232,7 +234,8 @@ class _SignupScreenState extends State<SignupScreen> {
                           );
                         }
                         if (state is AuthError) {
-                          Navigator.pop(context);
+                          final nav = Navigator.of(context, rootNavigator: true);
+                          if (nav.canPop()) nav.pop();
 
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
@@ -243,7 +246,8 @@ class _SignupScreenState extends State<SignupScreen> {
                           );
                         }
                         if (state is SignUp) {
-                          Navigator.pop(context);
+                          final nav = Navigator.of(context, rootNavigator: true);
+                          if (nav.canPop()) nav.pop();
 
                           // screen for verification email
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -253,12 +257,9 @@ class _SignupScreenState extends State<SignupScreen> {
                               duration: Duration(seconds: 2),
                             ),
                           );
-                          Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(
-                              builder: (context) => VerificationEmailScreen(
-                                email: _emailController.text,
-                              ),
-                            ),
+                          context.push(
+                            paths[AppRoute.verifyEmail.name]!,
+                            extra: _emailController.text,
                           );
                         }
                       },
@@ -295,11 +296,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         Text(localization.alreadyHaveAnAccount),
                         TextButton(
                           onPressed: () {
-                            Navigator.of(context).pushReplacement(
-                              MaterialPageRoute(
-                                builder: (context) => const SignInScreen(),
-                              ),
-                            );
+                            context.go(paths[AppRoute.signin.name]!);
                           },
                           child: Text(localization.signIn),
                         ),

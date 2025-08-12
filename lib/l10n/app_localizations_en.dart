@@ -597,7 +597,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get unknownError => 'An unknown error occurred. Please try again later.';
 
   @override
-  String get noPostsAvailable => 'No posts have been made in the app, post your first post now!';
+  String get noPostsAvailable => 'No posts available at the moment';
 
   @override
   String get postYourFirstPost => 'Post your first post now!';
@@ -652,4 +652,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get search => 'Search';
+
+  @override
+  String get forgotPasswordButtonText => 'send reset link';
+
+  @override
+  String get backToSignIn => 'Back to Sign In';
+
+  @override
+  String get enterNewPassword => 'Enter New Password';
+
+  @override
+  String get status_found => 'found';
+
+  @override
+  String get status_lost => 'lost';
 }

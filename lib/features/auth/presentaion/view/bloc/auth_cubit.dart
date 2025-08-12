@@ -62,18 +62,6 @@ class AuthCubit extends Cubit<AuthState> {
 
   Future<void> authWithGoogle() async {
     emit(GoogleLoading());
-    // try {
-    //   final result = await googleAuthUsecase.signInWithGoogle();
-    //   print("Google Auth Result: $result");
-    //   if (result.isLeft) {
-    //     emit(AuthError(message: result.left));
-    //     return;
-    //   } else {
-    //     emit(Authenticated(user: result.right));
-    //   }
-    // } catch (e) {
-    //   final Failure failure = Failure(error: e);
-    //   emit(AuthError(message: failure.message));
     final response = await googleAuthUsecase.signInWithGoogle();
     if (response.isLeft) {
       emit(GoogleAuthError(message: response.left));
@@ -136,7 +124,7 @@ class AuthCubit extends Cubit<AuthState> {
     required String email,
     required String newPassword,
   }) async {
-    emit(Loading());
+    emit(passwordLoading());
     final response = await passwordResetRequest.call(
       email: email,
       newPassword: newPassword,
@@ -149,7 +137,7 @@ class AuthCubit extends Cubit<AuthState> {
 
   Future<void> checkVerificationCode(
       {required String email, required String code}) async {
-    emit(Loading());
+    emit(Codeloading());
     final response = await verificationCode.call(email: email, code: code);
     response.fold(
       (failure) => emit(Verifycodeerror(message: failure.message)),

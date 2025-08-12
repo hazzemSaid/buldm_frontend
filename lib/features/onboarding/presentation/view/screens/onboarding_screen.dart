@@ -1,4 +1,3 @@
-import 'package:buldm/features/auth/presentaion/view/screen/SignInScreen.dart';
 import 'package:buldm/features/onboarding/presentation/view/widgets/OnboardingPage.dart';
 import 'package:buldm/features/onboarding/presentation/view/widgets/transition_widget.dart';
 import 'package:buldm/l10n/app_localizations.dart';
@@ -8,6 +7,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import 'package:go_router/go_router.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -42,9 +42,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
   void _goToAuth() async {
     await setFirstLaunchComplete();
-    Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return SignInScreen();
-    }));
+    context.go(paths[AppRoute.signin.name]!);
   }
 
   @override

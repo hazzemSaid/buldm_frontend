@@ -38,6 +38,12 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
+            // Ensure R8/ProGuard keeps required classes (e.g., TensorFlow Lite GPU)
+            isMinifyEnabled = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                file("proguard-rules.pro")
+            )
         }
     }
 }
@@ -47,4 +53,6 @@ flutter {
 }
 dependencies {
     implementation ( "com.facebook.android:facebook-android-sdk:16.3.0")
+    // TensorFlow Lite GPU delegate to satisfy R8 missing class org.tensorflow.lite.gpu.GpuDelegateFactory$Options
+    implementation ("org.tensorflow:tensorflow-lite-gpu:2.14.0")
 }
