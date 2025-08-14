@@ -1,6 +1,7 @@
 import 'package:buldm/features/auth/data/model/usermodel.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_state.dart';
+import 'package:buldm/features/home/persentation/view/screens/PostWidget.dart';
 import 'package:buldm/features/profile/presentation/blocs/profile/profile_cubit.dart';
 import 'package:buldm/features/profile/presentation/blocs/profilechanges/profilechanges_cubit.dart';
 import 'package:buldm/features/profile/presentation/view/widgets/ProfileOption.dart';
@@ -19,9 +20,10 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  @override
   bool status = false;
+  bool listview = false;
   late UserModel usermodel;
+
   @override
   void initState() {
     super.initState();
@@ -108,6 +110,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 Spacer(),
+                IconButton(
+                  icon: Icon(
+                    listview ? Icons.grid_view_rounded : Icons.list_rounded,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      listview = !listview;
+                    });
+                  },
+                ),
                 IconButton(
                   icon: Icon(Icons.refresh,
                       color: Theme.of(context).colorScheme.primary),
@@ -396,43 +409,71 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   );
                 }
 
-                return SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3),
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      return Container(
-                        margin: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          color: Theme.of(context).colorScheme.surface,
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.network(
-                            state.posts[index].images[0],
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                Container(
-                              color: Colors.grey[300],
-                              child: const Center(
-                                  child: Icon(Icons.error, color: Colors.red)),
-                            ),
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return Container(
-                                color: Colors.grey[200],
-                                child: const Center(
-                                    child: CircularProgressIndicator()),
-                              );
-                            },
+                if (listview) {
+                  return SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12.0, vertical: 6.0),
+                          child: PostWidget(
+                            post: state.posts[index],
+                            index: index,
                           ),
-                        ),
-                      );
-                    },
-                    childCount: state.posts.length,
-                  ),
-                );
+                        );
+                      },
+                      childCount: state.posts.length,
+                    ),
+                  );
+                } else {
+                  return SliverGrid(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        return GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              listview = !listview;
+                            });
+                          },
+                          child: Container(
+                            margin: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              color: Theme.of(context).colorScheme.surface,
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.network(
+                                state.posts[index].images[0],
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Container(
+                                  color: Colors.grey[300],
+                                  child: const Center(
+                                      child:
+                                          Icon(Icons.error, color: Colors.red)),
+                                ),
+                                loadingBuilder:
+                                    (context, child, loadingProgress) {
+                                  if (loadingProgress == null) return child;
+                                  return Container(
+                                    color: Colors.grey[200],
+                                    child: const Center(
+                                        child: CircularProgressIndicator()),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                      childCount: state.posts.length,
+                    ),
+                  );
+                }
               }
 
               return const SliverToBoxAdapter(

@@ -1,12 +1,10 @@
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_state.dart';
-import 'package:buldm/features/auth/presentaion/view/screen/SignupScreen.dart';
-import 'package:buldm/features/auth/presentaion/view/screen/forgetpasswordscreen.dart';
 import 'package:buldm/l10n/app_localizations.dart';
+import 'package:buldm/routes/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:buldm/routes/routes.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -231,8 +229,10 @@ class _SignInScreenState extends State<SignInScreen> {
                         }
 
                         if (state is AuthError) {
-                          final nav = Navigator.of(context, rootNavigator: true);
-                          if (nav.canPop()) nav.pop(); // close loading dialog safely
+                          final nav =
+                              Navigator.of(context, rootNavigator: true);
+                          if (nav.canPop())
+                            nav.pop(); // close loading dialog safely
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(state.message),

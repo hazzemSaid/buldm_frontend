@@ -1,12 +1,10 @@
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_state.dart';
-import 'package:buldm/features/auth/presentaion/view/screen/SignInScreen.dart';
-import 'package:buldm/features/auth/presentaion/view/screen/VerificationEmailScreen.dart';
 import 'package:buldm/l10n/app_localizations.dart';
+import 'package:buldm/routes/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:buldm/routes/routes.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -206,7 +204,8 @@ class _SignupScreenState extends State<SignupScreen> {
                             setState(() => _rememberMe = value ?? false);
                           },
                         ),
-                        Text(localization.rememberMe, style: theme.textTheme.bodyMedium),
+                        Text(localization.rememberMe,
+                            style: theme.textTheme.bodyMedium),
                       ],
                     ),
 
@@ -234,7 +233,8 @@ class _SignupScreenState extends State<SignupScreen> {
                           );
                         }
                         if (state is AuthError) {
-                          final nav = Navigator.of(context, rootNavigator: true);
+                          final nav =
+                              Navigator.of(context, rootNavigator: true);
                           if (nav.canPop()) nav.pop();
 
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -246,14 +246,14 @@ class _SignupScreenState extends State<SignupScreen> {
                           );
                         }
                         if (state is SignUp) {
-                          final nav = Navigator.of(context, rootNavigator: true);
+                          final nav =
+                              Navigator.of(context, rootNavigator: true);
                           if (nav.canPop()) nav.pop();
 
                           // screen for verification email
                           ScaffoldMessenger.of(context).showSnackBar(
-                             SnackBar(
-                              content: Text(
-                                  localization.verificationEmailSent),
+                            SnackBar(
+                              content: Text(localization.verificationEmailSent),
                               duration: Duration(seconds: 2),
                             ),
                           );

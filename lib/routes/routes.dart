@@ -19,7 +19,6 @@ import 'package:buldm/features/profile/presentation/view/screens/profile_screen.
 import 'package:buldm/features/profile/presentation/view/screens/OtherUserProfileScreen.dart';
 import 'package:buldm/features/profile/presentation/blocs/profile/profile_cubit.dart';
 import 'package:buldm/features/chat/presentation/view/screens/chatdetailsscreen.dart';
-import 'package:buldm/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:buldm/features/chat/presentation/view/screens/Listofchats.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
 
@@ -200,13 +199,10 @@ final GoRouter router = GoRouter(
       path: paths[AppRoute.chat.name]!,
       builder: (BuildContext context, GoRouterState state) {
         final extras = state.extra as Map<String, dynamic>?;
-        return BlocProvider.value(
-          value: sl<ChatBloc>(),
-          child: ChatDetailsScreen(
-            user: extras!["user"],
-            currentUserId: extras["currentUserId"],
-            otherUserId: extras["otherUserId"],
-          ),
+        return ChatDetailsScreen(
+          user: extras!["user"],
+          currentUserId: extras["currentUserId"],
+          otherUserId: extras["otherUserId"],
         );
       },
     ),

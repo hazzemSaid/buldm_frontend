@@ -1,23 +1,19 @@
 // Fixed version of your ListOfChats widget
-import 'package:buldm/core/Dependency_njection/service_locator.dart';
 import 'package:buldm/features/auth/domain/entities/userentities.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_state.dart';
+import 'package:buldm/features/chat/data/datasource/firebase_chat_service.dart';
 import 'package:buldm/features/chat/data/models/contacntListmodel.dart';
-import 'package:buldm/features/chat/presentation/bloc/chat_bloc.dart';
-import 'package:buldm/features/chat/presentation/bloc/chat_event.dart';
-import 'package:buldm/features/chat/presentation/bloc/chat_state.dart';
-import 'package:buldm/features/chat/presentation/view/screens/chatdetailsscreen.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_event.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_state.dart';
 import 'package:buldm/features/profile/presentation/view/screens/OtherUserProfileScreen.dart';
 import 'package:buldm/l10n/app_localizations.dart';
+import 'package:buldm/routes/routes.dart';
 import 'package:buldm/utils/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:buldm/routes/routes.dart';
 
 class ListOfChats extends StatefulWidget {
   const ListOfChats({super.key});
@@ -28,8 +24,8 @@ class ListOfChats extends StatefulWidget {
 
 class _ListOfChatsState extends State<ListOfChats> with WidgetsBindingObserver {
   late String currentUserId;
-  late ChatBloc _chatBloc;
   late UserBloc _userBloc;
+  final _chatService = FirebaseChatService.instance;
 
   @override
   void initState() {
@@ -39,15 +35,7 @@ class _ListOfChatsState extends State<ListOfChats> with WidgetsBindingObserver {
     try {
       currentUserId =
           (context.read<AuthCubit>().state as Authenticated).user.user_id;
-      _chatBloc = sl<ChatBloc>();
       _userBloc = context.read<UserBloc>();
-
-      // Connect to socket and register user
-      _chatBloc.add(ConnectToSocket());
-      _chatBloc.add(RegisterUser(currentUserId));
-
-      // Load conversations
-      _chatBloc.add(LoadConversations(currentUserId));
     } catch (e) {
       print('Error initializing chat list: $e');
     }
@@ -59,12 +47,9 @@ class _ListOfChatsState extends State<ListOfChats> with WidgetsBindingObserver {
 
     switch (state) {
       case AppLifecycleState.resumed:
-        // App came to foreground, reconnect if needed
-        _chatBloc.add(ConnectToSocket());
-        _chatBloc.getAllMessagesById(currentUserId);
+        // No-op for Firestore; streams auto-resume
         break;
       case AppLifecycleState.paused:
-        // App going to background, could disconnect to save resources
         break;
       default:
         break;
@@ -238,57 +223,7 @@ class _ListOfChatsState extends State<ListOfChats> with WidgetsBindingObserver {
     );
   }
 
-  Widget _buildConnectionStatus(ChatState state) {
-    final localizations = AppLocalizations.of(context)!;
-    if (state is SocketConnecting) {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        color: Colors.orange,
-        child: Row(
-          children: [
-            SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-              ),
-            ),
-            SizedBox(width: 8),
-            Text(
-              localizations.socketConnecting,
-              style: TextStyle(color: Colors.white),
-            ),
-          ],
-        ),
-      );
-    } else if (state is SocketError) {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        color: Colors.red,
-        child: Row(
-          children: [
-            const Icon(Icons.error, color: Colors.white, size: 16),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                localizations.socketError(state.message),
-                style: const TextStyle(color: Colors.white),
-              ),
-            ),
-            TextButton(
-              onPressed: () => _chatBloc.add(ConnectToSocket()),
-              child: Text(
-                localizations.retry,
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-    return const SizedBox.shrink();
-  }
+  // Connection status not needed with Firestore
 
   String _formatTime(DateTime timestamp) {
     final now = DateTime.now();
@@ -310,201 +245,164 @@ class _ListOfChatsState extends State<ListOfChats> with WidgetsBindingObserver {
     final theme = Theme.of(context).colorScheme;
     final localization = AppLocalizations.of(context)!;
 
-    return BlocProvider.value(
-      value: _chatBloc,
-      child: Scaffold(
-        body: CustomScrollView(
-          slivers: [
-            SliverAppBar(
-              backgroundColor: theme.surface,
-              floating: true,
-              snap: true,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              iconTheme: IconThemeData(color: theme.primary),
-              title: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Text(
-                    "Buldm",
-                    style: AppTextStyles.headlineLarge(context).copyWith(
-                        color: theme.primary, fontWeight: FontWeight.bold),
-                  ),
-                  IconButton(
-                      onPressed: () {
-                        _chatBloc.add(LoadConversations(currentUserId));
-                      },
-                      icon: Icon(
-                        Icons.refresh,
-                        color: theme.primary,
-                      )),
-                ],
-              ),
+    return Scaffold(
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            backgroundColor: theme.surface,
+            floating: true,
+            snap: true,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
-            BlocBuilder<ChatBloc, ChatState>(
-              builder: (context, chatState) {
-                // Show connection status
-                final connectionWidget = _buildConnectionStatus(chatState);
-
-                if (chatState is ChatLoading) {
-                  return const SliverFillRemaining(
-                    child: Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                  );
-                } else if (chatState is ConversationsLoaded ||
-                    chatState is ConversationsUpdated) {
-                  final conversations = chatState is ConversationsLoaded
-                      ? chatState.conversations
-                      : (chatState as ConversationsUpdated).conversations;
-
-                  // Load users for all conversations
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    _loadUsersForConversations(conversations);
-                  });
-
-                  if (conversations.isEmpty) {
-                    return SliverFillRemaining(
-                      child: Column(
-                        children: [
-                          connectionWidget,
-                          Expanded(
-                            child: Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.chat_bubble_outline,
-                                    size: 64,
-                                    color: Colors.grey,
-                                  ),
-                                  SizedBox(height: 16),
-                                  Text(
-                                    localization.noChatsFound,
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                  SizedBox(height: 8),
-                                  Text(
-                                    localization.startChattingWithFriends,
-                                    style: TextStyle(
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-
-                  return SliverFillRemaining(
+            iconTheme: IconThemeData(color: theme.primary),
+            title: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Text(
+                  "Buldm",
+                  style: AppTextStyles.headlineLarge(context).copyWith(
+                      color: theme.primary, fontWeight: FontWeight.bold),
+                ),
+                IconButton(
+                  onPressed: () {
+                    setState(() {}); // trigger rebuild
+                  },
+                  icon: Icon(
+                    Icons.refresh,
+                    color: theme.primary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          StreamBuilder<List<ChatContactDirectory>>(
+            stream: _chatService.streamUserChats(currentUserId),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const SliverFillRemaining(
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+              if (snapshot.hasError) {
+                return SliverFillRemaining(
+                  child: Center(
                     child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        connectionWidget,
-                        Expanded(
-                          child: RefreshIndicator(
-                            onRefresh: () async {
-                              _chatBloc.add(LoadConversations(currentUserId));
-                            },
-                            child: BlocBuilder<UserBloc, UserState>(
-                              builder: (context, userState) {
-                                return ListView.builder(
-                                  itemCount: conversations.length,
-                                  itemBuilder: (context, index) {
-                                    final conversation = conversations[index];
-                                    final userId = conversation.user;
+                        const Icon(Icons.error_outline,
+                            size: 64, color: Colors.red),
+                        const SizedBox(height: 16),
+                        Text(
+                          localization.chatError(snapshot.error.toString()),
+                          style:
+                              const TextStyle(fontSize: 16, color: Colors.red),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
 
-                                    // Check if user is already loaded
-                                    if (userState is UserLoaded &&
-                                        userState.users.containsKey(userId)) {
-                                      final user = userState.users[userId]!;
-                                      return _buildChatItem(conversation, user);
-                                    } else if (userState is UserError) {
-                                      // Handle error state for this specific user
-                                      return ListTile(
-                                        leading: CircleAvatar(
-                                          backgroundColor: Colors.red.shade100,
-                                          child: Icon(Icons.person_off,
-                                              color: Colors.red),
-                                        ),
-                                        title: Text('User not found'),
-                                        subtitle: Text(
-                                            'ID: ${userId.substring(0, 8)}...'),
-                                        trailing: IconButton(
-                                          icon: Icon(Icons.refresh),
-                                          onPressed: () {
-                                            _userBloc.add(LoadUserEvent(
-                                              userId: userId,
-                                              forceRefresh: true,
-                                            ));
-                                          },
-                                        ),
-                                        onTap:
-                                            null, // Disable tap for error state
-                                      );
-                                    } else {
-                                      // Show loading state
-                                      return _buildLoadingChatItem(
-                                          conversation);
-                                    }
-                                  },
-                                );
-                              },
-                            ),
+              final conversations = snapshot.data ?? [];
+
+              // Load users for all conversations
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _loadUsersForConversations(conversations);
+              });
+
+              if (conversations.isEmpty) {
+                return SliverFillRemaining(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.chat_bubble_outline,
+                          size: 64,
+                          color: Colors.grey,
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          localization.noChatsFound,
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          localization.startChattingWithFriends,
+                          style: TextStyle(
+                            color: Colors.grey,
                           ),
                         ),
                       ],
                     ),
-                  );
-                } else if (chatState is ChatError) {
-                  return SliverFillRemaining(
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.error_outline,
-                            size: 64,
-                            color: Colors.red,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            localization.chatError(chatState.message),
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: Colors.red,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: () {
-                              _chatBloc.add(LoadConversations(currentUserId));
-                            },
-                            child: Text(localization.retry),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }
-
-                return SliverFillRemaining(
-                  child: Center(
-                    child: Text(localization.unknownError),
                   ),
                 );
-              },
-            ),
-          ],
-        ),
+              }
+
+              return SliverFillRemaining(
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: RefreshIndicator(
+                        onRefresh: () async {
+                          await Future.delayed(
+                              const Duration(milliseconds: 300));
+                          setState(() {});
+                        },
+                        child: BlocBuilder<UserBloc, UserState>(
+                          builder: (context, userState) {
+                            return ListView.builder(
+                              itemCount: conversations.length,
+                              itemBuilder: (context, index) {
+                                final conversation = conversations[index];
+                                final userId = conversation.user;
+
+                                if (userState is UserLoaded &&
+                                    userState.users.containsKey(userId)) {
+                                  final user = userState.users[userId]!;
+                                  return _buildChatItem(conversation, user);
+                                } else if (userState is UserError) {
+                                  return ListTile(
+                                    leading: CircleAvatar(
+                                      backgroundColor: Colors.red.shade100,
+                                      child: const Icon(Icons.person_off,
+                                          color: Colors.red),
+                                    ),
+                                    title: const Text('User not found'),
+                                    subtitle: Text(
+                                        'ID: ${userId.substring(0, 8)}...'),
+                                    trailing: IconButton(
+                                      icon: const Icon(Icons.refresh),
+                                      onPressed: () {
+                                        _userBloc.add(LoadUserEvent(
+                                          userId: userId,
+                                          forceRefresh: true,
+                                        ));
+                                      },
+                                    ),
+                                    onTap: null,
+                                  );
+                                } else {
+                                  return _buildLoadingChatItem(conversation);
+                                }
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
       ),
     );
   }

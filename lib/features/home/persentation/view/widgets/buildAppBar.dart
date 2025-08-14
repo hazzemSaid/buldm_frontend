@@ -1,12 +1,9 @@
 // features/home/persentation/view/widgets/buildAppBar.dart
-import 'package:buldm/features/chat/presentation/view/screens/Listofchats.dart';
-import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
+import 'package:buldm/routes/routes.dart';
 import 'package:buldm/utils/app_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
-import 'package:buldm/routes/routes.dart';
 
 class buildAppBar extends StatelessWidget {
   const buildAppBar({super.key});

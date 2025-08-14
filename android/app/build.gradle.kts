@@ -40,10 +40,29 @@ android {
             signingConfig = signingConfigs.getByName("debug")
             // Ensure R8/ProGuard keeps required classes (e.g., TensorFlow Lite GPU)
             isMinifyEnabled = true
+            // Remove unused resources alongside code shrinking to reduce APK size
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 file("proguard-rules.pro")
             )
+        }
+    }
+
+    // Generate smaller, per-ABI APKs instead of a single fat APK
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("armeabi-v7a", "arm64-v8a")
+            isUniversalApk = false
+        }
+    }
+
+    // Exclude unnecessary META-INF artifacts to slightly reduce size
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1,LICENSE*,NOTICE*,*.kotlin_module}"
         }
     }
 }
@@ -52,7 +71,4 @@ flutter {
     source = "../.."
 }
 dependencies {
-    implementation ( "com.facebook.android:facebook-android-sdk:16.3.0")
-    // TensorFlow Lite GPU delegate to satisfy R8 missing class org.tensorflow.lite.gpu.GpuDelegateFactory$Options
-    implementation ("org.tensorflow:tensorflow-lite-gpu:2.14.0")
 }
