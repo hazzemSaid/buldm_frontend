@@ -75,7 +75,7 @@ flutter:
     - assets/images/find.png
     - assets/images/lost.png
     - assets/images/google.png
-    # Removed unused animations and AI model assets to reduce APK size
+    # Notification sound asset (also copied natively for Android/iOS notification use)
 
   fonts:
     - family: SFProDisplay
@@ -105,4 +105,3 @@ flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
   image_path: assets/images/logobuldm.png
-

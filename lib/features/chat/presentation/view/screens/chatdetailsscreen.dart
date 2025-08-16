@@ -3,17 +3,20 @@ import 'package:buldm/features/chat/data/datasource/firebase_chat_service.dart';
 import 'package:buldm/features/chat/data/models/MessageModel.dart';
 import 'package:buldm/features/profile/presentation/view/screens/OtherUserProfileScreen.dart';
 import 'package:buldm/l10n/app_localizations.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class ChatDetailsScreen extends StatefulWidget {
   final String currentUserId;
   final String otherUserId;
   final ViewerUser user;
+  final ViewerUser currentViewerUser;
   const ChatDetailsScreen({
     super.key,
     required this.user,
     required this.currentUserId,
     required this.otherUserId,
+    required this.currentViewerUser,
   });
 
   @override
@@ -28,15 +31,27 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    // Optionally mark as read when opening
-    _chatService.markConversationRead(
-      uid: widget.currentUserId,
-      otherUid: widget.otherUserId,
-    );
+
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.currentUserId)
+        .set({'activeChatWith': widget.otherUserId}, SetOptions(merge: true));
+
+    // وضع المحادثة كمقروءة
+    // _chatService.markConversationRead(
+    //   uid: widget.currentUserId,
+    //   otherUid: widget.otherUserId,
+    // );
   }
 
   @override
   void dispose() {
+    // إلغاء تحديد المحادثة النشطة
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.currentUserId)
+        .set({'activeChatWith': null}, SetOptions(merge: true));
+
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -56,18 +71,19 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
 
   Future<void> _sendMessage() async {
     final content = _messageController.text.trim();
+    _messageController.clear();
     if (content.isEmpty) return;
     try {
       await _chatService.sendMessage(
         from: widget.currentUserId,
         to: widget.otherUserId,
         text: content,
+        fromUser: widget.user,
+        toUser: widget.user,
       );
     } catch (e) {
       _showSnackBar(e.toString(), Colors.red);
     }
-
-    _messageController.clear();
     _scrollToBottom();
   }
 
@@ -160,11 +176,16 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Text(widget.user.name),
+            Text(widget.user.name,
+                style: TextStyle(
+                  color: theme.onPrimary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                )),
             SizedBox(width: 12),
             CircleAvatar(
               backgroundImage: NetworkImage(widget.user.avatar),
-            ),
+            )
           ],
         ),
         backgroundColor: theme.primary,

@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:buldm/core/failure/failure.dart';
+import 'package:buldm/features/auth/data/model/usermodel.dart';
 import 'package:buldm/features/auth/domain/usecases/forgotPasswordusecase.dart';
 import 'package:buldm/features/auth/domain/usecases/get_currentuser_usercase.dart';
 import 'package:buldm/features/auth/domain/usecases/google_auth_usecase.dart';
@@ -143,5 +144,11 @@ class AuthCubit extends Cubit<AuthState> {
       (failure) => emit(Verifycodeerror(message: failure.message)),
       (_) => emit(Verifycodesuccess(message: 'Verification code is valid')),
     );
+  }
+
+  Future<UserModel> checkCurrentUser() async {
+    final currentUser = await getCurrentuserUsercase();
+    // Do something with currentUserId
+    return currentUser!;
   }
 }

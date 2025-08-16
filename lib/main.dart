@@ -3,11 +3,14 @@ import 'package:buldm/core/http/socket.io/socketserver.dart';
 import 'package:buldm/core/observe/blocobserve.dart';
 import 'package:buldm/features/auth/data/model/usermodel.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
+import 'package:buldm/features/auth/presentaion/view/bloc/auth_state.dart';
+import 'package:buldm/features/profile/presentation/view/screens/OtherUserProfileScreen.dart';
 import 'package:buldm/firebase_options.dart';
 import 'package:buldm/l10n/app_localizations.dart';
 import 'package:buldm/provider/localization/localization_cubit.dart';
 import 'package:buldm/routes/routes.dart';
 import 'package:buldm/utils/app_theme.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +18,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localization/flutter_localization.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
@@ -48,6 +52,153 @@ void main() async {
   OneSignal.initialize(dotenv.env['ONESIGNAL_APP_ID']!);
   // Use this method to prompt for push notifications.
   OneSignal.Notifications.requestPermission(true);
+
+  // Persist OneSignal player id to Firestore for the authenticated user
+  try {
+    final playerId = OneSignal.User.pushSubscription.id;
+    final auth = sl<AuthCubit>().state;
+    // ignore: avoid_print
+    print('OneSignal init: playerId=$playerId, authState=${auth.runtimeType}');
+    if (auth is Authenticated) {
+      // Associate OneSignal with this user (SDK v5)
+      await OneSignal.login(auth.user.user_id);
+      if (playerId != null) {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(auth.user.user_id)
+            .set({
+          'onesignal_player_id': playerId,
+          'oneSignalPlayerId': playerId, // fallback key
+          'playerId': playerId, // legacy key
+        }, SetOptions(merge: true));
+        // ignore: avoid_print
+        print('Saved onesignal_player_id for ${auth.user.user_id}');
+      } else {
+        // Retry shortly if ID not ready yet
+        Future.delayed(const Duration(seconds: 2), () async {
+          final retryId = OneSignal.User.pushSubscription.id;
+          // ignore: avoid_print
+          print('Retry fetch OneSignal ID -> $retryId');
+          if (retryId != null) {
+            await FirebaseFirestore.instance
+                .collection('users')
+                .doc(auth.user.user_id)
+                .set({
+              'onesignal_player_id': retryId,
+              'oneSignalPlayerId': retryId,
+              'playerId': retryId,
+            }, SetOptions(merge: true));
+            // ignore: avoid_print
+            print(
+                'Saved onesignal_player_id after retry for ${auth.user.user_id}');
+          }
+        });
+      }
+    }
+  } catch (e) {
+    // ignore: avoid_print
+    print('Failed to save OneSignal ID at init: $e');
+  }
+
+  // Also persist when OneSignal subscription changes (e.g., first time permission granted)
+  OneSignal.User.pushSubscription.addObserver((state) async {
+    try {
+      final id = state.current.id;
+      final auth = sl<AuthCubit>().state;
+      // ignore: avoid_print
+      print('OneSignal subscription changed: id=$id, auth=${auth.runtimeType}');
+      if (auth is Authenticated) {
+        await OneSignal.login(auth.user.user_id);
+      }
+      if (id != null && auth is Authenticated) {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(auth.user.user_id)
+            .set({
+          'onesignal_player_id': id,
+          'oneSignalPlayerId': id,
+          'playerId': id,
+        }, SetOptions(merge: true));
+        // ignore: avoid_print
+        print(
+            'Saved onesignal_player_id via observer for ${auth.user.user_id}');
+      }
+    } catch (e) {
+      // ignore: avoid_print
+      print('Failed to save OneSignal ID via observer: $e');
+    }
+  });
+
+  // Also persist right after user logs in
+  sl<AuthCubit>().stream.listen((s) async {
+    if (s is Authenticated) {
+      try {
+        await OneSignal.login(s.user.user_id);
+        final id = OneSignal.User.pushSubscription.id;
+        // ignore: avoid_print
+        print('Auth state Authenticated: playerId=$id for ${s.user.user_id}');
+        if (id != null) {
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(s.user.user_id)
+              .set({
+            'onesignal_player_id': id,
+            'oneSignalPlayerId': id,
+            'playerId': id,
+          }, SetOptions(merge: true));
+          // ignore: avoid_print
+          print('Saved onesignal_player_id on login for ${s.user.user_id}');
+        }
+      } catch (e) {
+        // ignore: avoid_print
+        print('Failed to save OneSignal ID on login: $e');
+      }
+    }
+  });
+
+  // Handle notification clicks to deep-link into chat
+  OneSignal.Notifications.addClickListener((event) {
+    try {
+      final data = event.notification.additionalData ?? {};
+      if (data['type'] == 'chat') {
+        final senderId = data['senderId'] as String?;
+        if (senderId == null || senderId.isEmpty) return;
+
+        final senderName = (data['senderName'] as String?) ?? 'User';
+        final senderAvatar = (data['senderAvatar'] as String?) ?? '';
+
+        // Get current user id
+        final auth = sl<AuthCubit>().state;
+        if (auth is! Authenticated) return;
+        final currentUser = auth.user;
+
+        // Build minimal ViewerUser for chat screen
+        final other = ViewerUser(
+          id: senderId,
+          name: senderName,
+          email: '',
+          avatar: senderAvatar,
+        );
+
+        appRouterKey.currentState?.context.push(
+          paths[AppRoute.chat.name]!,
+          extra: {
+            'user': other,
+            'currentUserId': currentUser.user_id,
+            'otherUserId': senderId,
+            'currentViewerUser': ViewerUser(
+              id: currentUser.user_id,
+              name: currentUser.name,
+              email: currentUser.email,
+              avatar: currentUser.avatar,
+            ),
+          },
+        );
+      }
+    } catch (_) {
+      // ignore
+    }
+  });
   FlutterLocalization.instance.init(
     mapLocales: [
       const MapLocale('en', {'en': 'US'}),

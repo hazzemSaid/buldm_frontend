@@ -39,13 +39,18 @@ class BuildPostActions extends StatelessWidget {
             label: "Contact",
             onTap: () async {
               final authState = context.read<AuthCubit>().state;
-              final currentUserId =
-                  (authState is Authenticated) ? authState.user.user_id : '';
+              final currentUser =
+                  (authState is Authenticated) ? authState.user : null;
               final otheruser =
                   await context.read<UserBloc>().getuserbyid(post.user_id);
               Navigator.push(context, MaterialPageRoute(builder: (context) {
                 return ChatDetailsScreen(
-                    currentUserId: currentUserId,
+                    currentUserId: currentUser!.user_id,
+                    currentViewerUser: ViewerUser(
+                        avatar: currentUser.avatar,
+                        id: currentUser.user_id,
+                        name: currentUser.name,
+                        email: currentUser.email),
                     user: ViewerUser(
                         avatar: otheruser.avatar,
                         id: otheruser.user_id,

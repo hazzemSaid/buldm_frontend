@@ -13,6 +13,7 @@ import 'package:buldm/utils/layout/main_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:buldm/features/splash/splash_screen.dart';
 import 'package:buldm/features/profile/presentation/view/screens/profile_screen.dart';
@@ -39,6 +40,9 @@ enum AppRoute {
   chat,
   chatsList,
 }
+
+// Exposed navigator key to allow navigation from places without BuildContext
+final GlobalKey<NavigatorState> appRouterKey = GlobalKey<NavigatorState>();
 
 final Map<String, String> paths = {
   AppRoute.splash.name: '/',
@@ -70,6 +74,7 @@ Future<void> setFirstLaunchComplete() async {
 }
 
 final GoRouter router = GoRouter(
+  navigatorKey: appRouterKey,
   refreshListenable: GoRouterRefreshStream(
     sl<AuthCubit>().stream,
   ),
@@ -200,9 +205,12 @@ final GoRouter router = GoRouter(
       builder: (BuildContext context, GoRouterState state) {
         final extras = state.extra as Map<String, dynamic>?;
         return ChatDetailsScreen(
+          // Ensure extras is not null and contains the required keys
+
           user: extras!["user"],
           currentUserId: extras["currentUserId"],
           otherUserId: extras["otherUserId"],
+          currentViewerUser: extras["currentViewerUser"],
         );
       },
     ),

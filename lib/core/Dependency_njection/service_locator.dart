@@ -104,9 +104,9 @@ void setupDio(Dio dio) {
 Future<void> init() async {
   /// ✅ Dio
   final dio = Dio(BaseOptions(
-    baseUrl: 'https://buldm.vercel.app/api/v1',
+    // baseUrl: 'https://buldm.vercel.app/api/v1',
     //  for testing on real device
-    // baseUrl: 'http://10.0.2.2:3000/api/v1',
+    baseUrl: 'http://192.168.1.12:3000/api/v1',
     connectTimeout: const Duration(seconds: 30),
     receiveTimeout: const Duration(seconds: 30),
     headers: {

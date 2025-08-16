@@ -62,13 +62,15 @@ class _ListOfChatsState extends State<ListOfChats> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  void _navigateToChat(String otherUserId, ViewerUser user) {
+  void _navigateToChat(
+      String otherUserId, ViewerUser user, ViewerUser currentViewerUser) {
     context.push(
       paths[AppRoute.chat.name]!,
       extra: {
         'user': user,
         'currentUserId': currentUserId,
         'otherUserId': otherUserId,
+        'currentViewerUser': currentViewerUser,
       },
     );
   }
@@ -80,7 +82,8 @@ class _ListOfChatsState extends State<ListOfChats> with WidgetsBindingObserver {
     }
   }
 
-  Widget _buildChatItem(ChatContactDirectory conversation, User user) {
+  Widget _buildChatItem(
+      ChatContactDirectory conversation, User user, User currentViewerUser) {
     final localization = AppLocalizations.of(context)!;
     final lastMessage = conversation.lastMessage;
     final lastMessageText = lastMessage?.message ?? localization.noMessagesYet;
@@ -150,12 +153,19 @@ class _ListOfChatsState extends State<ListOfChats> with WidgetsBindingObserver {
             )
           : null,
       onTap: () => _navigateToChat(
-          conversation.user,
-          ViewerUser(
-              avatar: user.avatar,
-              id: user.user_id,
-              name: user.name,
-              email: user.email)),
+        conversation.user,
+        ViewerUser(
+            avatar: user.avatar,
+            id: user.user_id,
+            name: user.name,
+            email: user.email),
+        ViewerUser(
+          avatar: currentViewerUser.avatar,
+          id: currentViewerUser.user_id,
+          name: currentViewerUser.name,
+          email: currentViewerUser.email,
+        ),
+      ),
     );
   }
 
@@ -365,8 +375,13 @@ class _ListOfChatsState extends State<ListOfChats> with WidgetsBindingObserver {
 
                                 if (userState is UserLoaded &&
                                     userState.users.containsKey(userId)) {
+                                  final currentUser = (context
+                                          .read<AuthCubit>()
+                                          .state as Authenticated)
+                                      .user;
                                   final user = userState.users[userId]!;
-                                  return _buildChatItem(conversation, user);
+                                  return _buildChatItem(
+                                      conversation, user, currentUser);
                                 } else if (userState is UserError) {
                                   return ListTile(
                                     leading: CircleAvatar(
