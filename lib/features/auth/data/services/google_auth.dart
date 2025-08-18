@@ -33,36 +33,36 @@ class GoogleAuth {
   }
 }
 
-  // void debugPrintTokenPayload(String idToken) {
-  //   try {
-  //     final parts = idToken.split('.');
-  //     if (parts.length == 3) {
-  //       final payload = parts[1];
-  //       // Add padding if needed
-  //       final normalizedPayload = payload + '=' * (4 - payload.length % 4);
-  //       final decoded = utf8.decode(base64Url.decode(normalizedPayload));
-  //       final payloadMap = json.decode(decoded);
+// void debugPrintTokenPayload(String idToken) {
+//   try {
+//     final parts = idToken.split('.');
+//     if (parts.length == 3) {
+//       final payload = parts[1];
+//       // Add padding if needed
+//       final normalizedPayload = payload + '=' * (4 - payload.length % 4);
+//       final decoded = utf8.decode(base64Url.decode(normalizedPayload));
+//       final payloadMap = json.decode(decoded);
 
-  //       final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-  //       final exp = payloadMap['exp'] as int;
-  //       final timeToExpiry = exp - now;
+//       final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+//       final exp = payloadMap['exp'] as int;
+//       final timeToExpiry = exp - now;
 
-  //       print('Token Payload:');
-  //       print('  iss: ${payloadMap['iss']}');
-  //       print('  aud: ${payloadMap['aud']}');
-  //       print('  azp: ${payloadMap['azp']}');
-  //       print(
-  //         '  exp: ${payloadMap['exp']} (${DateTime.fromMillisecondsSinceEpoch(exp * 1000)})',
-  //       );
-  //       print('  current time: $now (${DateTime.now()})');
-  //       print('  time to expiry: ${timeToExpiry} seconds');
-  //       print('  email: ${payloadMap['email']}');
+//       print('Token Payload:');
+//       print('  iss: ${payloadMap['iss']}');
+//       print('  aud: ${payloadMap['aud']}');
+//       print('  azp: ${payloadMap['azp']}');
+//       print(
+//         '  exp: ${payloadMap['exp']} (${DateTime.fromMillisecondsSinceEpoch(exp * 1000)})',
+//       );
+//       print('  current time: $now (${DateTime.now()})');
+//       print('  time to expiry: ${timeToExpiry} seconds');
+//       print('  email: ${payloadMap['email']}');
 
-  //       if (timeToExpiry < 60) {
-  //         print('  WARNING: Token expires in less than 1 minute!');
-  //       }
-  //     }
-  //   } catch (e) {
-  //     print('Failed to decode token: $e');
-  //   }
-  // }
+//       if (timeToExpiry < 60) {
+//         print('  WARNING: Token expires in less than 1 minute!');
+//       }
+//     }
+//   } catch (e) {
+//     print('Failed to decode token: $e');
+//   }
+// }

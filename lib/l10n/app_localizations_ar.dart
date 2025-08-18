@@ -78,16 +78,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get termsOfService => 'شروط الخدمة';
 
   @override
-  String get onboarding_1_title => 'مرحبًا بك في BULDM – الطريقة الذكية للعثور على المفقودات!';
+  String get onboarding_1_title =>
+      'مرحبًا بك في BULDM – الطريقة الذكية للعثور على المفقودات!';
 
   @override
-  String get onboarding_1_subtitle => 'ابحث، أبلغ، وساعد في إعادة الأشياء المفقودة لأصحابها';
+  String get onboarding_1_subtitle =>
+      'ابحث، أبلغ، وساعد في إعادة الأشياء المفقودة لأصحابها';
 
   @override
   String get onboarding_2_title => 'فقدت شيئًا؟ أبلغ عنه في ثوانٍ';
 
   @override
-  String get onboarding_2_subtitle => 'قم بالإبلاغ عن المفقودات بسهولة وساعد في إعادتها لأصحابها';
+  String get onboarding_2_subtitle =>
+      'قم بالإبلاغ عن المفقودات بسهولة وساعد في إعادتها لأصحابها';
 
   @override
   String get onboarding_3_title => 'وجدت شيئًا؟ كن السبب في عودته!';
@@ -102,7 +105,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get locationPermissionDenied => 'تم رفض إذن الموقع.';
 
   @override
-  String get locationServicesDisabled => 'يرجى تفعيل خدمات الموقع لاستخدام هذه الميزة.';
+  String get locationServicesDisabled =>
+      'يرجى تفعيل خدمات الموقع لاستخدام هذه الميزة.';
 
   @override
   String get postUploadTitle => 'رفع المنشور';
@@ -114,16 +118,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get selectImages => 'اختر الصور';
 
   @override
-  String get locationPermissionRequired => 'إذن الموقع مطلوب لاستخدام هذه الميزة.';
+  String get locationPermissionRequired =>
+      'إذن الموقع مطلوب لاستخدام هذه الميزة.';
 
   @override
-  String get locationServicesRequired => 'يجب تفعيل خدمات الموقع لاستخدام هذه الميزة.';
+  String get locationServicesRequired =>
+      'يجب تفعيل خدمات الموقع لاستخدام هذه الميزة.';
 
   @override
   String get addPostDetailsTitle => 'إضافة تفاصيل المنشور';
 
   @override
-  String get addPostDetailsSubtitle => 'قدم تفاصيل حول الشيء الذي وجدته أو فقدته';
+  String get addPostDetailsSubtitle =>
+      'قدم تفاصيل حول الشيء الذي وجدته أو فقدته';
 
   @override
   String get itemName => 'اسم العنصر';
@@ -324,7 +331,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get contactInfo => 'معلومات الاتصال';
 
   @override
-  String get contactInfoHint => 'أدخل معلومات الاتصال (بريد إلكتروني أو رقم هاتف)';
+  String get contactInfoHint =>
+      'أدخل معلومات الاتصال (بريد إلكتروني أو رقم هاتف)';
 
   @override
   String get descriptionRequired => 'الوصف مطلوب';
@@ -345,13 +353,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get locationSelected => 'تم اختيار الموقع';
 
   @override
-  String get resetLinkSent => 'تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني.';
+  String get resetLinkSent =>
+      'تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني.';
 
   @override
   String get forgetPasswordTitle => 'نسيت كلمة المرور';
 
   @override
-  String get forgetPasswordSubtitle => 'أدخل بريدك الإلكتروني وسنرسل لك رابط إعادة تعيين كلمة المرور.';
+  String get forgetPasswordSubtitle =>
+      'أدخل بريدك الإلكتروني وسنرسل لك رابط إعادة تعيين كلمة المرور.';
 
   @override
   String get invalidEmail => 'يرجى إدخال بريد إلكتروني صالح.';
@@ -405,7 +415,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get alreadyHaveAnAccount => 'هل لديك حساب؟ سجّل الدخول';
 
   @override
-  String get passwordHint => 'يجب أن تتكون كلمة المرور من 6 أحرف على الأقل وتحتوي على حرف كبير وحرف صغير ورقم.';
+  String get passwordHint =>
+      'يجب أن تتكون كلمة المرور من 6 أحرف على الأقل وتحتوي على حرف كبير وحرف صغير ورقم.';
 
   @override
   String get itemNameRequired => 'اسم العنصر مطلوب';
@@ -432,19 +443,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get verifyYourCode => 'تحقق من الرمز';
 
   @override
-  String get enterTheCodeSentToYourEmail => 'تم إرسال رمز تحقق مكون من 6 أرقام إلى بريدك الإلكتروني. أدخله أدناه.';
+  String get enterTheCodeSentToYourEmail =>
+      'تم إرسال رمز تحقق مكون من 6 أرقام إلى بريدك الإلكتروني. أدخله أدناه.';
 
   @override
   String get verify => 'تحقق';
 
   @override
-  String get emailVerifiedSuccessfully => 'تم التحقق من البريد الإلكتروني بنجاح!';
+  String get emailVerifiedSuccessfully =>
+      'تم التحقق من البريد الإلكتروني بنجاح!';
 
   @override
   String get emailVerification => 'التحقق من البريد الإلكتروني';
 
   @override
-  String get checkYourEmail => 'يرجى التحقق من بريدك الإلكتروني للحصول على رمز التحقق.';
+  String get checkYourEmail =>
+      'يرجى التحقق من بريدك الإلكتروني للحصول على رمز التحقق.';
 
   @override
   String get didNotReceiveCode => 'لم يصلك الرمز؟ ';
@@ -456,7 +470,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get verificationCodeRequired => 'رمز التحقق مطلوب';
 
   @override
-  String get verificationCodeInvalid => 'رمز التحقق غير صالح. يرجى المحاولة مرة أخرى.';
+  String get verificationCodeInvalid =>
+      'رمز التحقق غير صالح. يرجى المحاولة مرة أخرى.';
 
   @override
   String get verificationCodeSent => 'تم إرسال رمز التحقق إلى بريدك الإلكتروني';
@@ -465,7 +480,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get verificationCodeResent => 'تم إعادة إرسال رمز التحقق بنجاح';
 
   @override
-  String get verificationCodeResendError => 'حدث خطأ أثناء إعادة إرسال الرمز. حاول مرة أخرى.';
+  String get verificationCodeResendError =>
+      'حدث خطأ أثناء إعادة إرسال الرمز. حاول مرة أخرى.';
 
   @override
   String get socketConnecting => 'جاري الاتصال بالخادم...';
@@ -497,7 +513,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get messageSent => 'تم إرسال الرسالة بنجاح';
 
   @override
-  String get messageSendingError => 'حدث خطأ أثناء إرسال الرسالة. حاول مرة أخرى.';
+  String get messageSendingError =>
+      'حدث خطأ أثناء إرسال الرسالة. حاول مرة أخرى.';
 
   @override
   String get messagePlaceholder => 'أدخل رسالتك هنا';
@@ -515,13 +532,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get messageDeleted => 'تم حذف الرسالة بنجاح';
 
   @override
-  String get messageDeletionError => 'حدث خطأ أثناء حذف الرسالة. حاول مرة أخرى.';
+  String get messageDeletionError =>
+      'حدث خطأ أثناء حذف الرسالة. حاول مرة أخرى.';
 
   @override
   String get messageEdited => 'تم تعديل الرسالة بنجاح';
 
   @override
-  String get messageEditingError => 'حدث خطأ أثناء تعديل الرسالة. حاول مرة أخرى.';
+  String get messageEditingError =>
+      'حدث خطأ أثناء تعديل الرسالة. حاول مرة أخرى.';
 
   @override
   String get messageEdit => 'تعديل الرسالة';
@@ -580,7 +599,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chatCreatedSuccessfully => 'تم إنشاء المحادثة بنجاح';
 
   @override
-  String get chatCreationError => 'حدث خطأ أثناء إنشاء المحادثة. حاول مرة أخرى.';
+  String get chatCreationError =>
+      'حدث خطأ أثناء إنشاء المحادثة. حاول مرة أخرى.';
 
   @override
   String get joinChatError => 'حدث خطأ أثناء الانضمام. حاول مرة أخرى.';
@@ -597,7 +617,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get unknownError => 'حدث خطأ غير معروف. يرجى المحاولة لاحقًا.';
 
   @override
-  String get noPostsAvailable => 'لم يتم نشر أي منشور بعد. انشر أول منشور لك الآن!';
+  String get noPostsAvailable =>
+      'لم يتم نشر أي منشور بعد. انشر أول منشور لك الآن!';
 
   @override
   String get postYourFirstPost => 'انشر أول منشور لك الآن!';

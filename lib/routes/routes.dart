@@ -3,25 +3,25 @@ import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_state.dart';
 import 'package:buldm/features/auth/presentaion/view/screen/SignInScreen.dart';
 import 'package:buldm/features/auth/presentaion/view/screen/SignupScreen.dart';
-import 'package:buldm/features/auth/presentaion/view/screen/forgetpasswordscreen.dart';
-import 'package:buldm/features/auth/presentaion/view/screen/verfiycodescreen.dart';
-import 'package:buldm/features/auth/presentaion/view/screen/resetpasswordscreen.dart';
 import 'package:buldm/features/auth/presentaion/view/screen/VerificationEmailScreen.dart';
+import 'package:buldm/features/auth/presentaion/view/screen/forgetpasswordscreen.dart';
+import 'package:buldm/features/auth/presentaion/view/screen/resetpasswordscreen.dart';
+import 'package:buldm/features/auth/presentaion/view/screen/verfiycodescreen.dart';
+import 'package:buldm/features/chat/presentation/view/screens/Listofchats.dart';
+import 'package:buldm/features/chat/presentation/view/screens/chatdetailsscreen.dart';
+import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
 import 'package:buldm/features/onboarding/presentation/view/screens/onboarding_screen.dart';
+import 'package:buldm/features/profile/presentation/blocs/profile/profile_cubit.dart';
+import 'package:buldm/features/profile/presentation/view/screens/OtherUserProfileScreen.dart';
+import 'package:buldm/features/profile/presentation/view/screens/profile_screen.dart';
+import 'package:buldm/features/splash/splash_screen.dart';
 import 'package:buldm/routes/GoRouterRefreshStream.dart';
 import 'package:buldm/utils/layout/main_layout.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:buldm/features/splash/splash_screen.dart';
-import 'package:buldm/features/profile/presentation/view/screens/profile_screen.dart';
-import 'package:buldm/features/profile/presentation/view/screens/OtherUserProfileScreen.dart';
-import 'package:buldm/features/profile/presentation/blocs/profile/profile_cubit.dart';
-import 'package:buldm/features/chat/presentation/view/screens/chatdetailsscreen.dart';
-import 'package:buldm/features/chat/presentation/view/screens/Listofchats.dart';
-import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
 
 enum AppRoute {
   splash,

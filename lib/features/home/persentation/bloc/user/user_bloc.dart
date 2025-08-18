@@ -61,7 +61,8 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     final toFetch = <String>[];
     for (final id in event.userIds) {
       final cached = _cache[id];
-      final needsFetch = event.forceRefresh || cached == null || !cached.isFresh(ttl);
+      final needsFetch =
+          event.forceRefresh || cached == null || !cached.isFresh(ttl);
       if (needsFetch && !_inFlight.contains(id)) {
         toFetch.add(id);
       }
@@ -78,7 +79,8 @@ class UserBloc extends Bloc<UserEvent, UserState> {
 
     try {
       // Fetch all missing/stale users in parallel
-      final results = await Future.wait<User>(toFetch.map((id) async => await getuserbyid(id)));
+      final results = await Future.wait<User>(
+          toFetch.map((id) async => await getuserbyid(id)));
       for (var i = 0; i < toFetch.length; i++) {
         final id = toFetch[i];
         final user = results[i];
@@ -89,7 +91,9 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     } catch (e) {
       // Emit an error for the batch; you may adjust to per-id if needed
       // Here we emit the first id that failed contextually is unknown; fallback to general error
-      emit(UserError(userId: toFetch.isNotEmpty ? toFetch.first : '-', message: e.toString()));
+      emit(UserError(
+          userId: toFetch.isNotEmpty ? toFetch.first : '-',
+          message: e.toString()));
     } finally {
       for (final id in toFetch) {
         _inFlight.remove(id);

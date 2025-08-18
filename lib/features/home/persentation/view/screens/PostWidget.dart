@@ -1,15 +1,11 @@
 // features/home/persentation/view/screens/PostWidget.dart
 import 'package:buldm/features/home/domain/entities/postentity.dart';
-import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
-import 'package:buldm/features/home/persentation/bloc/user/user_event.dart';
-import 'package:buldm/features/home/persentation/bloc/user/user_state.dart';
 import 'package:buldm/features/home/persentation/view/widgets/buildDescription.dart';
 import 'package:buldm/features/home/persentation/view/widgets/buildImageCarousel.dart';
 import 'package:buldm/features/home/persentation/view/widgets/buildPostActions.dart';
 import 'package:buldm/features/home/persentation/view/widgets/buildPostList.dart';
 import 'package:buldm/features/home/persentation/view/widgets/buildProfileHeader.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 class PostWidget extends StatefulWidget {
   final PostEntity post;
@@ -34,13 +30,13 @@ class _PostWidgetState extends State<PostWidget>
     _pageController.addListener(() {
       _currentPageNotifier.value = _pageController.page!.toInt();
     });
-    final userBloc = BlocProvider.of<UserBloc>(context);
-    final currentState = userBloc.state;
-    if (currentState is UserLoaded &&
-        !currentState.users.containsKey(widget.post.user_id)) {
-      userBloc
-          .add(LoadUserEvent(userId: widget.post.user_id, forceRefresh: true));
-    }
+    // final userBloc = BlocProvider.of<UserBloc>(context);
+    // final currentState = userBloc.state;
+    // if (currentState is UserLoaded &&
+    //     !currentState.users.containsKey(widget.post.user_id)) {
+    //   userBloc
+    //       .add(LoadUserEvent(userId: widget.post.user_id, forceRefresh: true));
+    // }
   }
 
   @override
@@ -69,11 +65,10 @@ class _PostWidgetState extends State<PostWidget>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          buildProfileHeader(
-            userId: widget.post.user_id,
+          BuildProfileHeader(
             post: widget.post,
           ),
-          buildDescription(
+          BuildDescription(
             description: widget.post.description,
           ),
           const SizedBox(height: 8),
@@ -83,8 +78,11 @@ class _PostWidgetState extends State<PostWidget>
             imagePaths: widget.post.images,
           ),
           const SizedBox(height: 8),
-          BuildPostActions(
-            post: widget.post,
+          Align(
+            alignment: Alignment.center,
+            child: BuildPostActions(
+              post: widget.post,
+            ),
           ),
         ],
       ),

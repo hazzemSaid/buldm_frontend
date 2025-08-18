@@ -12,6 +12,8 @@ import 'package:buldm/features/auth/domain/usecases/signup_user_usecase.dart';
 import 'package:buldm/features/auth/domain/usecases/verifyCodeusecase.dart';
 import 'package:buldm/features/auth/domain/usecases/verifyEmailCode.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_state.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 class AuthCubit extends Cubit<AuthState> {
   final SignInUserUseCase signInUserUseCase;
@@ -82,6 +84,27 @@ class AuthCubit extends Cubit<AuthState> {
 
   Future<void> signOut() async {
     try {
+      // If authenticated, clear device-related fields in Firestore and OneSignal
+      final currentState = state;
+      if (currentState is Authenticated) {
+        final uid = currentState.user.user_id;
+        try {
+          await FirebaseFirestore.instance.collection('users').doc(uid).set({
+            'activeChatWith': null,
+            'onesignal_player_id': FieldValue.delete(),
+            'oneSignalPlayerId': FieldValue.delete(),
+            'playerId': FieldValue.delete(),
+          }, SetOptions(merge: true));
+        } catch (_) {
+          // ignore Firestore cleanup errors
+        }
+        try {
+          await OneSignal.logout();
+        } catch (_) {
+          // ignore OneSignal logout errors
+        }
+      }
+
       await signOutUseCase.signOut();
       emit(UnAuthenticated());
     } catch (e) {

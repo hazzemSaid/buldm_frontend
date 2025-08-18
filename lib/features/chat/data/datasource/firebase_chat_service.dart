@@ -179,7 +179,7 @@ class FirebaseChatService {
         print('ℹ️ Skipping push: $to is in chat with $from');
       }
     } catch (e) {
-      print('⚠️ Notification send flow error: ' + e.toString());
+      print('⚠️ Notification send flow error: $e');
     }
   }
 

@@ -1,4 +1,3 @@
-
 // import '../features/home/data/models/post_model.dart';
 
 // final  List<Post> posts=[

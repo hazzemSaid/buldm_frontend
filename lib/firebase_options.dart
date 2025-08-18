@@ -78,5 +78,4 @@ class DefaultFirebaseOptions {
     storageBucket: 'buldm-a9dc1.firebasestorage.app',
     iosBundleId: 'com.example.buldm',
   );
-
 }

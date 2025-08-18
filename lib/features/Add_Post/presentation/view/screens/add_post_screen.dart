@@ -110,12 +110,12 @@ class PostUploadScreen extends StatelessWidget {
         } else {
           return Scaffold(
             appBar: AppBar(
-              title:  Text(localizations.postUploadTitle),
+              title: Text(localizations.postUploadTitle),
             ),
             body: Center(
               child: ElevatedButton(
                 onPressed: () => _selectImages(context),
-                child:  Text(localizations.selectImages),
+                child: Text(localizations.selectImages),
               ),
             ),
           );

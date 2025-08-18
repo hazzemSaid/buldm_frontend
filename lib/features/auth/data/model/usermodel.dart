@@ -37,7 +37,7 @@ class UserModel extends HiveObject implements User, Equatable {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      user_id: json['user_id'],
+      user_id: json['user_id'] ?? json['_id'],
       name: json['name'],
       email: json['email'],
       avatar: json['avatar'] ?? '/image/2024.png',

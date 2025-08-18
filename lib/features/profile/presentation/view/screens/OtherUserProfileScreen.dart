@@ -90,16 +90,21 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
                         ),
                         onPressed: () {
                           // Navigate to chat details using GoRouter
-                          final currentUserId =
+                          final currentUse =
                               (context.read<AuthCubit>().state as Authenticated)
-                                  .user
-                                  .user_id;
+                                  .user;
                           context.push(
                             paths[AppRoute.chat.name]!,
                             extra: {
                               'user': widget.user,
-                              'currentUserId': currentUserId,
+                              'currentUserId': currentUse.user_id,
                               'otherUserId': widget.user.id,
+                              'currentViewerUser': ViewerUser(
+                                id: currentUse.user_id,
+                                name: currentUse.name,
+                                email: currentUse.email,
+                                avatar: currentUse.avatar,
+                              ),
                             },
                           );
                         },

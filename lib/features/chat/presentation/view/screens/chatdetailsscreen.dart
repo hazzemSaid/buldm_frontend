@@ -78,7 +78,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
         from: widget.currentUserId,
         to: widget.otherUserId,
         text: content,
-        fromUser: widget.user,
+        fromUser: widget.currentViewerUser,
         toUser: widget.user,
       );
     } catch (e) {

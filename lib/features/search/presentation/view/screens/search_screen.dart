@@ -1,11 +1,8 @@
 import 'dart:async';
 
-import 'package:buldm/core/Dependency_njection/service_locator.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_state.dart';
-import 'package:buldm/features/profile/presentation/blocs/profile/profile_cubit.dart';
 import 'package:buldm/features/profile/presentation/view/screens/OtherUserProfileScreen.dart';
-import 'package:buldm/features/profile/presentation/view/screens/profile_screen.dart';
 import 'package:buldm/features/search/presentation/bloc/ssearch/Search_Cubit.dart';
 import 'package:buldm/l10n/app_localizations.dart';
 import 'package:buldm/utils/app_theme.dart';

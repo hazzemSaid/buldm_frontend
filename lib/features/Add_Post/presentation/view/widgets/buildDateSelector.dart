@@ -57,7 +57,9 @@ class _BuildDateSelectorState extends State<BuildDateSelector> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _selectedDate != null ? localizations.dateSelected : localizations.selectDate,
+                    _selectedDate != null
+                        ? localizations.dateSelected
+                        : localizations.selectDate,
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
                       color: _selectedDate != null

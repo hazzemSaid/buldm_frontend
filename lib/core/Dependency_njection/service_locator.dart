@@ -25,9 +25,16 @@ import 'package:buldm/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:buldm/features/home/data/datasource/remote_post_data_source.dart';
 import 'package:buldm/features/home/data/repository/postrepositoryimp.dart';
 import 'package:buldm/features/home/domain/repository/postrepository.dart';
+import 'package:buldm/features/home/domain/usecases/changeikepostUsecase.dart';
 import 'package:buldm/features/home/domain/usecases/createPostUseCase.dart';
+import 'package:buldm/features/home/domain/usecases/deletpostUsecase.dart';
 import 'package:buldm/features/home/domain/usecases/getPostUseCase.dart';
 import 'package:buldm/features/home/domain/usecases/getUserById.dart';
+import 'package:buldm/features/home/domain/usecases/getcommentedpostUsecase.dart';
+import 'package:buldm/features/home/domain/usecases/getlikedpostUsecase.dart';
+import 'package:buldm/features/home/domain/usecases/setcommentUsecase.dart';
+import 'package:buldm/features/home/domain/usecases/setreplycommentUsecase.dart';
+import 'package:buldm/features/home/domain/usecases/updatepostUsecase.dart';
 import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
 import 'package:buldm/features/profile/data/datasource/profile_remote_data_resource.dart';
@@ -52,12 +59,34 @@ void setupDio(Dio dio) {
       onRequest: (options, handler) async {
         final userBox = Hive.box<UserModel>('user');
         final user = userBox.get('user');
-        if (user != null) {
-          options.headers['Authorization'] = 'Bearer ${user.refreshToken}';
+        // Only set Authorization if not already set on the request
+        if (user != null && !options.headers.containsKey('Authorization')) {
+          // Use the short-lived access token for normal requests
+          options.headers['Authorization'] = 'Bearer ${user.token}';
         }
         return handler.next(options);
       },
       onError: (error, handler) async {
+        // Retry transient network/timeout errors with exponential backoff
+        const maxRetries = 2;
+        if (error.type == DioExceptionType.connectionTimeout ||
+            error.type == DioExceptionType.receiveTimeout ||
+            error.type == DioExceptionType.sendTimeout ||
+            error.type == DioExceptionType.connectionError) {
+          final req = error.requestOptions;
+          final attempt = (req.extra['retry_attempt'] as int?) ?? 0;
+          if (attempt < maxRetries) {
+            final delay = Duration(milliseconds: 500 * (1 << attempt));
+            await Future.delayed(delay);
+            req.extra['retry_attempt'] = attempt + 1;
+            try {
+              final retryResponse = await dio.fetch(req);
+              return handler.resolve(retryResponse);
+            } catch (_) {
+              // fall through to existing error handling
+            }
+          }
+        }
         if (error.response?.statusCode == 401 &&
             !error.requestOptions.path.contains('/refreshToken')) {
           final userBox = Hive.box<UserModel>('user');
@@ -107,11 +136,13 @@ Future<void> init() async {
     // baseUrl: 'https://buldm.vercel.app/api/v1',
     //  for testing on real device
     baseUrl: 'http://192.168.1.12:3000/api/v1',
-    connectTimeout: const Duration(seconds: 30),
-    receiveTimeout: const Duration(seconds: 30),
     headers: {
       'Content-Type': 'application/json',
     },
+    // Increase timeouts to accommodate occasional cold starts/slow network
+    connectTimeout: const Duration(seconds: 60),
+    receiveTimeout: const Duration(seconds: 60),
+    sendTimeout: const Duration(seconds: 30),
   ));
   setupDio(dio);
   sl.registerLazySingleton<Dio>(() => dio);
@@ -182,27 +213,50 @@ Future<void> init() async {
 
   // Data Source
   sl.registerLazySingleton<RemotePostDataSource>(
-      () => RemotePostDataSourceImpl(dio: sl()));
+      () => RemotePostDataSourceImpl(dio: sl<Dio>()));
 
   // Repository
-  sl.registerLazySingleton<Postrepository>(
-      () => Postrepositoryimp(remotePostDataSource: sl()));
+  sl.registerLazySingleton<Postrepository>(() =>
+      Postrepositoryimp(remotePostDataSource: sl<RemotePostDataSource>()));
 
   // Use Cases
-  sl.registerLazySingleton(() => GetPostUseCase(postrepository: sl()));
+
+  sl.registerLazySingleton(
+      () => GetPostUseCase(postrepository: sl<Postrepository>()));
   sl.registerLazySingleton(() => Getuserbyid(postRepository: sl()));
   sl.registerLazySingleton<Postrepositoryimp>(
-    () => Postrepositoryimp(remotePostDataSource: sl()),
+    () => Postrepositoryimp(remotePostDataSource: sl<RemotePostDataSource>()),
   );
-//createPostUsecase
-  sl.registerLazySingleton(() => Createpostusecase(postrepository: sl()));
+  sl.registerLazySingleton(
+      () => Getlikedpostusecase(postRepository: sl<Postrepository>()));
+  sl.registerLazySingleton(
+      () => GetCommentedPostUseCase(postRepository: sl<Postrepository>()));
+  sl.registerLazySingleton(
+      () => UpdatePostUseCase(postRepository: sl<Postrepository>()));
+  sl.registerLazySingleton(
+      () => SetReplyCommentUseCase(postRepository: sl<Postrepository>()));
+  sl.registerLazySingleton(
+      () => SetCommentUseCase(postRepository: sl<Postrepository>()));
+  sl.registerLazySingleton(
+      () => DeletePostUseCase(postRepository: sl<Postrepository>()));
+  sl.registerLazySingleton(
+      () => ChangeLikePostUseCase(postRepository: sl<Postrepository>()));
+  sl.registerLazySingleton(
+      () => Createpostusecase(postrepository: sl<Postrepository>()));
 
   // Blocs
 
   sl.registerFactory(() => PostBloc(
-      getCurrentuserUsercase: sl(),
-      getPostUseCase: sl(),
-      createPostUsecase: sl()));
+      getlikedpostusecase: sl<Getlikedpostusecase>(),
+      getCurrentuserUsercase: sl<GetCurrentuserUsercase>(),
+      getPostUseCase: sl<GetPostUseCase>(),
+      createPostUsecase: sl<Createpostusecase>(),
+      getCommentedPostUseCase: sl<GetCommentedPostUseCase>(),
+      updatePostUseCase: sl<UpdatePostUseCase>(),
+      setReplyCommentUseCase: sl<SetReplyCommentUseCase>(),
+      setCommentUseCase: sl<SetCommentUseCase>(),
+      deletePostUseCase: sl<DeletePostUseCase>(),
+      changeLikePostUseCase: sl<ChangeLikePostUseCase>()));
   sl.registerFactory(() => UserBloc(getuserbyid: sl()));
   // location cubit
   sl.registerFactory(() => LocationCubit());
@@ -219,7 +273,7 @@ Future<void> init() async {
       ));
 
   sl.registerLazySingleton<ChatRemoteDataSource>(
-      () => ChatRemoteDataSourceImpl(dio: sl()));
+      () => ChatRemoteDataSourceImpl(dio: sl<Dio>()));
   sl.registerLazySingleton<ChatRepo>(
       () => ChatRepoImpl(sl<ChatRemoteDataSource>()));
   sl.registerLazySingleton(() => GetMessagesByTId(sl<ChatRepo>()));

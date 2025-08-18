@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-class buildDescription extends StatelessWidget {
+class BuildDescription extends StatelessWidget {
   final String description;
-  const buildDescription({super.key, required this.description});
+  const BuildDescription({super.key, required this.description});
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;

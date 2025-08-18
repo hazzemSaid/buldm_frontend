@@ -1,10 +1,10 @@
-import 'package:buldm/features/home/domain/entities/postentity.dart';
+import 'package:buldm/features/home/data/models/post_model.dart';
 import 'package:buldm/features/home/domain/repository/postrepository.dart';
 
 class GetPostUseCase {
   final Postrepository postrepository;
   GetPostUseCase({required this.postrepository});
-  Future<List<PostEntity>> call({
+  Future<List<PostModel>> call({
     String? category,
     String? status,
     String? userId,

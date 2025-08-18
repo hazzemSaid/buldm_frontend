@@ -9,8 +9,8 @@ import 'package:shimmer/shimmer.dart';
 final Set<int> keepAliveIndexes = {}; // ✅ خارج أي كلاس
 const int maxAliveCount = 10;
 
-class buildPostList extends StatelessWidget {
-  const buildPostList({super.key});
+class BuildPostList extends StatelessWidget {
+  const BuildPostList({super.key});
 
   @override
   Widget build(BuildContext context) {

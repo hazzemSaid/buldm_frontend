@@ -1,28 +1,17 @@
-import 'package:buldm/core/Dependency_njection/service_locator.dart';
-import 'package:buldm/features/auth/domain/entities/userentities.dart';
-import 'package:buldm/features/auth/domain/usecases/get_currentuser_usercase.dart';
-import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
 import 'package:buldm/features/home/domain/entities/postentity.dart';
-import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
-import 'package:buldm/features/home/persentation/bloc/user/user_state.dart';
 import 'package:buldm/features/profile/presentation/view/screens/OtherUserProfileScreen.dart';
 import 'package:buldm/l10n/app_localizations.dart';
 import 'package:buldm/routes/routes.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
 
-class buildProfileHeader extends StatelessWidget {
-  final String? userId;
+class BuildProfileHeader extends StatelessWidget {
   final PostEntity post;
-  final GetCurrentuserUsercase showMoreButton =
-      sl<AuthCubit>().getCurrentuserUsercase;
 
-  buildProfileHeader({
+  const BuildProfileHeader({
     super.key,
-    required this.userId,
     required this.post,
   });
   String _formatPostDate(DateTime createdAt) {
@@ -46,153 +35,129 @@ class buildProfileHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final localization = AppLocalizations.of(context)!;
     // ✅ إرسال event فقط لو المستخدم غير موجود بالكاش
-    return BlocSelector<UserBloc, UserState, User?>(
-      selector: (state) {
-        if (state is UserLoaded && state.users.containsKey(userId)) {
-          return state.users[userId]!;
-        }
-        return null;
-      },
-      builder: (context, user) {
-        final colorScheme = Theme.of(context).colorScheme;
-        final textTheme = Theme.of(context).textTheme;
 
-        if (user == null) {
-          return _buildShimmer(); // or error widget if needed
-        }
-
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: Row(
-            children: [
-              GestureDetector(
-                onTap: () {
-                  // Navigate to other user's profile via GoRouter
-                  context.push(
-                    paths[AppRoute.profileOther.name]!,
-                    extra: ViewerUser(
-                      avatar: user.avatar,
-                      id: user.user_id,
-                      name: user.name,
-                      email: user.email,
-                    ),
-                  );
-                },
-                child: Row(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () {
+              // Navigate to other user's profile via GoRouter
+              context.push(
+                paths[AppRoute.profileOther.name]!,
+                extra: ViewerUser(
+                  avatar: post.user.avatar,
+                  id: post.user.user_id,
+                  name: post.user.name,
+                  email: post.user.email,
+                ),
+              );
+            },
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundImage: NetworkImage(post.user.avatar),
+                ),
+                const SizedBox(width: 8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CircleAvatar(
-                      radius: 20,
-                      backgroundImage: NetworkImage(user.avatar),
-                    ),
-                    const SizedBox(width: 8),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          user.name,
-                          style: textTheme.bodyLarge?.copyWith(
+                    Text(
+                      post.user.name,
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
-                        ),
-                        Text(
-                          _formatPostDate(post.createdAt),
-                          style: textTheme.bodySmall?.copyWith(
+                    ),
+                    Text(
+                      _formatPostDate(post.createdAt),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Colors.grey.shade600,
                             fontSize: 12,
                           ),
-                        ),
-                      ],
                     ),
                   ],
                 ),
-              ),
-              Spacer(), // To push status and more button to right
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: post.status == "found"
-                      ? Colors.green.withOpacity(0.1)
-                      : Colors.red.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+              ],
+            ),
+          ),
+          Spacer(), // To push status and more button to right
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: post.status == "found"
+                  ? Colors.green.withOpacity(0.1)
+                  : Colors.red.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(post.status == "found" ? Icons.check_circle : Icons.error,
+                    size: 16,
+                    color: post.status == "found" ? Colors.green : Colors.red),
+                const SizedBox(width: 4),
+                Text(
+                  post.status.toUpperCase() == "FOUND"
+                      ? localization.status_found
+                      : localization.status_lost,
+                  style: TextStyle(
+                    color: post.status == "found" ? Colors.green : Colors.red,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                        post.status == "found"
-                            ? Icons.check_circle
-                            : Icons.error,
-                        size: 16,
-                        color:
-                            post.status == "found" ? Colors.green : Colors.red),
-                    const SizedBox(width: 4),
-                    Text(
-                      post.status.toUpperCase() == "FOUND"
-                          ? localization.status_found
-                          : localization.status_lost,
-                      style: TextStyle(
-                        color:
-                            post.status == "found" ? Colors.green : Colors.red,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                icon: Icon(Icons.more_horiz,
-                    size: 20, color: colorScheme.onSurface),
-                onPressed: () {
-                  // Handle more button press like showing options
-                  showModalBottomSheet(
-                    context: context,
-                    builder: (context) {
-                      return FutureBuilder(
-                        future: showMoreButton.call(),
-                        builder: (context, snapshot) {
-                          final currentUser = snapshot.data;
-                          return ListView(
-                            shrinkWrap: true,
-                            children: [
-                              if (currentUser != null &&
-                                  post.user_id == currentUser.user_id) ...[
-                                ListTile(
-                                    leading: const Icon(Icons.edit),
-                                    title: Text(localization.editPost),
-                                    onTap: () {
-                                      // Handle edit post action
-                                      Navigator.pop(context);
-                                    }),
-                                ListTile(
-                                  leading: const Icon(Icons.delete),
-                                  title: Text(localization.deletePost),
-                                  onTap: () {
-                                    // Handle delete post action
-                                    Navigator.pop(context);
-                                  },
-                                ),
-                              ],
-                              ListTile(
-                                leading: const Icon(Icons.report),
-                                title: Text(localization.reportPost),
-                                onTap: () {
-                                  // Handle report post action
-                                  Navigator.pop(context);
-                                },
-                              ),
-                            ],
-                          );
-                        },
+              ],
+            ),
+          ),
+          IconButton(
+            icon: Icon(Icons.more_horiz,
+                size: 20, color: Theme.of(context).colorScheme.onSurface),
+            onPressed: () {
+              // Handle more button press like showing options
+              showModalBottomSheet(
+                context: context,
+                builder: (context) {
+                  return FutureBuilder(
+                    future: Future.delayed(const Duration(seconds: 1)),
+                    builder: (context, snapshot) {
+                      return ListView(
+                        shrinkWrap: true,
+                        children: [
+                          ListTile(
+                            leading: const Icon(Icons.edit),
+                            title: Text(localization.editPost),
+                            onTap: () {
+                              // Handle edit post action
+                              Navigator.pop(context);
+                            },
+                          ),
+                          ListTile(
+                            leading: const Icon(Icons.delete),
+                            title: Text(localization.deletePost),
+                            onTap: () {
+                              // Handle delete post action
+                              Navigator.pop(context);
+                            },
+                          ),
+                          ListTile(
+                            leading: const Icon(Icons.report),
+                            title: Text(localization.reportPost),
+                            onTap: () {
+                              // Handle report post action
+                              Navigator.pop(context);
+                            },
+                          ),
+                        ],
                       );
                     },
                   );
                 },
-              ),
-            ],
+              );
+            },
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 

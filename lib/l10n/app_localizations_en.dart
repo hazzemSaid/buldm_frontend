@@ -78,22 +78,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get termsOfService => 'Terms of Service';
 
   @override
-  String get onboarding_1_title => 'Welcome to BULDM – the smart way to find lost items!';
+  String get onboarding_1_title =>
+      'Welcome to BULDM – the smart way to find lost items!';
 
   @override
-  String get onboarding_1_subtitle => 'Search, report, and help reunite people with their lost belongings';
+  String get onboarding_1_subtitle =>
+      'Search, report, and help reunite people with their lost belongings';
 
   @override
   String get onboarding_2_title => 'Lost something? Report it in seconds';
 
   @override
-  String get onboarding_2_subtitle => 'Easily report lost items and help return them to their rightful owners';
+  String get onboarding_2_subtitle =>
+      'Easily report lost items and help return them to their rightful owners';
 
   @override
-  String get onboarding_3_title => 'Found something lost? Be the reason it gets back!';
+  String get onboarding_3_title =>
+      'Found something lost? Be the reason it gets back!';
 
   @override
-  String get onboarding_3_subtitle => 'Report what you find and help someone nearby reclaim their item';
+  String get onboarding_3_subtitle =>
+      'Report what you find and help someone nearby reclaim their item';
 
   @override
   String get skip => 'Skip';
@@ -102,7 +107,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get locationPermissionDenied => 'Location permission denied.';
 
   @override
-  String get locationServicesDisabled => 'Please enable location services to use this feature.';
+  String get locationServicesDisabled =>
+      'Please enable location services to use this feature.';
 
   @override
   String get postUploadTitle => 'Post Upload';
@@ -114,16 +120,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get selectImages => 'Select Images';
 
   @override
-  String get locationPermissionRequired => 'Location permission is required to use this feature.';
+  String get locationPermissionRequired =>
+      'Location permission is required to use this feature.';
 
   @override
-  String get locationServicesRequired => 'Location services must be enabled to use this feature.';
+  String get locationServicesRequired =>
+      'Location services must be enabled to use this feature.';
 
   @override
   String get addPostDetailsTitle => 'Add Post Details';
 
   @override
-  String get addPostDetailsSubtitle => 'Provide details about the item you found or lost';
+  String get addPostDetailsSubtitle =>
+      'Provide details about the item you found or lost';
 
   @override
   String get itemName => 'Item Name';
@@ -324,7 +333,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get contactInfo => 'Contact Information';
 
   @override
-  String get contactInfoHint => 'Enter your contact information (email or phone number)';
+  String get contactInfoHint =>
+      'Enter your contact information (email or phone number)';
 
   @override
   String get descriptionRequired => 'Description is required';
@@ -345,13 +355,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get locationSelected => 'Location Selected';
 
   @override
-  String get resetLinkSent => 'Password reset link sent to your email, please check your inbox.';
+  String get resetLinkSent =>
+      'Password reset link sent to your email, please check your inbox.';
 
   @override
   String get forgetPasswordTitle => 'Forgot Password';
 
   @override
-  String get forgetPasswordSubtitle => 'Enter your email address below and we will send you a link to reset your password.';
+  String get forgetPasswordSubtitle =>
+      'Enter your email address below and we will send you a link to reset your password.';
 
   @override
   String get invalidEmail => 'Please enter a valid email address.';
@@ -399,13 +411,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signingUp => 'Signing up...';
 
   @override
-  String get verificationEmailSent => 'Please check your email for verification';
+  String get verificationEmailSent =>
+      'Please check your email for verification';
 
   @override
   String get alreadyHaveAnAccount => 'Already have an account? Sign In';
 
   @override
-  String get passwordHint => 'The password must be at least 6 characters long and contain at least one uppercase letter, one lowercase letter, and one number.';
+  String get passwordHint =>
+      'The password must be at least 6 characters long and contain at least one uppercase letter, one lowercase letter, and one number.';
 
   @override
   String get itemNameRequired => 'Item name is required';
@@ -432,7 +446,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get verifyYourCode => 'Verify Your Code';
 
   @override
-  String get enterTheCodeSentToYourEmail => 'We have sent a 6-digit verification code to your email address. Please enter it below.';
+  String get enterTheCodeSentToYourEmail =>
+      'We have sent a 6-digit verification code to your email address. Please enter it below.';
 
   @override
   String get verify => 'Verify';
@@ -444,7 +459,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get emailVerification => 'Email Verification';
 
   @override
-  String get checkYourEmail => 'Please check your email for the verification code.';
+  String get checkYourEmail =>
+      'Please check your email for the verification code.';
 
   @override
   String get didNotReceiveCode => 'Didn\'t receive the code? ';
@@ -456,7 +472,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get verificationCodeRequired => 'Verification code is required';
 
   @override
-  String get verificationCodeInvalid => 'Invalid verification code. Please try again.';
+  String get verificationCodeInvalid =>
+      'Invalid verification code. Please try again.';
 
   @override
   String get verificationCodeSent => 'Verification code sent to your email';
@@ -465,7 +482,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get verificationCodeResent => 'Verification code resent successfully';
 
   @override
-  String get verificationCodeResendError => 'Error resending verification code. Please try again.';
+  String get verificationCodeResendError =>
+      'Error resending verification code. Please try again.';
 
   @override
   String get socketConnecting => 'Connecting to server...';
@@ -515,7 +533,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get messageDeleted => 'Message deleted successfully';
 
   @override
-  String get messageDeletionError => 'Error deleting message. Please try again.';
+  String get messageDeletionError =>
+      'Error deleting message. Please try again.';
 
   @override
   String get messageEdited => 'Message edited successfully';
@@ -533,7 +552,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get messageSentSuccessfully => 'Message sent successfully';
 
   @override
-  String get messageSendingFailed => 'Failed to send message. Please try again.';
+  String get messageSendingFailed =>
+      'Failed to send message. Please try again.';
 
   @override
   String get messageSendingInProgress => 'Sending message...';
@@ -594,7 +614,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get unknownError => 'An unknown error occurred. Please try again later.';
+  String get unknownError =>
+      'An unknown error occurred. Please try again later.';
 
   @override
   String get noPostsAvailable => 'No posts available at the moment';

@@ -231,8 +231,9 @@ class _SignInScreenState extends State<SignInScreen> {
                         if (state is AuthError) {
                           final nav =
                               Navigator.of(context, rootNavigator: true);
-                          if (nav.canPop())
+                          if (nav.canPop()) {
                             nav.pop(); // close loading dialog safely
+                          }
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(state.message),

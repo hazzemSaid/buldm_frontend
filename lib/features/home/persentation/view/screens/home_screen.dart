@@ -1,8 +1,8 @@
 import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
-import 'package:buldm/features/home/persentation/view/widgets/buildAppBar.dart';
-import 'package:buldm/features/home/persentation/view/widgets/buildPostList.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_event.dart';
+import 'package:buldm/features/home/persentation/view/widgets/buildAppBar.dart';
+import 'package:buldm/features/home/persentation/view/widgets/buildPostList.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -30,7 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
           status: null,
           userId: null,
           searchQuery: null,
-          limit: 5,
+          limit: 10,
           page: 1),
     );
 
@@ -72,7 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 status: null,
                 userId: null,
                 searchQuery: null,
-                limit: 5,
+                limit: 10,
                 page: 1,
               ),
             );
@@ -83,7 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
             slivers: const <Widget>[
               buildAppBar(),
               SliverToBoxAdapter(child: SizedBox(height: 8)),
-              buildPostList(),
+              BuildPostList(),
             ],
           ),
         ),

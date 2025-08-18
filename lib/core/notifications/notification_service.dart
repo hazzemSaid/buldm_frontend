@@ -23,19 +23,35 @@ class NotificationService {
 
     final androidChannelId = dotenv.env['ONESIGNAL_ANDROID_CHAT_CHANNEL_ID'];
     final payload = {
+      // Basic
       'title': title,
       'message': message,
       'token': toPlayerId,
       'senderId': senderId,
       'senderName': senderName,
       'senderAvatar': senderAvatar,
+
+      // Android visual style (OneSignal passthrough fields)
       'android_channel_id': androidChannelId,
-      'android_sound': 'sound', // اسم ملف الصوت في res/raw بدون .mp3
+      'android_sound': 'sound', // name in res/raw without extension
+      'large_icon': senderAvatar, // show avatar similar to WhatsApp
+      'android_group': 'chat_$senderId', // group messages per conversation
+      'android_group_message': '%n new messages',
+      'android_accent_color': 'FF25D366', // WhatsApp-like green (AARRGGBB)
+      'small_icon': 'ic_stat_notify', // ensure mipmap/ic_stat_notify exists
+      'priority': 10, // heads-up
+      'android_visibility': 1, // PUBLIC
+      'android_category': 'msg',
+
+      // No OneSignal 'buttons' here. We add the inline reply action natively via NotificationExtender.
+
+      // Extra data for deep links and handling
       'data': {
         'type': 'chat',
         'senderId': senderId,
         'senderName': senderName,
         'senderAvatar': senderAvatar,
+        // For native inline reply handler (BroadcastReceiver) to know participants
         'deeplink': '/chat',
       }
     };

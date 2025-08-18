@@ -162,8 +162,15 @@ class _MapLocationScreen extends State<MapLocationScreen>
                                   Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => BlocProvider(
-                                            create: (context) => sl<UserBloc>(),
+                                        builder: (context) => MultiBlocProvider(
+                                            providers: [
+                                              BlocProvider(
+                                                  create: (context) =>
+                                                      sl<PostBloc>()),
+                                              BlocProvider(
+                                                  create: (context) =>
+                                                      sl<UserBloc>()),
+                                            ],
                                             child: Postview(
                                               post: post,
                                               child: SliverToBoxAdapter(

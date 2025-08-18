@@ -14,13 +14,12 @@ class LanguageSwitcher extends StatelessWidget {
           onLocaleChanged(locale);
         }
       },
-      items:
-          FlutterLocalization.instance.supportedLocales.map((locale) {
-            return DropdownMenuItem<Locale>(
-              value: locale,
-              child: Text(locale.languageCode.toUpperCase()),
-            );
-          }).toList(),
+      items: FlutterLocalization.instance.supportedLocales.map((locale) {
+        return DropdownMenuItem<Locale>(
+          value: locale,
+          child: Text(locale.languageCode.toUpperCase()),
+        );
+      }).toList(),
     );
   }
 }
