@@ -33,7 +33,8 @@ class _AddPostDetailsState extends State<AddPostDetails>
   List<XFile> images = [];
   final _formKey = GlobalKey<FormState>();
   final _scrollController = ScrollController();
-  final ValueNotifier<String> _statusNotifier = ValueNotifier<String>('FOUND');
+  late ValueNotifier<String> _statusNotifier;
+  bool _statusInitialized = false;
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _categoryController = TextEditingController();
@@ -110,6 +111,11 @@ class _AddPostDetailsState extends State<AddPostDetails>
   @override
   void didChangeDependencies() {
     final localizations = AppLocalizations.of(context)!;
+    // Initialize status to 'FOUND' (localized) by default before first build
+    if (!_statusInitialized) {
+      _statusNotifier = ValueNotifier<String>(localizations.found);
+      _statusInitialized = true;
+    }
     if (localizations.localeName.startsWith('ar')) {
       _categories.addAll(_categoriesAr);
     } else {
@@ -123,6 +129,7 @@ class _AddPostDetailsState extends State<AddPostDetails>
     _fadeController.dispose();
     _slideController.dispose();
     _scrollController.dispose();
+    _statusNotifier.dispose();
     super.dispose();
   }
 

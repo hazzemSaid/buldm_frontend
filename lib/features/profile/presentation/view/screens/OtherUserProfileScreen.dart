@@ -246,7 +246,9 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
                                   context
                                       .read<ProfileCubit>()
                                       .filterpost(status: false);
-                                  status = false;
+                                  setState(() {
+                                    status = false;
+                                  });
                                 },
                                 child: Row(
                                   children: [
@@ -257,14 +259,30 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
                                           .bodyLarge
                                           ?.copyWith(
                                             fontWeight: FontWeight.w500,
+                                            color: status == false
+                                                ? Theme.of(context)
+                                                    .colorScheme
+                                                    .primary
+                                                : (Theme.of(context)
+                                                            .textTheme
+                                                            .bodyLarge
+                                                            ?.color ??
+                                                        Colors.grey)
+                                                    .withOpacity(0.7),
                                           ),
                                     ),
                                     const SizedBox(width: 10),
                                     ImageIcon(
                                       const AssetImage(
                                           "assets/images/find.png"),
-                                      color:
-                                          Theme.of(context).colorScheme.primary,
+                                      color: status == false
+                                          ? Theme.of(context)
+                                              .colorScheme
+                                              .primary
+                                          : Theme.of(context)
+                                              .colorScheme
+                                              .onSurface
+                                              .withOpacity(0.5),
                                       size: 35,
                                     ),
                                   ],
@@ -283,7 +301,9 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
                                   context
                                       .read<ProfileCubit>()
                                       .filterpost(status: true);
-                                  status = true;
+                                  setState(() {
+                                    status = true;
+                                  });
                                 },
                                 child: Row(
                                   children: [
@@ -294,14 +314,30 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
                                           .bodyLarge
                                           ?.copyWith(
                                             fontWeight: FontWeight.w500,
+                                            color: status == true
+                                                ? Theme.of(context)
+                                                    .colorScheme
+                                                    .primary
+                                                : (Theme.of(context)
+                                                            .textTheme
+                                                            .bodyLarge
+                                                            ?.color ??
+                                                        Colors.grey)
+                                                    .withOpacity(0.7),
                                           ),
                                     ),
                                     const SizedBox(width: 10),
                                     ImageIcon(
                                       const AssetImage(
                                           "assets/images/lost.png"),
-                                      color:
-                                          Theme.of(context).colorScheme.primary,
+                                      color: status == true
+                                          ? Theme.of(context)
+                                              .colorScheme
+                                              .primary
+                                          : Theme.of(context)
+                                              .colorScheme
+                                              .onSurface
+                                              .withOpacity(0.5),
                                       size: 45,
                                     ),
                                   ],

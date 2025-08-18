@@ -194,8 +194,15 @@ final GoRouter router = GoRouter(
       path: paths[AppRoute.profileOther.name]!,
       builder: (BuildContext context, GoRouterState state) {
         final user = state.extra as ViewerUser?;
-        return BlocProvider.value(
-          value: sl<ProfileCubit>(),
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider.value(
+              value: sl<ProfileCubit>(),
+            ),
+            BlocProvider.value(
+              value: sl<UserBloc>(),
+            ),
+          ],
           child: OtherUserProfileScreen(user: user!),
         );
       },

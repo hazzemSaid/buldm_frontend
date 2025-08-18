@@ -24,7 +24,7 @@ class _BuildPostActionsState extends State<BuildPostActions> {
   late bool isLiked;
   late int likeCount;
   DateTime? _lastLikeToggleAt;
-
+  bool isProcessingLike = false;
   @override
   void initState() {
     super.initState();
@@ -152,19 +152,23 @@ class _BuildPostActionsState extends State<BuildPostActions> {
                     count: count,
                     isActive: liked,
                     onTap: () {
-                      // Optimistic UI update
+                      if (isProcessingLike) return;
                       setState(() {
-                        context
-                            .read<PostBloc>()
-                            .add(setlike(postId: widget.post.id));
-                        if (liked) {
-                          likeCount = (count - 1).clamp(0, 1 << 31);
-                          isLiked = false;
-                        } else {
-                          likeCount = count + 1;
-                          isLiked = true;
-                        }
+                        isProcessingLike = true;
+                        isLiked = !isLiked;
+                        likeCount = likeCount + (isLiked ? 1 : -1);
                         _lastLikeToggleAt = DateTime.now();
+                      });
+
+                      context
+                          .read<PostBloc>()
+                          .add(setlike(postId: widget.post.id));
+
+                      // ارجع السماح بعد فترة قصيرة أو لما يجي رد من bloc
+                      Future.delayed(const Duration(seconds: 1), () {
+                        if (mounted) {
+                          setState(() => isProcessingLike = false);
+                        }
                       });
                     },
                     onLongPress: () {
