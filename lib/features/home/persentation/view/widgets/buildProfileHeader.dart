@@ -1,8 +1,14 @@
+import 'package:buldm/features/Add_Post/data/model/UploadablePostModel.dart';
+import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
+import 'package:buldm/features/auth/presentaion/view/bloc/auth_state.dart';
 import 'package:buldm/features/home/domain/entities/postentity.dart';
+import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
+import 'package:buldm/features/home/persentation/view/screens/update_screen.dart';
 import 'package:buldm/features/profile/presentation/view/screens/OtherUserProfileScreen.dart';
 import 'package:buldm/l10n/app_localizations.dart';
 import 'package:buldm/routes/routes.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
@@ -33,6 +39,7 @@ class BuildProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = context.read<AuthCubit>().state as Authenticated;
     final localization = AppLocalizations.of(context)!;
     // ✅ إرسال event فقط لو المستخدم غير موجود بالكاش
 
@@ -43,15 +50,21 @@ class BuildProfileHeader extends StatelessWidget {
           GestureDetector(
             onTap: () {
               // Navigate to other user's profile via GoRouter
-              context.push(
-                paths[AppRoute.profileOther.name]!,
-                extra: ViewerUser(
-                  avatar: post.user.avatar,
-                  id: post.user.user_id,
-                  name: post.user.name,
-                  email: post.user.email,
-                ),
-              );
+              if (post.user.user_id != currentUser.user.user_id) {
+                context.push(
+                  paths[AppRoute.profileOther.name]!,
+                  extra: ViewerUser(
+                    avatar: post.user.avatar,
+                    id: post.user.user_id,
+                    name: post.user.name,
+                    email: post.user.email,
+                  ),
+                );
+              } else {
+                context.push(
+                  paths[AppRoute.profile.name]!,
+                );
+              }
             },
             child: Row(
               children: [
@@ -115,6 +128,8 @@ class BuildProfileHeader extends StatelessWidget {
                 size: 20, color: Theme.of(context).colorScheme.onSurface),
             onPressed: () {
               // Handle more button press like showing options
+              final postbloc =
+                  context.read<PostBloc>(); // Capture PostBloc before modal
               showModalBottomSheet(
                 context: context,
                 builder: (context) {
@@ -124,22 +139,51 @@ class BuildProfileHeader extends StatelessWidget {
                       return ListView(
                         shrinkWrap: true,
                         children: [
-                          ListTile(
-                            leading: const Icon(Icons.edit),
-                            title: Text(localization.editPost),
-                            onTap: () {
-                              // Handle edit post action
-                              Navigator.pop(context);
-                            },
-                          ),
-                          ListTile(
-                            leading: const Icon(Icons.delete),
-                            title: Text(localization.deletePost),
-                            onTap: () {
-                              // Handle delete post action
-                              Navigator.pop(context);
-                            },
-                          ),
+                          // post.user.user_id != currentUser.user.user_id
+                          if (post.user.user_id ==
+                              currentUser.user.user_id) ...[
+                            ListTile(
+                              leading: const Icon(Icons.edit),
+                              title: Text(localization.editPost),
+                              onTap: () {
+                                // Handle edit post action
+                                // Navigator.push(
+                                //   context,
+                                //   MaterialPageRoute(
+                                //     builder: (context) => BlocProvider.value(
+                                //       value: postbloc,
+                                //       child: UpdateScreen(
+                                //         postId: post.id,
+                                //         post: UploadablePostModel(
+                                //           title: post.title,
+                                //           description: post.description,
+                                //           images: post.images,
+                                //           location: post.location,
+                                //           status: post.status,
+                                //           category: post.category,
+                                //           predictedItems: post.predictedItems,
+                                //           user_id: post.user_id,
+                                //           contactInfo: post.contactInfo,
+                                //           when: post.when,
+                                //           createdAt: post.createdAt,
+                                //           updatedAt: post.updatedAt,
+                                //         ),
+                                //       ),
+                                //     ),
+                                //   ),
+                                // );
+                                Navigator.pop(context);
+                              },
+                            ),
+                            ListTile(
+                              leading: const Icon(Icons.delete),
+                              title: Text(localization.deletePost),
+                              onTap: () {
+                                // Handle delete post action
+                                Navigator.pop(context);
+                              },
+                            ),
+                          ],
                           ListTile(
                             leading: const Icon(Icons.report),
                             title: Text(localization.reportPost),

@@ -8,12 +8,15 @@ class NotificationService {
 
   final Dio _dio = sl<Dio>();
 
-  /// Send a chat notification and return true if sent successfully, false otherwise
+  /// Send a notification (chat by default). You can override the data payload (type/deeplink)
+  /// via [data] to support other flows like opening a post detail.
+  /// Returns true if sent successfully, false otherwise.
   Future<bool> sendChatNotification({
     required String toPlayerId,
     required String title,
     required String message,
     required Map<String, dynamic> sender,
+    Map<String, dynamic>? data,
   }) async {
     final url = '/notification';
 
@@ -22,6 +25,29 @@ class NotificationService {
     final senderAvatar = (sender['avatar'] as String?) ?? '';
 
     final androidChannelId = dotenv.env['ONESIGNAL_ANDROID_CHAT_CHANNEL_ID'];
+    // Debug incoming custom data
+    // ignore: avoid_print
+    print('NotificationService param data= $data');
+    final defaultData = {
+      'type': 'chat',
+      'senderId': senderId,
+      'senderName': senderName,
+      'senderAvatar': senderAvatar,
+      // For native inline reply handler (BroadcastReceiver) to know participants
+      'deeplink': '/chat',
+    };
+    final mergedData = {
+      ...defaultData,
+      if (data != null) ...data,
+    };
+    // Derive type and dynamic Android presentation settings
+    final type = (mergedData['type'] as String?) ?? 'chat';
+    final postIdForGroup = (mergedData['postId'] as String?) ?? 'general';
+    final androidGroup = mergedData['android_group'] as String? ??
+        (type == 'chat' ? 'chat_$senderId' : 'post_$postIdForGroup');
+    final androidCategory = mergedData['android_category'] as String? ??
+        (type == 'chat' ? 'msg' : 'social');
+
     final payload = {
       // Basic
       'title': title,
@@ -35,29 +61,25 @@ class NotificationService {
       'android_channel_id': androidChannelId,
       'android_sound': 'sound', // name in res/raw without extension
       'large_icon': senderAvatar, // show avatar similar to WhatsApp
-      'android_group': 'chat_$senderId', // group messages per conversation
+      'android_group': androidGroup, // group messages per conversation
       'android_group_message': '%n new messages',
       'android_accent_color': 'FF25D366', // WhatsApp-like green (AARRGGBB)
       'small_icon': 'ic_stat_notify', // ensure mipmap/ic_stat_notify exists
       'priority': 10, // heads-up
       'android_visibility': 1, // PUBLIC
-      'android_category': 'msg',
+      'android_category': androidCategory,
 
       // No OneSignal 'buttons' here. We add the inline reply action natively via NotificationExtender.
 
       // Extra data for deep links and handling
-      'data': {
-        'type': 'chat',
-        'senderId': senderId,
-        'senderName': senderName,
-        'senderAvatar': senderAvatar,
-        // For native inline reply handler (BroadcastReceiver) to know participants
-        'deeplink': '/chat',
-      }
+      'data': mergedData,
     };
 
     try {
       final fullUrl = url;
+      // Debug: print payload being sent
+      // ignore: avoid_print
+      print('Sending OneSignal notification with payload: ${payload}');
       final res = await _dio.post(
         url,
         data: payload,
@@ -89,5 +111,36 @@ class NotificationService {
       }
       return false;
     }
+  }
+
+  /// Dedicated API for post-related notifications. Always sends type 'post_comment'
+  /// and deeplink '/post/<postId>' and derives android grouping accordingly.
+  Future<bool> sendPostNotification({
+    required String toPlayerId,
+    required String title,
+    required String message,
+    required Map<String, dynamic> sender,
+    required String postId,
+    bool isReply = false,
+  }) async {
+    final data = <String, dynamic>{
+      'type': 'post_comment',
+      'postId': postId,
+      'deeplink': '/post/$postId',
+      'isReply': isReply,
+      'senderId': sender['id'],
+      'senderName': sender['name'],
+      'senderAvatar': sender['avatar'],
+      // Hint Android presentation; will be overridden by dynamic logic too
+      'android_group': 'post_$postId',
+      'android_category': 'social',
+    };
+    return sendChatNotification(
+      toPlayerId: toPlayerId,
+      title: title,
+      message: message,
+      sender: sender,
+      data: data,
+    );
   }
 }

@@ -1,12 +1,14 @@
 import 'package:buldm/core/Dependency_njection/service_locator.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_state.dart';
+import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
 import 'package:buldm/features/home/persentation/view/screens/PostWidget.dart';
 import 'package:buldm/features/profile/presentation/blocs/profile/profile_cubit.dart';
 import 'package:buldm/l10n/app_localizations.dart';
 import 'package:buldm/routes/routes.dart';
 import 'package:buldm/utils/app_theme.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -29,15 +31,42 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<ProfileCubit>().fetchPost(userId: widget.user.id);
+    _fetchUserPosts(
+      status: status,
+      userid: widget.user.id,
+    );
+  }
+
+  void _fetchUserPosts({
+    status = false,
+    required String userid,
+  }) async {
+    if (!mounted) return;
+
+    if (userid.isNotEmpty) {
+      await context.read<ProfileCubit>().fetchPost(
+            userId: userid,
+          );
+      context.read<ProfileCubit>().filterpost(status: status);
+    } else if (mounted) {
+      final localization = AppLocalizations.of(context);
+      if (localization != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(localization.userNotLoggedIn)),
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final localization = AppLocalizations.of(context)!;
     return Scaffold(
-        body: BlocProvider<UserBloc>(
-            create: (_) => sl<UserBloc>(),
+        body: MultiBlocProvider(
+            providers: [
+          BlocProvider<UserBloc>(create: (_) => sl<UserBloc>()),
+          BlocProvider<PostBloc>(create: (_) => sl<PostBloc>()),
+        ],
             child: CustomScrollView(
               slivers: [
                 // App Bar
@@ -172,11 +201,18 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
                                   radius: 45,
                                   backgroundColor: Colors.transparent,
                                   child: ClipOval(
-                                    child: Image.network(
-                                      widget.user.avatar,
+                                    child: CachedNetworkImage(
+                                      imageUrl: widget.user.avatar,
                                       width: 90,
                                       height: 90,
                                       fit: BoxFit.cover,
+                                      placeholder: (context, url) =>
+                                          const Center(
+                                              child:
+                                                  CircularProgressIndicator()),
+                                      errorWidget:
+                                          (context, error, stackTrace) =>
+                                              const Icon(Icons.error),
                                     ),
                                   ),
                                 ),
@@ -408,7 +444,7 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
                                     horizontal: 12.0, vertical: 6.0),
                                 child: PostWidget(
                                   post: state.posts[index],
-                                  index: index,
+                                  index: state.posts[index].id,
                                 ),
                               );
                             },
@@ -431,26 +467,18 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
                                 ),
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(8),
-                                  child: Image.network(
-                                    state.posts[index].images[0],
+                                  child: CachedNetworkImage(
+                                    imageUrl: state.posts[index].images[0],
                                     fit: BoxFit.cover,
-                                    errorBuilder:
-                                        (context, error, stackTrace) =>
-                                            Container(
+                                    errorWidget: (context, error, stackTrace) =>
+                                        Container(
                                       color: Colors.grey[300],
                                       child: const Center(
                                           child: Icon(Icons.error,
                                               color: Colors.red)),
                                     ),
-                                    loadingBuilder:
-                                        (context, child, loadingProgress) {
-                                      if (loadingProgress == null) return child;
-                                      return Container(
-                                        color: Colors.grey[200],
-                                        child: const Center(
-                                            child: CircularProgressIndicator()),
-                                      );
-                                    },
+                                    placeholder: (context, url) => const Center(
+                                        child: CircularProgressIndicator()),
                                   ),
                                 ),
                               );
@@ -468,23 +496,6 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
                 ),
               ],
             )));
-  }
-
-  void _fetchUserPosts({status = false, required String userid}) async {
-    // Fetch posts when the screen is initialized
-    final localization = AppLocalizations.of(context)!;
-    if (!mounted) return;
-
-    if (userid.isNotEmpty) {
-      await context.read<ProfileCubit>().fetchPost(
-            userId: userid,
-          );
-      context.read<ProfileCubit>().filterpost(status: status);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(localization.userNotLoggedIn)),
-      );
-    }
   }
 }
 

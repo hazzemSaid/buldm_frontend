@@ -1,6 +1,6 @@
 import 'package:buldm/features/auth/data/model/usermodel.dart';
 import 'package:buldm/features/home/data/models/comments.dart';
-import 'package:buldm/features/home/domain/entities/LocationEntity.dart';
+import 'package:buldm/features/home/data/models/location_model.dart';
 import 'package:buldm/features/home/domain/entities/PredictedItemEntity.dart';
 
 abstract class PostEntity {
@@ -8,7 +8,7 @@ abstract class PostEntity {
   final String id;
   final String description;
   final List<String> images;
-  final LocationEntity location;
+  final LocationModel location;
   final String status; // "lost", "found", or "claimed"
   final String category;
   final List<PredictedItemEntity> predictedItems;

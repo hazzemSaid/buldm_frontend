@@ -156,11 +156,12 @@ void main() async {
     }
   });
 
-  // Handle notification clicks to deep-link into chat
+  // Handle notification clicks to deep-link into chat or post
   OneSignal.Notifications.addClickListener((event) {
     try {
       final data = event.notification.additionalData ?? {};
-      if (data['type'] == 'chat') {
+      final type = data['type'] as String?;
+      if (type == 'chat') {
         final senderId = data['senderId'] as String?;
         if (senderId == null || senderId.isEmpty) return;
 
@@ -194,6 +195,29 @@ void main() async {
             ),
           },
         );
+      } else if (type == 'post_comment') {
+        // Option B ONLY: handle using data payload
+        final route = data['route'] as String?; // should be 'comment'
+        final postId = data['postId']?.toString();
+        final commentId = data['commentId']?.toString();
+        final senderId = data['senderId']?.toString();
+
+        // Validate required fields
+        if (route == 'comment' && postId != null && postId.isNotEmpty) {
+          // ignore: avoid_print
+          print('Notification click -> post_comment route=comment postId=$postId commentId=$commentId senderId=$senderId');
+
+          // TODO: When a post details route exists, navigate to it here.
+          // e.g., context.push('/post/$postId/comment/$commentId');
+        } else {
+          // ignore: avoid_print
+          print('post_comment payload missing required fields: route=$route postId=$postId commentId=$commentId');
+        }
+
+        // Safe fallback: go to navbar (since /home is not a registered GoRoute)
+        try {
+          appRouterKey.currentState?.context.go(paths[AppRoute.navbar.name]!);
+        } catch (_) {}
       }
     } catch (_) {
       // ignore

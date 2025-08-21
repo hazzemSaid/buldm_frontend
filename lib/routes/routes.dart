@@ -12,6 +12,7 @@ import 'package:buldm/features/chat/presentation/view/screens/chatdetailsscreen.
 import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
 import 'package:buldm/features/onboarding/presentation/view/screens/onboarding_screen.dart';
 import 'package:buldm/features/profile/presentation/blocs/profile/profile_cubit.dart';
+import 'package:buldm/features/profile/presentation/blocs/profilechanges/profilechanges_cubit.dart';
 import 'package:buldm/features/profile/presentation/view/screens/OtherUserProfileScreen.dart';
 import 'package:buldm/features/profile/presentation/view/screens/profile_screen.dart';
 import 'package:buldm/features/splash/splash_screen.dart';
@@ -30,7 +31,7 @@ enum AppRoute {
   signin,
   navbar,
   signup,
-  prfile,
+  profile,
   forgot,
   verify,
   reset,
@@ -59,6 +60,7 @@ final Map<String, String> paths = {
   AppRoute.profileOther.name: '/profile/other',
   AppRoute.chat.name: '/chat',
   AppRoute.chatsList.name: '/chats',
+  AppRoute.profile.name: '/profile',
 };
 
 // Function to check if it's first launch
@@ -185,10 +187,17 @@ final GoRouter router = GoRouter(
     GoRoute(
       path: paths[AppRoute.profileSelf.name]!,
       builder: (BuildContext context, GoRouterState state) =>
-          BlocProvider.value(
-        value: sl<ProfileCubit>(),
-        child: const ProfileScreen(),
-      ),
+          MultiBlocProvider(
+            providers: [
+              BlocProvider.value(
+                value: sl<ProfileCubit>(),
+              ),
+              BlocProvider.value(
+                value: sl<ProfilechangesCubit>(),
+              ),
+            ],
+            child: const ProfileScreen(),
+          ),
     ),
     GoRoute(
       path: paths[AppRoute.profileOther.name]!,
@@ -228,6 +237,25 @@ final GoRouter router = GoRouter(
         return BlocProvider<UserBloc>(
           create: (_) => sl<UserBloc>(),
           child: const ListOfChats(),
+        );
+      },
+    ),
+    GoRoute(
+      path: paths[AppRoute.profile.name]!,
+      builder: (BuildContext context, GoRouterState state) {
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider.value(
+              value: sl<ProfileCubit>(),
+            ),
+            BlocProvider.value(
+              value: sl<UserBloc>(),
+            ),
+            BlocProvider.value(
+              value: sl<ProfilechangesCubit>(),
+            ),
+          ],
+          child: const ProfileScreen(),
         );
       },
     ),

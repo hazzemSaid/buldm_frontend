@@ -50,6 +50,7 @@ dependencies:
   tflite_flutter: ^0.11.0
   image: ^4.0.17
   permission_handler: ^12.0.1
+  url_launcher: ^6.3.0
 
 dev_dependencies:
   flutter_test:
@@ -74,6 +75,7 @@ flutter:
     - assets/images/pngwing.png
     - assets/images/find.png
     - assets/images/lost.png
+    - assets/images/repeat.png
     - assets/images/google.png
     # Notification sound asset (also copied natively for Android/iOS notification use)
 

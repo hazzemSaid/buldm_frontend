@@ -139,7 +139,7 @@ class _MapLocationScreen extends State<MapLocationScreen>
                         userAgentPackageName: 'com.example.buldm',
                       ),
                       MarkerLayer(
-                        markers: posts.asMap().entries.map((entry) {
+                        markers: posts.entries.map((entry) {
                           final index = entry.key;
                           final post = entry.value;
                           return Marker(
@@ -176,7 +176,7 @@ class _MapLocationScreen extends State<MapLocationScreen>
                                               child: SliverToBoxAdapter(
                                                 child: PostWidget(
                                                   post: post,
-                                                  index: index,
+                                                  index: post.id,
                                                 ),
                                               ),
                                             )),

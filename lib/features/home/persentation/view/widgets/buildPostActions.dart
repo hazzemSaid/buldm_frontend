@@ -35,11 +35,11 @@ class _BuildPostActionsState extends State<BuildPostActions> {
         widget.post.likes.any((l) => l == currentUser.user_id);
     likeCount = widget.post.likes.length;
     // Ensure we have up-to-date membership (usersIDs) for this post
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        context.read<PostBloc>().add(getlike(postId: widget.post.id));
-      }
-    });
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   if (mounted) {
+    //     context.read<PostBloc>().add(getlike(postId: widget.post.id));
+    //   }
+    // });
   }
 
   @override
@@ -90,9 +90,12 @@ class _BuildPostActionsState extends State<BuildPostActions> {
                   if (prev is PostLoaded && next is PostLoaded) {
                     try {
                       final prevPost =
-                          prev.posts.firstWhere((p) => p.id == widget.post.id);
+                          (prev as PostLoaded).posts[widget.post.id];
                       final nextPost =
-                          next.posts.firstWhere((p) => p.id == widget.post.id);
+                          (next as PostLoaded).posts[widget.post.id];
+                      if (prevPost == null || nextPost == null) {
+                        return true;
+                      }
                       final prevLikes = prevPost.likes.length;
                       final nextLikes = nextPost.likes.length;
                       // Also rebuild if user's own like membership toggled
@@ -109,12 +112,10 @@ class _BuildPostActionsState extends State<BuildPostActions> {
                   bool liked = isLiked;
                   int count = likeCount;
                   if (state is PostLoaded) {
-                    final maybe = state.posts.firstWhere(
-                      (p) => p.id == widget.post.id,
-                      orElse: () => widget.post as dynamic,
-                    );
+                    final maybe = state.posts[widget.post.id];
+
                     try {
-                      final int serverCount = maybe.likes.length;
+                      final int serverCount = maybe!.likes.length;
                       final authState = context.read<AuthCubit>().state;
                       final currentUser =
                           (authState is Authenticated) ? authState.user : null;
@@ -186,15 +187,16 @@ class _BuildPostActionsState extends State<BuildPostActions> {
                 count: widget.post.commentsCount,
                 onTap: () async {
                   // Open comments bottom sheet. TODO: connect to real comments list when available.
-
+                  final userbloc = context.read<UserBloc>();
+                  final postbloc = context.read<PostBloc>();
                   await showModalBottomSheet(
                     context: context,
                     isScrollControlled: true,
                     backgroundColor: Colors.transparent,
                     builder: (context) => MultiBlocProvider(
                       providers: [
-                        BlocProvider(create: (context) => sl<PostBloc>()),
-                        BlocProvider(create: (context) => sl<UserBloc>()),
+                        BlocProvider.value(value: postbloc),
+                        BlocProvider.value(value: userbloc),
                       ],
                       child: CommentBottomSheet(post: widget.post),
                     ),

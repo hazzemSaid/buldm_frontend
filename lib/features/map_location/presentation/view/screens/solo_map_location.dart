@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SoloPostLocation extends StatefulWidget {
   final PostEntity post;
@@ -65,6 +66,31 @@ class _SoloPostLocationState extends State<SoloPostLocation>
     Future.delayed(const Duration(milliseconds: 100), () {
       _slideController.forward();
     });
+  }
+
+  Future<void> _openInGoogleMaps() async {
+    final double lat = widget.post.location.coordinates[0];
+    final double lng = widget.post.location.coordinates[1];
+    // Try geo: scheme first (opens Google Maps app if available), then HTTPS fallback
+    final Uri geoUri = Uri.parse('geo:$lat,$lng?q=$lat,$lng');
+    final Uri httpsUri =
+        Uri.parse('https://www.google.com/maps/search/?api=1&query=$lat,$lng');
+    try {
+      final bool launchedGeo = await launchUrl(
+        geoUri,
+        mode: LaunchMode.externalApplication,
+      );
+      if (!launchedGeo) {
+        await launchUrl(
+          httpsUri,
+          mode: LaunchMode.externalApplication,
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not open Google Maps')),
+      );
+    }
   }
 
   @override
@@ -133,6 +159,46 @@ class _SoloPostLocationState extends State<SoloPostLocation>
                   }
                 })
               },
+            ),
+          ),
+          // "Go to item" button
+          Container(
+            margin: const EdgeInsets.only(right: 8, top: 8, bottom: 8),
+            child: InkWell(
+              onTap: _openInGoogleMaps,
+              borderRadius: BorderRadius.circular(14),
+              child: Ink(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  gradient: const LinearGradient(
+                    colors: [
+                      Color(0xFF7F7FD5),
+                      Color(0xFF86A8E7),
+                      Color(0xFF91EAE4)
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.15),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                child: const Text(
+                  'Go to',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                    letterSpacing: 0.4,
+                  ),
+                ),
+              ),
             ),
           ),
         ],

@@ -91,7 +91,7 @@ class PostModel extends PostEntity {
     }
 
     // Normalize comments structure: can be List or {count, recent}
-    final dynamic commentsRaw = json['comments'];
+    final dynamic commentsRaw = json['recentComments'];
     List<CommentModel> commentsList = [];
     int commentsCount = 0;
     if (commentsRaw is List) {
@@ -99,7 +99,7 @@ class PostModel extends PostEntity {
           .map((x) => CommentModel.fromJson(x as Map<String, dynamic>)));
       commentsCount = json['commentsCount'] ?? commentsList.length;
     } else if (commentsRaw is Map<String, dynamic>) {
-      final recent = (commentsRaw['recent'] as List?) ?? [];
+      final recent = (commentsRaw as List?) ?? [];
       commentsList = List<CommentModel>.from(
           recent.map((x) => CommentModel.fromJson(x as Map<String, dynamic>)));
       commentsCount = (commentsRaw['count'] is int)

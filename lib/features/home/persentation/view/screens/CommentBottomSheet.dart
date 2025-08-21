@@ -1,11 +1,18 @@
+import 'package:buldm/core/notifications/notification_service.dart';
+import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
+import 'package:buldm/features/auth/presentaion/view/bloc/auth_state.dart';
 import 'package:buldm/features/home/data/models/comments.dart';
 import 'package:buldm/features/home/domain/entities/postentity.dart';
 import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_event.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_state.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+// Feature flag to control sending push notifications for comments
+const bool kEnableCommentNotification = true;
 
 class CommentBottomSheet extends StatefulWidget {
   const CommentBottomSheet({super.key, required this.post});
@@ -18,7 +25,6 @@ class CommentBottomSheet extends StatefulWidget {
 class _CommentBottomSheetState extends State<CommentBottomSheet> {
   final TextEditingController commentController = TextEditingController();
   bool _isSending = false;
-  bool get _canSend => commentController.text.trim().isNotEmpty && !_isSending;
   final FocusNode _inputFocusNode = FocusNode();
   final ScrollController _listController = ScrollController();
   String? _replyingToCommentId;
@@ -27,19 +33,48 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
   final Map<String, int> _commentLikes = <String, int>{};
   final Set<String> _likedComments = <String>{};
   // No local pending list; rely on PostBloc optimistic updates
+  // We keep a small pending list to reflect immediate UI updates before server response
+  final List<CommentModel> _pendingComments = <CommentModel>[];
   bool _autoExpanded = false;
   CommentSort _sort = CommentSort.newest;
   bool _orphanFetchTriggered = false;
-
+  int page = 2;
+  int limit = 10;
+  late int count;
+  bool _isLoadingMoreComments = false;
   @override
   void initState() {
     super.initState();
-    // Rebuild when user types to enable/disable send button
-    commentController.addListener(() => setState(() {}));
-    // Ensure we fetch latest comments for this post
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<PostBloc>().add(getcomment(postId: widget.post.id));
+    count = widget.post.commentsCount;
+    // Avoid global rebuilds on each keystroke; we'll use ValueListenableBuilder
+    _listController.addListener(() {
+      if (!_listController.hasClients) return;
+      final nearBottom = _listController.position.pixels >=
+          _listController.position.maxScrollExtent - 10;
+      if (!nearBottom) return;
+
+      // prevent duplicate triggers
+      if (_isLoadingMoreComments) return;
+
+      // stop if we already loaded all available comments
+      final state = context.read<PostBloc>().state;
+      int currentCount = widget.post.comments.length;
+      if (state is PostLoaded) {
+        final post = state.posts[widget.post.id];
+        currentCount = post!.comments.length;
+      } else if (state is CommentsForPostLoaded &&
+          state.postId == widget.post.id) {
+        currentCount = state.comments.length;
+      }
+      if (currentCount >= count) return;
+
+      setState(() => _isLoadingMoreComments = true);
+      context
+          .read<PostBloc>()
+          .add(getcomment(postId: widget.post.id, page: page, limit: limit));
+      page++;
     });
+    // Ensure we fetch latest comments for this post
   }
 
   @override
@@ -53,11 +88,29 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
   void _addComment(String text) {
     final content = text.trim();
     if (content.isEmpty) return;
+    if (_isSending) return; // prevent double-submit
     setState(() => _isSending = true);
     final pid = widget.post.id;
     final parent = _replyingToCommentId;
-    debugPrint('[UI][Send] postId=$pid parentId=${parent ?? ''} content="$content"');
-    // Rely on PostBloc to add optimistic comment to the post
+    debugPrint(
+        '[UI][Send] postId=$pid parentId=${parent ?? ''} content="$content"');
+    // Add optimistic pending comment so UI updates immediately
+    try {
+      final authState = context.read<AuthCubit>().state;
+      final meId = authState is Authenticated ? authState.user.user_id : 'you';
+      final optimistic = CommentModel(
+        comment: content,
+        userId: meId,
+        postId: pid,
+        createdAt: DateTime.now(),
+        id: 'pending-${DateTime.now().microsecondsSinceEpoch}',
+        parentCommentId: parent?.isEmpty ?? true ? null : parent,
+      );
+      setState(() {
+        _pendingComments.add(optimistic);
+      });
+    } catch (_) {}
+    // Send to Bloc
     if (parent != null && parent.isNotEmpty) {
       print("parent ==========================$parent");
       context.read<PostBloc>().add(setreplycomment(
@@ -65,30 +118,99 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
             parentCommentId: parent,
             content: content,
           ));
+      // Fire-and-forget OneSignal notification to the parent commenter
+      _notifyAfterComment(content: content, isReply: true);
     } else {
       print("parent2 ==========================");
       context.read<PostBloc>().add(setcomment(
             postId: pid,
             content: content,
           ));
+      // For root comments we render optimistically, so stop spinner immediately
+      if (mounted) {
+        setState(() => _isSending = false);
+      }
+      // Fire-and-forget OneSignal notification to the post owner
+      _notifyAfterComment(content: content, isReply: false);
     }
     // No delayed fallback; state changes will stop spinner
     // Auto-expand parent when replying
     if (_replyingToCommentId != null) {
       _expandedParents.add(_replyingToCommentId!);
     }
-    // Scroll to bottom so the new reply is visible immediately
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !_listController.hasClients) return;
-      _listController.animateTo(
-        _listController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeOut,
-      );
-    });
+    // Do not auto-scroll on send; keep user's current scroll position
     commentController.clear();
     _replyingToCommentId = null;
     _replyingTo = null;
+  }
+
+  Future<void> _notifyAfterComment({
+    required String content,
+    required bool isReply,
+  }) async {
+    if (!kEnableCommentNotification) {
+      debugPrint('🔕 Comment push disabled by feature flag');
+      return;
+    }
+    try {
+      // Get current user (sender)
+      final authState = context.read<AuthCubit>().state;
+      if (authState is! Authenticated) return;
+      final me = authState.user;
+
+      // Determine recipient user id
+      String? toUid;
+      if (isReply) {
+        toUid = _replyingTo?.userId;
+      } else {
+        toUid = widget.post.user_id;
+      }
+      if (toUid == null || toUid.isEmpty) return;
+      if (toUid == me.user_id) return; // don't notify self
+
+      // Fetch recipient's OneSignal player id from Firestore
+      final toDoc =
+          await FirebaseFirestore.instance.collection('users').doc(toUid).get();
+      final toData = toDoc.data() ?? {};
+      String? playerId = toData['onesignal_player_id'] as String?;
+      playerId ??= toData['oneSignalPlayerId'] as String?;
+      playerId ??= toData['playerId'] as String?;
+      if (playerId == null || playerId.isEmpty) {
+        debugPrint('⚠️ No OneSignal playerId for user $toUid. Skip push.');
+        return;
+      }
+
+      final title = isReply
+          ? '${me.name} replied to your comment'
+          : '${me.name} commented on your post';
+      final message = content;
+      final data = {
+        'type': 'post_comment',
+        'postId': widget.post.id,
+        'deeplink': '/post/${widget.post.id}',
+        'senderId': me.user_id,
+        'senderName': me.name,
+        'senderAvatar': me.avatar,
+        'isReply': isReply,
+      };
+
+      // Use dedicated post notification helper to enforce post deeplink
+      debugPrint('Comment notify -> playerId=$playerId data=$data');
+      await NotificationService.instance.sendPostNotification(
+        toPlayerId: playerId,
+        title: title,
+        message: message,
+        sender: {
+          'id': me.user_id,
+          'name': me.name,
+          'avatar': me.avatar,
+        },
+        postId: widget.post.id,
+        isReply: isReply,
+      );
+    } catch (e) {
+      debugPrint('⚠️ Comment push flow error: $e');
+    }
   }
 
   String _relativeTime(DateTime dt) {
@@ -136,17 +258,13 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                       _replyingTo = null;
                       _replyingToCommentId = null;
                       _expandedParents.add(state.parentCommentId);
+                      // Clear pending replies for this post
+                      _pendingComments.removeWhere((c) =>
+                          c.postId == widget.post.id &&
+                          (c.parentCommentId?.isNotEmpty ?? false));
                     });
                   }
-                  // Ensure the new reply is visible
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (!mounted || !_listController.hasClients) return;
-                    _listController.animateTo(
-                      _listController.position.maxScrollExtent,
-                      duration: const Duration(milliseconds: 250),
-                      curve: Curves.easeOut,
-                    );
-                  });
+                  // Do not auto-scroll on reply success
                 }
                 if (state is CommentError ||
                     state is PostLoaded ||
@@ -154,7 +272,15 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                     (state is CommentsForPostLoaded &&
                         state.postId == widget.post.id)) {
                   // Stop sending state on error or after refreshed comments
-                  if (mounted) setState(() => _isSending = false);
+                  if (mounted) {
+                    setState(() {
+                      _isSending = false;
+                      _isLoadingMoreComments = false;
+                      // Clear all pending for this post once server state arrives or on error
+                      _pendingComments
+                          .removeWhere((c) => c.postId == widget.post.id);
+                    });
+                  }
                 }
               },
               child: Column(
@@ -195,8 +321,8 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 6),
                               decoration: BoxDecoration(
-                                color:
-                                    colorScheme.surfaceContainerHighest.withOpacity(0.6),
+                                color: colorScheme.surfaceContainerHighest
+                                    .withOpacity(0.6),
                                 borderRadius: BorderRadius.circular(14),
                               ),
                               child: Row(
@@ -218,15 +344,36 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                           ),
                         ),
                         BlocBuilder<PostBloc, PostState>(
-                          buildWhen: (prev, next) => true,
+                          // Rebuild badge only if comments count for this post changes
+                          buildWhen: (prev, next) {
+                            int prevCount;
+                            int nextCount;
+                            if (prev is PostLoaded) {
+                              prevCount =
+                                  prev.posts[widget.post.id]!.comments.length;
+                            } else if (prev is CommentsForPostLoaded &&
+                                prev.postId == widget.post.id) {
+                              prevCount = prev.comments.length;
+                            } else {
+                              prevCount = widget.post.comments.length;
+                            }
+
+                            if (next is PostLoaded) {
+                              nextCount =
+                                  next.posts[widget.post.id]!.comments.length;
+                            } else if (next is CommentsForPostLoaded &&
+                                next.postId == widget.post.id) {
+                              nextCount = next.comments.length;
+                            } else {
+                              nextCount = prevCount;
+                            }
+                            return prevCount != nextCount;
+                          },
                           builder: (context, state) {
                             int count;
                             if (state is PostLoaded) {
-                              final maybe = state.posts.firstWhere(
-                                (p) => p.id == widget.post.id,
-                                orElse: () => widget.post as dynamic,
-                              );
-                              count = maybe.comments.length;
+                              final maybe = state.posts[widget.post.id];
+                              count = maybe!.comments.length;
                             } else if (state is CommentsForPostLoaded &&
                                 state.postId == widget.post.id) {
                               count = state.comments.length;
@@ -257,6 +404,32 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                   // BlocBuilder for comment state
                   Expanded(
                     child: BlocBuilder<PostBloc, PostState>(
+                      // Only rebuild the list when the comment set for this post changes
+                      buildWhen: (prev, next) {
+                        List<CommentModel> getCommentsFromState(PostState s) {
+                          if (s is PostLoaded) {
+                            final post = s.posts[widget.post.id];
+                            return post!.comments;
+                          } else if (s is CommentsForPostLoaded &&
+                              s.postId == widget.post.id) {
+                            return s.comments;
+                          }
+                          return widget.post.comments;
+                        }
+
+                        final prevComments = getCommentsFromState(prev);
+                        final nextComments = getCommentsFromState(next);
+                        if (prevComments.length != nextComments.length) {
+                          return true;
+                        }
+                        if (prevComments.isEmpty && nextComments.isEmpty) {
+                          return false;
+                        }
+                        // Shallow identity check on last comment id to detect append
+                        return prevComments.isEmpty ||
+                            nextComments.isEmpty ||
+                            prevComments.last.id != nextComments.last.id;
+                      },
                       builder: (context, state) {
                         if (state is CommentLoading) {
                           return const Center(
@@ -284,11 +457,8 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                         // Determine current comments either from PostLoaded state or fallback to widget.post
                         List<CommentModel> comments = [];
                         if (state is PostLoaded) {
-                          final post = state.posts.firstWhere(
-                            (p) => p.id == widget.post.id,
-                            orElse: () => widget.post as dynamic,
-                          );
-                          comments = List<CommentModel>.from(post.comments);
+                          final post = state.posts[widget.post.id];
+                          comments = List<CommentModel>.from(post!.comments);
                         } else if (state is CommentsForPostLoaded &&
                             state.postId == widget.post.id) {
                           comments = List<CommentModel>.from(state.comments);
@@ -301,21 +471,19 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                         for (final c in comments) {
                           _commentLikes[c.id] = _commentLikes[c.id] ?? 0;
                         }
-                        final displayComments = comments;
+                        // Merge with local pending for instantaneous UI update
+                        final pendingForPost = _pendingComments
+                            .where((c) => c.postId == widget.post.id)
+                            .toList();
+                        final displayComments = [
+                          ...comments,
+                          ...pendingForPost,
+                        ];
 
                         // Debug logs: counts and basic structure
                         // ignore: avoid_print
                         debugPrint(
-                            '[Comments] total=${displayComments.length} parents=${displayComments
-                                    .where((c) =>
-                                        c.parentCommentId == null ||
-                                        (c.parentCommentId?.isEmpty ?? true))
-                                    .length} replies=${displayComments
-                                    .where((c) =>
-                                        c.parentCommentId != null &&
-                                        (c.parentCommentId?.isNotEmpty ??
-                                            false))
-                                    .length}');
+                            '[Comments] total=${displayComments.length} parents=${displayComments.where((c) => c.parentCommentId == null || (c.parentCommentId?.isEmpty ?? true)).length} replies=${displayComments.where((c) => c.parentCommentId != null && (c.parentCommentId?.isNotEmpty ?? false)).length}');
 
                         // One-time auto-expand parents that have replies so users see them
                         if (!_autoExpanded && displayComments.isNotEmpty) {
@@ -378,12 +546,33 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                                   ],
                                 ),
                               )
-                            : ListView(
-                                controller: _listController,
-                                padding:
-                                    const EdgeInsets.fromLTRB(12, 12, 12, 12),
-                                children: _buildThreadedComments(context,
-                                    colorScheme, textTheme, displayComments),
+                            : RepaintBoundary(
+                                child: ListView(
+                                  controller: _listController,
+                                  padding:
+                                      const EdgeInsets.fromLTRB(12, 12, 12, 12),
+                                  children: [
+                                    ..._buildThreadedComments(
+                                        context,
+                                        colorScheme,
+                                        textTheme,
+                                        displayComments),
+                                    if (_isLoadingMoreComments)
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 12),
+                                        child: Center(
+                                          child: SizedBox(
+                                            height: 24,
+                                            width: 24,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2.5,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
                               );
                       },
                     ),
@@ -406,13 +595,31 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                                 Text('Replying to: ',
                                     style: textTheme.labelSmall
                                         ?.copyWith(color: colorScheme.primary)),
-                                Text(
-                                    _replyingTo!.userId.isEmpty
-                                        ? 'User'
-                                        : _replyingTo!.userId,
-                                    style: textTheme.labelSmall?.copyWith(
+                                BlocBuilder<UserBloc, UserState>(
+                                  buildWhen: (p, n) => true,
+                                  builder: (context, state) {
+                                    String displayName = 'User';
+                                    final uid = _replyingTo!.userId;
+                                    if (uid.isNotEmpty && state is UserLoaded) {
+                                      final u = state.users[uid];
+                                      if (u != null && u.name.isNotEmpty) {
+                                        displayName = u.name;
+                                      } else {
+                                        displayName = uid; // fallback
+                                      }
+                                    } else if (uid.isNotEmpty) {
+                                      displayName =
+                                          uid; // fallback while loading
+                                    }
+                                    return Text(
+                                      displayName,
+                                      style: textTheme.labelSmall?.copyWith(
                                         fontWeight: FontWeight.w600,
-                                        color: colorScheme.primary)),
+                                        color: colorScheme.primary,
+                                      ),
+                                    );
+                                  },
+                                ),
                               ],
                             ),
                           ),
@@ -434,60 +641,70 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                   // Bottom Comment Input
                   Padding(
                     padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: commentController,
-                            focusNode: _inputFocusNode,
-                            textInputAction: TextInputAction.send,
-                            onSubmitted: (v) => _addComment(v.trim()),
-                            enabled: !_isSending,
-                            decoration: InputDecoration(
-                              hintText: 'Write a comment...',
-                              hintStyle: TextStyle(color: colorScheme.outline),
-                              filled: true,
-                              fillColor: colorScheme.surface,
-                              contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 12, horizontal: 14),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(24),
-                                borderSide: BorderSide(
-                                    color:
-                                        colorScheme.outline.withOpacity(0.3)),
+                    child: ValueListenableBuilder<TextEditingValue>(
+                      valueListenable: commentController,
+                      builder: (context, value, _) {
+                        final canSend =
+                            value.text.trim().isNotEmpty && !_isSending;
+                        return Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: commentController,
+                                focusNode: _inputFocusNode,
+                                textInputAction: TextInputAction.send,
+                                onSubmitted: (v) => _addComment(v.trim()),
+                                enabled: !_isSending,
+                                decoration: InputDecoration(
+                                  hintText: 'Write a comment...',
+                                  hintStyle:
+                                      TextStyle(color: colorScheme.outline),
+                                  filled: true,
+                                  fillColor: colorScheme.surface,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      vertical: 12, horizontal: 14),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(24),
+                                    borderSide: BorderSide(
+                                        color: colorScheme.outline
+                                            .withOpacity(0.3)),
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        InkWell(
-                          borderRadius: BorderRadius.circular(24),
-                          onTap: _canSend
-                              ? () => _addComment(commentController.text.trim())
-                              : null,
-                          child: Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: _canSend
-                                  ? colorScheme.primary
-                                  : colorScheme.outline.withOpacity(0.3),
-                              shape: BoxShape.circle,
-                            ),
-                            child: _isSending
-                                ? SizedBox(
-                                    height: 18,
-                                    width: 18,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                          colorScheme.onPrimary),
-                                    ),
-                                  )
-                                : Icon(Icons.send,
-                                    color: colorScheme.onPrimary),
-                          ),
-                        )
-                      ],
+                            const SizedBox(width: 8),
+                            InkWell(
+                              borderRadius: BorderRadius.circular(24),
+                              onTap: canSend
+                                  ? () =>
+                                      _addComment(commentController.text.trim())
+                                  : null,
+                              child: Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: canSend
+                                      ? colorScheme.primary
+                                      : colorScheme.outline.withOpacity(0.3),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: _isSending
+                                    ? SizedBox(
+                                        height: 18,
+                                        width: 18,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                  colorScheme.onPrimary),
+                                        ),
+                                      )
+                                    : Icon(Icons.send,
+                                        color: colorScheme.onPrimary),
+                              ),
+                            )
+                          ],
+                        );
+                      },
                     ),
                   ),
                 ],
@@ -540,7 +757,6 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         _orphanFetchTriggered = true;
-        context.read<PostBloc>().add(getcomment(postId: widget.post.id));
       });
     }
 
@@ -673,12 +889,17 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
             builder: (context, state) {
               String? name;
               String? avatar;
+              bool hasData = false;
               if (state is UserLoaded) {
                 final u = state.users[c.userId];
                 if (u != null) {
                   name = u.name;
                   avatar = u.avatar;
+                  hasData = true;
                 }
+              }
+              if (!hasData) {
+                return const _ShimmerCircle(size: 36);
               }
               return CircleAvatar(
                 radius: 18,
@@ -719,14 +940,17 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                         child: BlocBuilder<UserBloc, UserState>(
                           buildWhen: (prev, next) => true,
                           builder: (context, state) {
-                            String displayName =
-                                c.userId.isEmpty ? 'User' : c.userId;
-                            if (state is UserLoaded) {
-                              final u = state.users[c.userId];
-                              if (u != null && u.name.isNotEmpty) {
-                                displayName = u.name;
-                              }
+                            if (state is! UserLoaded ||
+                                state.users[c.userId] == null) {
+                              return _ShimmerLine(
+                                width: 100,
+                                height: 14,
+                                borderRadius: 6,
+                              );
                             }
+                            final u = state.users[c.userId]!;
+                            final displayName =
+                                u.name.isNotEmpty ? u.name : (c.userId);
                             return Text(
                               displayName,
                               style: textTheme.labelLarge
@@ -751,24 +975,26 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                       child: BlocBuilder<UserBloc, UserState>(
                         buildWhen: (p, n) => true,
                         builder: (context, state) {
-                          String parentName = 'Parent';
                           final parent = idToComment[c.parentCommentId];
-                          if (parent != null) {
-                            if (state is UserLoaded) {
-                              final u = state.users[parent.userId];
-                              if (u != null && u.name.isNotEmpty) {
-                                parentName = u.name;
-                              } else {
-                                parentName = parent.userId.isNotEmpty
-                                    ? parent.userId
-                                    : 'Parent';
-                              }
-                            } else {
-                              parentName = parent.userId.isNotEmpty
-                                  ? parent.userId
-                                  : 'Parent';
-                            }
+                          if (parent == null) {
+                            return const SizedBox.shrink();
                           }
+                          if (state is! UserLoaded ||
+                              state.users[parent.userId] == null) {
+                            return Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _ShimmerLine(
+                                    width: 80, height: 12, borderRadius: 6),
+                              ],
+                            );
+                          }
+                          final u = state.users[parent.userId]!;
+                          final parentName = u.name.isNotEmpty
+                              ? u.name
+                              : (parent.userId.isNotEmpty
+                                  ? parent.userId
+                                  : 'Parent');
                           return Text(
                             'Replying to $parentName',
                             style: textTheme.labelSmall
@@ -937,3 +1163,133 @@ class _ExpandableTextState extends State<_ExpandableText> {
 }
 
 enum CommentSort { newest, oldest }
+
+// -------- Shimmer widgets (top-level) --------
+class _ShimmerBox extends StatefulWidget {
+  const _ShimmerBox({
+    required this.width,
+    required this.height,
+    this.borderRadius = 8,
+    this.shape = BoxShape.rectangle,
+  });
+
+  final double width;
+  final double height;
+  final double borderRadius;
+  final BoxShape shape;
+
+  @override
+  State<_ShimmerBox> createState() => _ShimmerBoxState();
+}
+
+class _ShimmerBoxState extends State<_ShimmerBox>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final baseColor = Theme.of(context).colorScheme.surfaceVariant;
+    final highlight = Colors.white.withOpacity(0.45);
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        final percent = _controller.value;
+        return ShaderMask(
+          shaderCallback: (rect) {
+            final width = rect.width;
+            final gradientWidth = width * 0.6;
+            final dx = (width + gradientWidth) * percent - gradientWidth;
+            return LinearGradient(
+              colors: [
+                baseColor,
+                highlight,
+                baseColor,
+              ],
+              stops: const [0.25, 0.5, 0.75],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              transform: GradientTranslation(dx, 0),
+            ).createShader(rect);
+          },
+          child: child,
+          blendMode: BlendMode.srcATop,
+        );
+      },
+      child: Container(
+        width: widget.width,
+        height: widget.height,
+        decoration: BoxDecoration(
+          color: Theme.of(context)
+              .colorScheme
+              .surfaceContainerHighest
+              .withOpacity(0.6),
+          shape: widget.shape,
+          borderRadius: widget.shape == BoxShape.circle
+              ? null
+              : BorderRadius.circular(widget.borderRadius),
+        ),
+      ),
+    );
+  }
+}
+
+class GradientTranslation extends GradientTransform {
+  const GradientTranslation(this.dx, this.dy);
+  final double dx;
+  final double dy;
+  @override
+  Matrix4? transform(Rect bounds, {TextDirection? textDirection}) {
+    return Matrix4.identity()..translate(dx, dy);
+  }
+}
+
+class _ShimmerLine extends StatelessWidget {
+  const _ShimmerLine({
+    required this.width,
+    required this.height,
+    this.borderRadius = 8,
+  });
+
+  final double width;
+  final double height;
+  final double borderRadius;
+
+  @override
+  Widget build(BuildContext context) {
+    return _ShimmerBox(
+      width: width,
+      height: height,
+      borderRadius: borderRadius,
+      shape: BoxShape.rectangle,
+    );
+  }
+}
+
+class _ShimmerCircle extends StatelessWidget {
+  const _ShimmerCircle({required this.size});
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return _ShimmerBox(
+      width: size,
+      height: size,
+      shape: BoxShape.circle,
+    );
+  }
+}

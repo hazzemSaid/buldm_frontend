@@ -48,5 +48,15 @@ class ProfileCubit extends Cubit<ProfileState> {
     emit(fetchpost(posts: filtered));
   }
 
+  // filter by status string, e.g., 'repost'; null shows all
+  void filterByStatusString(String? status) {
+    if (status == null || status.isEmpty) {
+      emit(fetchpost(posts: _allPosts));
+      return;
+    }
+    final filtered = _allPosts.where((post) => post.status == status).toList();
+    emit(fetchpost(posts: filtered));
+  }
+
   // update profile avatar
 }

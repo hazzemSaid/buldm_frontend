@@ -30,7 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
           status: null,
           userId: null,
           searchQuery: null,
-          limit: 10,
+          limit: 5,
           page: 1),
     );
 
@@ -72,12 +72,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 status: null,
                 userId: null,
                 searchQuery: null,
-                limit: 10,
+                limit: 5,
                 page: 1,
               ),
             );
           },
           child: CustomScrollView(
+            cacheExtent: 1000.0, // prebuild ~1k px ahead for smoother fast scrolls
             physics: const AlwaysScrollableScrollPhysics(),
             controller: widget.scrollController,
             slivers: const <Widget>[

@@ -11,12 +11,10 @@ abstract class UserState extends Equatable {
 class UserInitial extends UserState {}
 
 class UserLoading extends UserState {
-  final String userId;
-
-  const UserLoading(this.userId);
+  const UserLoading();
 
   @override
-  List<Object?> get props => [userId];
+  List<Object?> get props => [];
 }
 
 class UserLoaded extends UserState {

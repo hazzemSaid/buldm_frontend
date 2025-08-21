@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 
 class PostWidget extends StatefulWidget {
   final PostEntity post;
-  final int index;
+  final String index;
   const PostWidget({super.key, required this.post, required this.index});
 
   @override

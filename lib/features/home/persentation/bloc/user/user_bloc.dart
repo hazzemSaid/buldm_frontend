@@ -31,7 +31,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       emit(UserLoaded(users: _currentUsersMap()));
       return;
     }
-
+    emit(UserLoading());
     try {
       // Avoid duplicate concurrent fetches
       if (_inFlight.contains(event.userId)) {
@@ -40,7 +40,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       }
 
       _inFlight.add(event.userId);
-      emit(UserLoading(event.userId));
+      emit(UserLoading());
 
       final user = await getuserbyid(event.userId);
       _cache[event.userId] = _CacheEntry(user: user, fetchedAt: DateTime.now());

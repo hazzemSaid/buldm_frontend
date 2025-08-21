@@ -35,30 +35,64 @@ class PostInitial extends PostState {}
 class PostLoading extends PostState {}
 
 class PostLoaded extends PostState {
-  final List<PostModel> posts;
+  final Map<String, PostModel> posts;
   final bool hasMore;
   final bool isLoadingMore;
+  final String? category;
+  final String? status;
+  final String? userId;
+  final String? searchQuery;
+  final int pageSize;
+  final int currentPage;
 
   const PostLoaded({
     required this.posts,
     this.hasMore = true,
     this.isLoadingMore = false,
+    this.category,
+    this.status,
+    this.userId,
+    this.searchQuery,
+    this.pageSize = 5,
+    this.currentPage = 1,
   });
 
   PostLoaded copyWith({
-    List<PostModel>? posts,
+    Map<String, PostModel>? posts,
     bool? hasMore,
     bool? isLoadingMore,
+    String? category,
+    String? status,
+    String? userId,
+    String? searchQuery,
+    int? pageSize,
+    int? currentPage,
   }) {
     return PostLoaded(
       posts: posts ?? this.posts,
       hasMore: hasMore ?? this.hasMore,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      category: category ?? this.category,
+      status: status ?? this.status,
+      userId: userId ?? this.userId,
+      searchQuery: searchQuery ?? this.searchQuery,
+      pageSize: pageSize ?? this.pageSize,
+      currentPage: currentPage ?? this.currentPage,
     );
   }
 
   @override
-  List<Object?> get props => [posts, hasMore, isLoadingMore];
+  List<Object?> get props => [
+        posts,
+        hasMore,
+        isLoadingMore,
+        category,
+        status,
+        userId,
+        searchQuery,
+        pageSize,
+        currentPage
+      ];
 }
 
 class PostError extends PostState {
@@ -113,4 +147,36 @@ class LikeError extends PostState {
 
   @override
   List<Object?> get props => [message];
+}
+
+class PostUploadError extends PostState {
+  final String message;
+
+  const PostUploadError({required this.message});
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class PostUpdatedSuccess extends PostState {
+  const PostUpdatedSuccess();
+
+  @override
+  List<Object?> get props => [];
+}
+
+class PostUpdatedError extends PostState {
+  final String message;
+
+  const PostUpdatedError({required this.message});
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class PostUpdatedLoading extends PostState {
+  const PostUpdatedLoading();
+
+  @override
+  List<Object?> get props => [];
 }

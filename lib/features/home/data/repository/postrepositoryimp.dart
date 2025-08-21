@@ -26,7 +26,7 @@ class Postrepositoryimp extends Postrepository {
   }
 
   @override
-  Future<List<PostModel>> getPosts(
+  Future<Map<String, PostModel>> getPosts(
       {String? category,
       String? status,
       String? userId,
@@ -46,53 +46,56 @@ class Postrepositoryimp extends Postrepository {
   }
 
   @override
-  Future<List<PostModel>> getPostsByCategory(String category) {
+  Future<Map<String, PostModel>> getPostsByCategory(String category) {
     // TODO: implement getPostsByCategory
     throw UnimplementedError();
   }
 
   @override
-  Future<List<PostModel>> getPostsByLocation(
+  Future<Map<String, PostModel>> getPostsByLocation(
       double latitude, double longitude, double radius) {
     // TODO: implement getPostsByLocation
     throw UnimplementedError();
   }
 
   @override
-  Future<List<PostModel>> getPostsByLocationAndCategory(
+  Future<Map<String, PostModel>> getPostsByLocationAndCategory(
       double latitude, double longitude, double radius, String category) {
     // TODO: implement getPostsByLocationAndCategory
     throw UnimplementedError();
   }
 
   @override
-  Future<List<PostModel>> getPostsByPredictedItem(String predictedItem) {
+  Future<Map<String, PostModel>> getPostsByPredictedItem(String predictedItem) {
     // TODO: implement getPostsByPredictedItem
     throw UnimplementedError();
   }
 
   @override
-  Future<List<PostModel>> getPostsBySearchQuery(String searchQuery) {
+  Future<Map<String, PostModel>> getPostsBySearchQuery(String searchQuery) {
     // TODO: implement getPostsBySearchQuery
     throw UnimplementedError();
   }
 
   @override
-  Future<List<PostModel>> getPostsByStatus(String status) {
+  Future<Map<String, PostModel>> getPostsByStatus(String status) {
     // TODO: implement getPostsByStatus
     throw UnimplementedError();
   }
 
   @override
-  Future<List<PostModel>> getPostsByUserId(String userId) {
+  Future<Map<String, PostModel>> getPostsByUserId(String userId) {
     // TODO: implement getPostsByUserId
     throw UnimplementedError();
   }
 
   @override
   Future<Either<Failure, void>> updatePost(
-      String postId, Map<String, dynamic> data) {
-    return remotePostDataSource.updatePost(postId, data);
+    String token,
+    String postId,
+    Map<String, dynamic> data,
+  ) {
+    return remotePostDataSource.updatePost(token, postId, data);
   }
 
   @override
@@ -106,18 +109,26 @@ class Postrepositoryimp extends Postrepository {
   }
 
   @override
-  Future<Either<Failure, List<CommentModel>>> getCommentsByPostId(
-      String postId) {
-    return remotePostDataSource.getCommentsByPostId(postId);
+  Future<Either<Failure, List<CommentModel>>> getCommentsByPostId({
+    required String postId,
+    required int page,
+    required int limit,
+  }) {
+    return remotePostDataSource.getCommentsByPostId(
+      postId: postId,
+      page: page,
+      limit: limit,
+    );
   }
 
   @override
-  Future<Either<Failure, void>> setComment(String postId, String content) {
+  Future<Either<Failure, CommentModel>> setComment(
+      String postId, String content) {
     return remotePostDataSource.setComment(postId, content);
   }
 
   @override
-  Future<Either<Failure, void>> setCommentReply(
+  Future<Either<Failure, CommentModel>> setCommentReply(
       String postId, String parentCommentId, String content) {
     return remotePostDataSource.setCommentReply(
         postId, parentCommentId, content);

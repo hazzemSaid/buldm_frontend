@@ -8,6 +8,7 @@ import 'package:buldm/features/profile/presentation/view/widgets/ProfileOption.d
 import 'package:buldm/l10n/app_localizations.dart';
 import 'package:buldm/provider/localization/localization_cubit.dart';
 import 'package:buldm/utils/app_theme.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
@@ -227,11 +228,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   radius: 45,
                                   backgroundColor: Colors.transparent,
                                   child: ClipOval(
-                                    child: Image.network(
-                                      avatarUrl,
+                                    child: CachedNetworkImage(
+                                      imageUrl: avatarUrl,
                                       width: 90,
                                       height: 90,
                                       fit: BoxFit.cover,
+                                      placeholder: (context, url) =>
+                                          const Center(
+                                              child:
+                                                  CircularProgressIndicator()),
+                                      errorWidget:
+                                          (context, error, stackTrace) =>
+                                              const Icon(Icons.error),
                                     ),
                                   ),
                                 );
@@ -452,7 +460,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               horizontal: 12.0, vertical: 6.0),
                           child: PostWidget(
                             post: state.posts[index],
-                            index: index,
+                            index: state.posts[index].id,
                           ),
                         );
                       },
@@ -480,25 +488,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(8),
-                              child: Image.network(
-                                state.posts[index].images[0],
+                              child: CachedNetworkImage(
+                                imageUrl: state.posts[index].images[0],
                                 fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) =>
+                                errorWidget: (context, error, stackTrace) =>
                                     Container(
                                   color: Colors.grey[300],
                                   child: const Center(
                                       child:
                                           Icon(Icons.error, color: Colors.red)),
                                 ),
-                                loadingBuilder:
-                                    (context, child, loadingProgress) {
-                                  if (loadingProgress == null) return child;
-                                  return Container(
-                                    color: Colors.grey[200],
-                                    child: const Center(
-                                        child: CircularProgressIndicator()),
-                                  );
-                                },
+                                placeholder: (context, url) => const Center(
+                                    child: CircularProgressIndicator()),
                               ),
                             ),
                           ),

@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shimmer/shimmer.dart';
 
-final Set<int> keepAliveIndexes = {}; // ✅ خارج أي كلاس
+final Set<String> keepAliveIndexes = {}; // ✅ cache by post.id for stability
 const int maxAliveCount = 10;
 
 class BuildPostList extends StatelessWidget {
@@ -15,75 +15,92 @@ class BuildPostList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final localization = AppLocalizations.of(context)!;
-    return BlocBuilder<PostBloc, PostState>(
-      builder: (context, state) {
-        if (state is PostLoaded) {
-          final posts = state.posts;
-          final isLoadingMore = state.isLoadingMore;
-          if (posts.isEmpty) {
-            return SliverFillRemaining(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(
-                      localization.noPostsAvailable,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    Icon(
-                      Icons.sentiment_dissatisfied,
-                      size: 48,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
+    return BlocSelector<PostBloc, PostState, PostLoaded?>( // ✅ Switched to BlocSelector
+      selector: (state) => state is PostLoaded ? state : null,
+      builder: (context, loaded) {
+        if (loaded == null) {
+          // Loading or other non-post states
           return SliverList(
             delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                if (index < posts.length) {
-                  // ✅ إدارة الكاش
-                  if (!keepAliveIndexes.contains(index)) {
-                    if (keepAliveIndexes.length >= maxAliveCount) {
-                      keepAliveIndexes.remove(keepAliveIndexes.first);
-                    }
-                    keepAliveIndexes.add(index);
-                  }
-
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8.0, vertical: 4.0),
-                    child: PostWidget(post: posts[index], index: index),
-                  );
-                } else {
-                  return const Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Center(child: CircularProgressIndicator()),
-                  );
-                }
-              },
-              childCount: posts.length + (isLoadingMore ? 1 : 0),
+              (context, index) => const PostShimmerWidget(),
+              childCount: 5,
+              addAutomaticKeepAlives: true, // ✅ Added delegate optimizations
+              addRepaintBoundaries: true,
+              addSemanticIndexes: false,
             ),
           );
         }
 
-        if (state is PostError) {
-          return SliverToBoxAdapter(
+        final postsMap = loaded.posts; // Expecting a map keyed by postId
+        final isLoadingMore = loaded.isLoadingMore;
+        if (postsMap.isEmpty) {
+          return SliverFillRemaining(
             child: Center(
-              child: Text(state.message,
-                  style: const TextStyle(color: Colors.red)),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    localization.noPostsAvailable,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  Icon(
+                    Icons.sentiment_dissatisfied,
+                    size: 48,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ],
+              ),
             ),
           );
         }
 
+        // Use keys list to avoid allocating a new list of PostModel on every build
+        final postIds = postsMap.keys.toList(growable: false);
         return SliverList(
           delegate: SliverChildBuilderDelegate(
-            (context, index) => const PostShimmerWidget(),
-            childCount: 5,
+            (context, index) {
+              if (index < postIds.length) {
+                // ✅ إدارة الكاش
+                final postId = postIds[index];
+                final post = postsMap[postId]!;
+                if (!keepAliveIndexes.contains(post.id)) {
+                  if (keepAliveIndexes.length >= maxAliveCount) {
+                    keepAliveIndexes.remove(keepAliveIndexes.first);
+                  }
+                  keepAliveIndexes.add(post.id);
+                }
+
+                return Padding(
+                  key: ValueKey<String>(post.id), // ✅ Added stable keys
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 8.0, vertical: 4.0),
+                  child: PostWidget(
+                    post: post,
+                    index: post.id,
+                  ),
+                );
+              } else {
+                return const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+            },
+            childCount: postIds.length + (isLoadingMore ? 1 : 0),
+            addAutomaticKeepAlives: true, // ✅ Added delegate optimizations
+            addRepaintBoundaries: true,
+            addSemanticIndexes: false,
+            findChildIndexCallback: (Key key) { // ✅ Added findChildIndexCallback
+              if (key is ValueKey<String>) {
+                final id = key.value;
+                for (int i = 0; i < postIds.length; i++) {
+                  if (postIds[i] == id) return i;
+                }
+              }
+              return null;
+            },
           ),
         );
       },

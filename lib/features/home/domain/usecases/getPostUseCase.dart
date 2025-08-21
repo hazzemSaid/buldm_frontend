@@ -4,7 +4,7 @@ import 'package:buldm/features/home/domain/repository/postrepository.dart';
 class GetPostUseCase {
   final Postrepository postrepository;
   GetPostUseCase({required this.postrepository});
-  Future<List<PostModel>> call({
+  Future<Map<String, PostModel>> call({
     String? category,
     String? status,
     String? userId,

@@ -51,10 +51,11 @@ class PostBloc extends Bloc<PostEvent, PostState> {
     on<LoadPostEvent>(_onLoadPost);
     on<AddPostEvent>(_onAddPost);
     on<uploadPostEvent>(_onUpdatePost);
+
     on<DeletePostEvent>(_onDeletePost);
     on<FilterPostEvent>(_onFilterPost);
     on<LoadMorePostsEvent>(_onLoadMorePosts);
-    on<getlike>(_onGetLike);
+    // on<getlike>(_onGetLike);
     on<setlike>(_onSetLike);
     on<getcomment>(_onGetComment);
     on<setcomment>(_onSetComment);
@@ -79,8 +80,17 @@ class PostBloc extends Bloc<PostEvent, PostState> {
         token: token,
       );
 
-      emit(
-          PostLoaded(posts: newPosts, hasMore: newPosts.length == event.limit));
+      // Already a map keyed by post id
+      emit(PostLoaded(
+        posts: newPosts,
+        hasMore: newPosts.length == event.limit,
+        category: event.category,
+        status: event.status,
+        userId: event.userId,
+        searchQuery: event.searchQuery,
+        pageSize: event.limit,
+        currentPage: event.page,
+      ));
     } catch (e) {
       emit(PostError(message: e.toString()));
     }
@@ -169,23 +179,39 @@ class PostBloc extends Bloc<PostEvent, PostState> {
       try {
         final user = await getCurrentuserUsercase();
         final token = user?.token ?? '';
-        final currentPosts = currentState.posts;
-        final nextPage = (currentPosts.length / 5).ceil() + 1;
+        final currentPostsMap = Map<String, PostModel>.from(currentState.posts);
+        final pageSize = currentState.pageSize;
+        final nextPage = currentState.currentPage + 1;
 
-        final newPosts = await getPostUseCase(
-          category: null,
-          status: null,
-          userId: null,
-          searchQuery: null,
-          limit: 5,
+        // Indicate loading more
+        emit(currentState.copyWith(isLoadingMore: true));
+
+        final fetched = await getPostUseCase(
+          category: currentState.category,
+          status: currentState.status,
+          userId: currentState.userId,
+          searchQuery: currentState.searchQuery,
+          limit: pageSize,
           page: nextPage,
           token: token,
         );
 
-        final hasMore = newPosts.length == 5;
+        // Merge
+        for (final p in fetched.values) {
+          currentPostsMap[p.id] = p;
+        }
+
+        final hasMore = fetched.length == pageSize;
         emit(PostLoaded(
-          posts: [...currentPosts, ...newPosts],
+          posts: currentPostsMap,
           hasMore: hasMore,
+          isLoadingMore: false,
+          category: currentState.category,
+          status: currentState.status,
+          userId: currentState.userId,
+          searchQuery: currentState.searchQuery,
+          pageSize: pageSize,
+          currentPage: nextPage,
         ));
       } catch (e) {
         emit(PostError(message: e.toString()));
@@ -195,36 +221,39 @@ class PostBloc extends Bloc<PostEvent, PostState> {
     }
   }
 
-  Future<void> _onGetLike(getlike event, Emitter<PostState> emit) async {
-    final currentState = state;
-    List<PostModel> posts = [];
-    bool hasMore = true;
-    if (currentState is PostLoaded) {
-      posts = currentState.posts;
-      hasMore = currentState.hasMore;
-    }
-    try {
-      final result = await getlikedpostusecase(event.postId);
-      result.fold(
-        (failure) => emit(PostError(message: failure.message)),
-        (likeUserIds) {
-          // Map user IDs to LikeModel to satisfy PostModel types
+  // Future<void> _onGetLike(getlike event, Emitter<PostState> emit) async {
+  //   final currentState = state;
+  //   Map<String, PostModel> posts = {};
+  //   bool hasMore = true;
+  //   if (currentState is PostLoaded) {
+  //     posts = currentState.posts;
+  //     hasMore = currentState.hasMore;
+  //   }
+  //   try {
+  //     final result = await getlikedpostusecase(event.postId);
+  //     result.fold(
+  //       (failure) => emit(PostError(message: failure.message)),
+  //       (likeUserIds) {
+  //         // Map user IDs to LikeModel to satisfy PostModel types
 
-          // Update the specific post with new likes and count
-          final updatedPosts = posts.map((post) {
-            if (post.id == event.postId) {
-              return post.copyWith(likes: likeUserIds);
-            }
-            return post;
-          }).toList();
+  //         // Update the specific post with new likes and count
+  //         //time complexity O(1)
+  //         final updated = Map<String, PostModel>.from(posts);
+  //         updated[event.postId] = updated[event.postId]!.copyWith(
+  //           likes: likeUserIds,
+  //         );
 
-          emit(PostLoaded(posts: updatedPosts, hasMore: hasMore));
-        },
-      );
-    } catch (e) {
-      emit(PostError(message: e.toString()));
-    }
-  }
+  //         if (currentState is PostLoaded) {
+  //           emit(currentState.copyWith(posts: updated));
+  //         } else {
+  //           emit(PostLoaded(posts: updated, hasMore: hasMore));
+  //         }
+  //       },
+  //     );
+  //   } catch (e) {
+  //     emit(PostError(message: e.toString()));
+  //   }
+  // }
 
   Future<void> _onSetLike(setlike event, Emitter<PostState> emit) async {
     try {
@@ -235,7 +264,7 @@ class PostBloc extends Bloc<PostEvent, PostState> {
         (failure) => emit(PostError(message: failure.message)),
         (_) {
           // Refresh likes for this specific post
-          add(getlike(postId: event.postId));
+          // add(getlike(postId: event.postId));
         },
       );
     } catch (e) {
@@ -244,7 +273,7 @@ class PostBloc extends Bloc<PostEvent, PostState> {
   }
 
   Future<void> _onGetComment(getcomment event, Emitter<PostState> emit) async {
-    List<PostModel> posts = [];
+    Map<String, PostModel> posts = {};
     bool hasMore = true;
     if (state is PostLoaded) {
       posts = (state as PostLoaded).posts;
@@ -252,7 +281,13 @@ class PostBloc extends Bloc<PostEvent, PostState> {
     }
     try {
       print('[Comment][API][Request] postId=${event.postId}');
-      final result = await getCommentedPostUseCase(event.postId);
+      print(event.limit);
+      print(event.page);
+      final result = await getCommentedPostUseCase(
+        postId: event.postId,
+        page: event.page,
+        limit: event.limit,
+      );
       result.fold(
         (failure) {
           print(
@@ -260,36 +295,52 @@ class PostBloc extends Bloc<PostEvent, PostState> {
           emit(CommentError(message: failure.message));
         },
         (data) {
-          print(
-              '[Comment][API][Success] postId=${event.postId} count=${data.length}');
-          print(
-              '[Comment][Received] postId=${event.postId} count=${data.length}');
-          for (final c in data) {
-            final createdIso = c.createdAt.toIso8601String();
-            print('[Comment][Received][Item] id='
-                '${c.id} parent=${c.parentCommentId ?? ''} user=${c.userId} createdAt='
-                '$createdIso content="${c.comment}"');
-          }
-          if (posts.isEmpty ||
-              posts.where((p) => p.id == event.postId).isEmpty) {
-            // No posts in this bloc instance; emit a dedicated state with comments
-            print(
-                '[Comment][State] Emitting CommentsForPostLoaded for postId=${event.postId}');
-            emit(CommentsForPostLoaded(postId: event.postId, comments: data));
-          } else {
-            // Immutably update the specific post with new comments
-            final updatedPosts = posts.map((p) {
-              if (p.id == event.postId) {
-                return p.copyWith(
-                  comments: data,
-                  commentsCount: data.length,
-                );
+          // Merge strategy: if page == 1, replace; else append with de-dup by id
+          if (posts.isNotEmpty && posts[event.postId] != null) {
+            final updated = Map<String, PostModel>.from(posts);
+            final existing = updated[event.postId]!.comments;
+            final merged = <CommentModel>[];
+            if (event.page > 1) {
+              merged.addAll(existing);
+              merged.addAll(data);
+              final seen = <String>{};
+              final deduped = <CommentModel>[];
+              for (final c in merged) {
+                if (seen.add(c.id)) deduped.add(c);
               }
-              return p;
-            }).toList();
-            print(
-                '[Comment][State] Emitting PostLoaded with updated comments for postId=${event.postId}');
-            emit(PostLoaded(posts: updatedPosts, hasMore: hasMore));
+              updated[event.postId] =
+                  updated[event.postId]!.copyWith(comments: deduped);
+            } else {
+              updated[event.postId] =
+                  updated[event.postId]!.copyWith(comments: data);
+            }
+            emit((state as PostLoaded).copyWith(posts: updated));
+          } else if (state is CommentsForPostLoaded &&
+              (state as CommentsForPostLoaded).postId == event.postId) {
+            final current = (state as CommentsForPostLoaded).comments;
+            List<CommentModel> next;
+            if (event.page > 1) {
+              final merged = [...current, ...data];
+              final seen = <String>{};
+              next = [];
+              for (final c in merged) {
+                if (seen.add(c.id)) next.add(c);
+              }
+            } else {
+              next = data;
+            }
+            emit(CommentsForPostLoaded(postId: event.postId, comments: next));
+          } else {
+            // Fallback: create minimal PostLoaded with just this post's comments if needed
+            final updated = Map<String, PostModel>.from(posts);
+            if (updated[event.postId] != null) {
+              updated[event.postId] =
+                  updated[event.postId]!.copyWith(comments: data);
+              emit(PostLoaded(posts: updated, hasMore: hasMore));
+            } else {
+              // No post found in state; just emit comment list state
+              emit(CommentsForPostLoaded(postId: event.postId, comments: data));
+            }
           }
         },
       );
@@ -302,7 +353,7 @@ class PostBloc extends Bloc<PostEvent, PostState> {
 
   Future<void> _onSetComment(setcomment event, Emitter<PostState> emit) async {
     // Root comment only (no parentId)
-    List<PostModel> posts = [];
+    Map<String, PostModel> posts = {};
     bool hasMore = true;
     bool isCommentsOnly = false;
     List<CommentModel> commentsForPost = const [];
@@ -316,95 +367,26 @@ class PostBloc extends Bloc<PostEvent, PostState> {
           List<CommentModel>.from((state as CommentsForPostLoaded).comments);
     }
 
-    final user = await getCurrentuserUsercase();
-    final optimisticId = 'pending_${DateTime.now().millisecondsSinceEpoch}';
-    final optimisticComment = CommentModel(
-      comment: event.content,
-      userId: user?.user_id ?? '',
-      postId: event.postId,
-      createdAt: DateTime.now(),
-      id: optimisticId,
-      parentCommentId: null,
-    );
-    print(
-        '[Comment][Send][Optimistic] postId=${event.postId} tempId=$optimisticId parentId='
-        '${optimisticComment.parentCommentId ?? ''} content="${event.content}" state='
-        '${state.runtimeType}');
-
-    if (posts.isNotEmpty) {
-      final updatedPosts = posts.map((p) {
-        if (p.id == event.postId) {
-          final newComments = List<CommentModel>.from(p.comments)
-            ..add(optimisticComment);
-          return p.copyWith(
-            comments: newComments,
-            commentsCount: newComments.length,
-          );
-        }
-        return p;
-      }).toList();
-      emit(PostLoaded(posts: updatedPosts, hasMore: hasMore));
-    } else if (isCommentsOnly) {
-      final updated = List<CommentModel>.from(commentsForPost)
-        ..add(optimisticComment);
-      emit(CommentsForPostLoaded(postId: event.postId, comments: updated));
-    }
-
     try {
-      print(
-          '[Comment][API][Root][Request] postId=${event.postId} content="${event.content}"');
       final res = await setCommentUseCase(event.postId, event.content);
       res.fold(
         (failure) {
-          print(
-              '[Comment][API][Root][Failure] postId=${event.postId} err=${failure.message}');
-          if (posts.isNotEmpty) {
-            final reverted = posts.map((p) {
-              if (p.id == event.postId) {
-                final filtered =
-                    p.comments.where((c) => c.id != optimisticId).toList();
-                return p.copyWith(
-                  comments: filtered,
-                  commentsCount: filtered.length,
-                );
-              }
-              return p;
-            }).toList();
-            emit(PostLoaded(posts: reverted, hasMore: hasMore));
-          } else if (isCommentsOnly) {
-            final filtered =
-                commentsForPost.where((c) => c.id != optimisticId).toList();
-            emit(CommentsForPostLoaded(
-                postId: event.postId, comments: filtered));
-          }
           emit(CommentError(message: failure.message));
         },
-        (_) {
-          print(
-              '[Comment][API][Root][Success] postId=${event.postId} -> refresh');
-          add(getcomment(postId: event.postId));
+        (data) {
+          final updated = Map<String, PostModel>.from(posts);
+          updated[event.postId] = updated[event.postId]!.copyWith(
+            comments: List<CommentModel>.from(updated[event.postId]!.comments)
+              ..add(data),
+          );
+          if (state is PostLoaded) {
+            emit((state as PostLoaded).copyWith(posts: updated));
+          } else {
+            emit(PostLoaded(posts: updated, hasMore: hasMore));
+          }
         },
       );
     } catch (e) {
-      print('[Comment][API][Exception] postId=${event.postId} err=$e');
-      if (posts.isNotEmpty) {
-        final reverted = posts.map((p) {
-          if (p.id == event.postId) {
-            final filtered =
-                p.comments.where((c) => c.id != optimisticId).toList();
-            return p.copyWith(
-              comments: filtered,
-              commentsCount: filtered.length,
-            );
-          }
-          return p;
-        }).toList();
-        emit(PostLoaded(posts: reverted, hasMore: hasMore));
-      } else if (isCommentsOnly) {
-        final filtered =
-            commentsForPost.where((c) => c.id != optimisticId).toList();
-        emit(CommentsForPostLoaded(postId: event.postId, comments: filtered));
-      }
       emit(CommentError(message: e.toString()));
     }
   }
@@ -412,7 +394,7 @@ class PostBloc extends Bloc<PostEvent, PostState> {
   Future<void> _onSetReplyComment(
       setreplycomment event, Emitter<PostState> emit) async {
     // Reply comment (has parentId)
-    List<PostModel> posts = [];
+    Map<String, PostModel> posts = {};
     bool hasMore = true;
     bool isCommentsOnly = false;
     List<CommentModel> commentsForPost = const [];
@@ -425,104 +407,27 @@ class PostBloc extends Bloc<PostEvent, PostState> {
       commentsForPost =
           List<CommentModel>.from((state as CommentsForPostLoaded).comments);
     }
-
-    final user = await getCurrentuserUsercase();
-    final optimisticId = 'pending_${DateTime.now().millisecondsSinceEpoch}';
-    final optimisticComment = CommentModel(
-      comment: event.content,
-      userId: user?.user_id ?? '',
-      postId: event.postId,
-      createdAt: DateTime.now(),
-      id: optimisticId,
-      parentCommentId: event.parentCommentId,
-    );
-    print(
-        '[Comment][Send][Optimistic] postId=${event.postId} tempId=$optimisticId parentId='
-        '${optimisticComment.parentCommentId ?? ''} content="${event.content}" state='
-        '${state.runtimeType}');
-
-    if (posts.isNotEmpty) {
-      final updatedPosts = posts.map((p) {
-        if (p.id == event.postId) {
-          final newComments = List<CommentModel>.from(p.comments)
-            ..add(optimisticComment);
-          return p.copyWith(
-            comments: newComments,
-            commentsCount: newComments.length,
-          );
-        }
-        return p;
-      }).toList();
-      emit(PostLoaded(posts: updatedPosts, hasMore: hasMore));
-    } else if (isCommentsOnly) {
-      final updated = List<CommentModel>.from(commentsForPost)
-        ..add(optimisticComment);
-      emit(CommentsForPostLoaded(postId: event.postId, comments: updated));
-    }
-
     try {
-      final parentIdForRequest = optimisticComment.parentCommentId ?? '';
-      if (parentIdForRequest.isEmpty) {
-        emit(const CommentError(message: 'Missing parentCommentId for reply'));
-        return;
-      }
-      print(
-          '[Comment][API][Reply][Request] postId=${event.postId} parentId=$parentIdForRequest content="${event.content}"');
       final res = await setReplyCommentUseCase(
-          event.postId, parentIdForRequest, event.content);
+          event.postId, event.parentCommentId, event.content);
       res.fold(
         (failure) {
-          print(
-              '[Comment][API][Reply][Failure] postId=${event.postId} err=${failure.message}');
-          if (posts.isNotEmpty) {
-            final reverted = posts.map((p) {
-              if (p.id == event.postId) {
-                final filtered =
-                    p.comments.where((c) => c.id != optimisticId).toList();
-                return p.copyWith(
-                  comments: filtered,
-                  commentsCount: filtered.length,
-                );
-              }
-              return p;
-            }).toList();
-            emit(PostLoaded(posts: reverted, hasMore: hasMore));
-          } else if (isCommentsOnly) {
-            final filtered =
-                commentsForPost.where((c) => c.id != optimisticId).toList();
-            emit(CommentsForPostLoaded(
-                postId: event.postId, comments: filtered));
-          }
           emit(CommentError(message: failure.message));
         },
-        (_) {
-          print(
-              '[Comment][API][Reply][Success] postId=${event.postId} parentId=$parentIdForRequest');
-          // emit(ReplySuccess(
-          //     postId: event.postId, parentCommentId: parentIdForRequest));
-          add(getcomment(postId: event.postId));
+        (data) {
+          final updated = Map<String, PostModel>.from(posts);
+          updated[event.postId] = updated[event.postId]!.copyWith(
+            comments: List<CommentModel>.from(updated[event.postId]!.comments)
+              ..add(data),
+          );
+          if (state is PostLoaded) {
+            emit((state as PostLoaded).copyWith(posts: updated));
+          } else {
+            emit(PostLoaded(posts: updated, hasMore: hasMore));
+          }
         },
       );
     } catch (e) {
-      print('[Comment][API][Exception] postId=${event.postId} err=$e');
-      if (posts.isNotEmpty) {
-        final reverted = posts.map((p) {
-          if (p.id == event.postId) {
-            final filtered =
-                p.comments.where((c) => c.id != optimisticId).toList();
-            return p.copyWith(
-              comments: filtered,
-              commentsCount: filtered.length,
-            );
-          }
-          return p;
-        }).toList();
-        emit(PostLoaded(posts: reverted, hasMore: hasMore));
-      } else if (isCommentsOnly) {
-        final filtered =
-            commentsForPost.where((c) => c.id != optimisticId).toList();
-        emit(CommentsForPostLoaded(postId: event.postId, comments: filtered));
-      }
       emit(CommentError(message: e.toString()));
     }
   }

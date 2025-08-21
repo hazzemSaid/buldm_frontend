@@ -135,7 +135,7 @@ Future<void> init() async {
   final dio = Dio(BaseOptions(
     // baseUrl: 'https://buldm.vercel.app/api/v1',
     //  for testing on real device
-    baseUrl: 'http://192.168.1.12:3000/api/v1',
+    baseUrl: 'http://192.168.1.15:3000/api/v1',
     headers: {
       'Content-Type': 'application/json',
     },

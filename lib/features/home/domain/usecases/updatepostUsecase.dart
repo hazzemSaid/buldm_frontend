@@ -7,7 +7,11 @@ class UpdatePostUseCase {
 
   UpdatePostUseCase({required this.postRepository});
 
-  Future<Either<Failure, void>> call(String postId, Map<String, dynamic> data) {
-    return postRepository.updatePost(postId, data);
+  Future<Either<Failure, void>> call(
+    String token,
+    String postId,
+    Map<String, dynamic> data,
+  ) {
+    return postRepository.updatePost(token, postId, data);
   }
 }

@@ -25,4 +25,16 @@ class LocationModel extends LocationEntity {
       'placeName': placeName,
     };
   }
+
+  LocationModel copyWith({
+    String? type,
+    List<double>? coordinates,
+    String? placeName,
+  }) {
+    return LocationModel(
+      type: type ?? this.type,
+      coordinates: coordinates ?? this.coordinates,
+      placeName: placeName ?? this.placeName,
+    );
+  }
 }
