@@ -1,4 +1,4 @@
-// ✅ في buildPostList.dart
+// features/home/persentation/view/widgets/buildPostList.dart
 import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
 import 'package:buldm/features/home/persentation/view/screens/PostWidget.dart';
 import 'package:buldm/l10n/app_localizations.dart';
@@ -15,7 +15,8 @@ class BuildPostList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final localization = AppLocalizations.of(context)!;
-    return BlocSelector<PostBloc, PostState, PostLoaded?>( // ✅ Switched to BlocSelector
+    return BlocSelector<PostBloc, PostState, PostLoaded?>(
+      // ✅ Switched to BlocSelector
       selector: (state) => state is PostLoaded ? state : null,
       builder: (context, loaded) {
         if (loaded == null) {
@@ -77,6 +78,7 @@ class BuildPostList extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(
                       horizontal: 8.0, vertical: 4.0),
                   child: PostWidget(
+                    singlePost: false,
                     post: post,
                     index: post.id,
                   ),
@@ -92,7 +94,8 @@ class BuildPostList extends StatelessWidget {
             addAutomaticKeepAlives: true, // ✅ Added delegate optimizations
             addRepaintBoundaries: true,
             addSemanticIndexes: false,
-            findChildIndexCallback: (Key key) { // ✅ Added findChildIndexCallback
+            findChildIndexCallback: (Key key) {
+              // ✅ Added findChildIndexCallback
               if (key is ValueKey<String>) {
                 final id = key.value;
                 for (int i = 0; i < postIds.length; i++) {

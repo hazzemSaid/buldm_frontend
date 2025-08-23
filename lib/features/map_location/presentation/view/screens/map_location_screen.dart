@@ -1,3 +1,4 @@
+// features/map_location/presentation/view/screens/map_location_screen.dart
 import 'package:buldm/core/Dependency_njection/service_locator.dart';
 import 'package:buldm/core/services/LocationService.dart';
 import 'package:buldm/features/Add_Post/data/model/mapstyledata_model.dart';
@@ -177,6 +178,7 @@ class _MapLocationScreen extends State<MapLocationScreen>
                                                 child: PostWidget(
                                                   post: post,
                                                   index: post.id,
+                                                  singlePost: false,
                                                 ),
                                               ),
                                             )),

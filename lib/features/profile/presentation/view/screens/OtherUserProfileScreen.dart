@@ -1,3 +1,4 @@
+// features/profile/presentation/view/screens/OtherUserProfileScreen.dart
 import 'package:buldm/core/Dependency_njection/service_locator.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_state.dart';
@@ -445,6 +446,7 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
                                 child: PostWidget(
                                   post: state.posts[index],
                                   index: state.posts[index].id,
+                                  singlePost: false,
                                 ),
                               );
                             },

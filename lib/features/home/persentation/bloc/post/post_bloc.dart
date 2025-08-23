@@ -301,17 +301,52 @@ class PostBloc extends Bloc<PostEvent, PostState> {
         },
         (data) {
           // Merge strategy: if page == 1, replace; else append with de-dup by id
-          if (event.page == 1) {
-            posts[event.postId] = posts[event.postId]!.copyWith(
-              comments: data,
-            );
+          if (posts.isNotEmpty && posts[event.postId] != null) {
+            final updated = Map<String, PostModel>.from(posts);
+            final existing = updated[event.postId]!.comments;
+            final merged = <CommentModel>[];
+            if (event.page > 1) {
+              merged.addAll(existing);
+              merged.addAll(data);
+              final seen = <String>{};
+              final deduped = <CommentModel>[];
+              for (final c in merged) {
+                if (seen.add(c.id)) deduped.add(c);
+              }
+              updated[event.postId] =
+                  updated[event.postId]!.copyWith(comments: deduped);
+            } else {
+              updated[event.postId] =
+                  updated[event.postId]!.copyWith(comments: data);
+            }
+            emit((state as PostLoaded).copyWith(posts: updated));
+          } else if (state is CommentsForPostLoaded &&
+              (state as CommentsForPostLoaded).postId == event.postId) {
+            final current = (state as CommentsForPostLoaded).comments;
+            List<CommentModel> next;
+            if (event.page > 1) {
+              final merged = [...current, ...data];
+              final seen = <String>{};
+              next = [];
+              for (final c in merged) {
+                if (seen.add(c.id)) next.add(c);
+              }
+            } else {
+              next = data;
+            }
+            emit(CommentsForPostLoaded(postId: event.postId, comments: next));
           } else {
-            posts[event.postId] = posts[event.postId]!.copyWith(
-              comments: List<CommentModel>.from(posts[event.postId]!.comments)
-                ..addAll(data),
-            );
+            // Fallback: create minimal PostLoaded with just this post's comments if needed
+            final updated = Map<String, PostModel>.from(posts);
+            if (updated[event.postId] != null) {
+              updated[event.postId] =
+                  updated[event.postId]!.copyWith(comments: data);
+              emit(PostLoaded(posts: updated, hasMore: hasMore));
+            } else {
+              // No post found in state; just emit comment list state
+              emit(CommentsForPostLoaded(postId: event.postId, comments: data));
+            }
           }
-          emit(PostLoaded(posts: posts));
         },
       );
     } catch (e) {

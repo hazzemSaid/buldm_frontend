@@ -15,9 +15,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class BuildPostActions extends StatefulWidget {
-  const BuildPostActions({super.key, required this.post});
+  const BuildPostActions(
+      {super.key, required this.post, required this.singlePost});
   final PostEntity post;
-
+  final bool singlePost;
   @override
   State<BuildPostActions> createState() => _BuildPostActionsState();
 }
@@ -197,31 +198,33 @@ class _BuildPostActionsState extends State<BuildPostActions> {
                   );
                 },
               ),
-              _glassAction(
-                icon: Icons.mode_comment_outlined,
-                label: "Comment",
-                count: widget.post.commentsCount,
-                onTap: () async {
-                  // Open comments bottom sheet. TODO: connect to real comments list when available.
-                  final userbloc = context.read<UserBloc>();
-                  final postbloc = context.read<PostBloc>();
-                  await showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (context) => MultiBlocProvider(
-                      providers: [
-                        BlocProvider.value(value: postbloc),
-                        BlocProvider.value(value: userbloc),
-                      ],
-                      child: CommentBottomSheet(post: widget.post),
-                    ),
-                  );
-                },
-                iconColor: Colors.deepPurpleAccent,
-                surfaceColor: surfaceColor,
-                textColor: textColor,
-              ),
+              !widget.singlePost
+                  ? _glassAction(
+                      icon: Icons.mode_comment_outlined,
+                      label: "Comment",
+                      count: widget.post.commentsCount,
+                      onTap: () async {
+                        // Open comments bottom sheet. TODO: connect to real comments list when available.
+                        final userbloc = context.read<UserBloc>();
+                        final postbloc = context.read<PostBloc>();
+                        await showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (context) => MultiBlocProvider(
+                            providers: [
+                              BlocProvider.value(value: postbloc),
+                              BlocProvider.value(value: userbloc),
+                            ],
+                            child: CommentBottomSheet(post: widget.post),
+                          ),
+                        );
+                      },
+                      iconColor: Colors.deepPurpleAccent,
+                      surfaceColor: surfaceColor,
+                      textColor: textColor,
+                    )
+                  : const SizedBox.shrink(),
               _glassAction(
                 icon: Icons.pin_drop_outlined,
                 label: "Location",

@@ -1,11 +1,12 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:buldm/core/Dependency_njection/service_locator.dart';
+import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
+import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
 import 'package:buldm/features/notifications/presentation/bloc/notification_bloc.dart';
 import 'package:buldm/features/notifications/presentation/bloc/notification_state.dart';
 import 'package:buldm/features/notifications/presentation/view/screens/notification_screen.dart';
-import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
-import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class NotificationBadge extends StatelessWidget {
   final String userId;
@@ -26,7 +27,7 @@ class NotificationBadge extends StatelessWidget {
             stream: state.unreadCountStream,
             builder: (context, snapshot) {
               final unreadCount = snapshot.data ?? 0;
-              
+
               return Stack(
                 children: [
                   IconButton(
@@ -34,21 +35,22 @@ class NotificationBadge extends StatelessWidget {
                       FontAwesomeIcons.bell,
                       color: Theme.of(context).colorScheme.onSurface,
                     ),
-                    onPressed: onTap ?? () {
-                      final postBloc = context.read<PostBloc>();
-                      final userBloc = context.read<UserBloc>();
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => MultiBlocProvider(
-                            providers: [
-                              BlocProvider<PostBloc>.value(value: postBloc),
-                              BlocProvider<UserBloc>.value(value: userBloc),
-                            ],
-                            child: const NotificationScreen(),
-                          ),
-                        ),
-                      );
-                    },
+                    onPressed: onTap ??
+                        () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => MultiBlocProvider(
+                                providers: [
+                                  BlocProvider<PostBloc>(
+                                      create: (context) => sl<PostBloc>()),
+                                  BlocProvider<UserBloc>(
+                                      create: (context) => sl<UserBloc>()),
+                                ],
+                                child: const NotificationScreen(),
+                              ),
+                            ),
+                          );
+                        },
                   ),
                   if (unreadCount > 0)
                     Positioned(
@@ -80,28 +82,29 @@ class NotificationBadge extends StatelessWidget {
             },
           );
         }
-        
+
         // Fallback when bloc is not loaded
         return IconButton(
           icon: Icon(
             FontAwesomeIcons.bell,
             color: Theme.of(context).colorScheme.onSurface,
           ),
-          onPressed: onTap ?? () {
-            final postBloc = context.read<PostBloc>();
-            final userBloc = context.read<UserBloc>();
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => MultiBlocProvider(
-                  providers: [
-                    BlocProvider<PostBloc>.value(value: postBloc),
-                    BlocProvider<UserBloc>.value(value: userBloc),
-                  ],
-                  child: const NotificationScreen(),
-                ),
-              ),
-            );
-          },
+          onPressed: onTap ??
+              () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => MultiBlocProvider(
+                      providers: [
+                        BlocProvider<PostBloc>(
+                            create: (context) => sl<PostBloc>()),
+                        BlocProvider<UserBloc>(
+                            create: (context) => sl<UserBloc>()),
+                      ],
+                      child: const NotificationScreen(),
+                    ),
+                  ),
+                );
+              },
         );
       },
     );

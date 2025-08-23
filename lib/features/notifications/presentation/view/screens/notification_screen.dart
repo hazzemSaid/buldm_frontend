@@ -76,188 +76,187 @@ class _NotificationScreenState extends State<NotificationScreen> {
   Widget build(BuildContext context) {
     // Use PostBloc, UserBloc, NotificationBloc from ancestors (e.g., MainLayout)
     return Scaffold(
-          backgroundColor: Theme.of(context).colorScheme.surface,
-          appBar: AppBar(
-            title: const Text(
-              'Notifications',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            backgroundColor: Theme.of(context).colorScheme.surface,
-            elevation: 0,
-            actions: [
-              BlocBuilder<AuthCubit, AuthState>(
-                builder: (context, authState) {
-                  if (authState is Authenticated) {
-                    return StreamBuilder<int>(
-                      stream: context.read<NotificationBloc>().state
-                              is NotificationLoaded
-                          ? (context.read<NotificationBloc>().state
-                                  as NotificationLoaded)
-                              .unreadCountStream
-                          : Stream.value(0),
-                      builder: (context, snapshot) {
-                        final unreadCount = snapshot.data ?? 0;
-                        if (unreadCount > 0) {
-                          return TextButton(
-                            onPressed: () {
-                              context.read<NotificationBloc>().add(
-                                    MarkAllAsRead(authState.user.user_id),
-                                  );
-                            },
-                            child: Text(
-                              'Mark all read',
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.primary,
-                                fontSize: 14,
-                              ),
-                            ),
-                          );
-                        }
-                        return const SizedBox.shrink();
-                      },
-                    );
-                  }
-                  return const SizedBox.shrink();
-                },
-              ),
-            ],
-          ),
-          body: BlocBuilder<NotificationBloc, NotificationState>(
-            builder: (context, state) {
-              if (state is NotificationLoading) {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-              }
-
-              if (state is NotificationError) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.error_outline,
-                        size: 64,
-                        color: Theme.of(context).colorScheme.error,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Error loading notifications',
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        state.message,
-                        style: Theme.of(context).textTheme.bodyMedium,
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: _loadNotifications,
-                        child: const Text('Retry'),
-                      ),
-                    ],
-                  ),
-                );
-              }
-
-              if (state is NotificationLoaded) {
-                return StreamBuilder<List<NotificationModel>>(
-                  stream: state.notificationsStream,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      appBar: AppBar(
+        title: const Text(
+          'Notifications',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        elevation: 0,
+        actions: [
+          BlocBuilder<AuthCubit, AuthState>(
+            builder: (context, authState) {
+              if (authState is Authenticated) {
+                return StreamBuilder<int>(
+                  stream: context.read<NotificationBloc>().state
+                          is NotificationLoaded
+                      ? (context.read<NotificationBloc>().state
+                              as NotificationLoaded)
+                          .unreadCountStream
+                      : Stream.value(0),
                   builder: (context, snapshot) {
-                    if (snapshot.hasError) {
-                      return Center(
-                        child: Text(
-                          'Error: ${snapshot.error}',
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      );
-                    }
-
-                    if (!snapshot.hasData) {
-                      return const Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    }
-
-                    final notifications = snapshot.data!;
-
-                    // Load user and post data when notifications change
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      print(
-                          '📱 Loading data for ${notifications.length} notifications');
-                      _loadUserData(notifications);
-                      _loadPostData(notifications);
-                    });
-
-                    if (notifications.isEmpty) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              FontAwesomeIcons.bell,
-                              size: 64,
-                              color: Theme.of(context).colorScheme.outline,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'No notifications yet',
-                              style: Theme.of(context).textTheme.titleLarge,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'When you get notifications, they\'ll appear here',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.copyWith(
-                                    color:
-                                        Theme.of(context).colorScheme.outline,
-                                  ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-
-                    return RefreshIndicator(
-                      onRefresh: () async {
-                        _loadNotifications();
-                      },
-                      child: ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: notifications.length,
-                        itemBuilder: (context, index) {
-                          final notification = notifications[index];
-                          return NotificationTile(
-                            notification: notification,
-                            onTap: () {
-                              _handleNotificationTap(notification);
-                            },
-                            onMarkAsRead: () {
-                              context.read<NotificationBloc>().add(
-                                    MarkAsRead(notification.id),
-                                  );
-                            },
-                            onDelete: () {
-                              _showDeleteDialog(notification);
-                            },
-                          );
+                    final unreadCount = snapshot.data ?? 0;
+                    if (unreadCount > 0) {
+                      return TextButton(
+                        onPressed: () {
+                          context.read<NotificationBloc>().add(
+                                MarkAllAsRead(authState.user.user_id),
+                              );
                         },
-                      ),
-                    );
+                        child: Text(
+                          'Mark all read',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontSize: 14,
+                          ),
+                        ),
+                      );
+                    }
+                    return const SizedBox.shrink();
                   },
                 );
               }
-
-              return const Center(
-                child: Text('No notifications'),
-              );
+              return const SizedBox.shrink();
             },
           ),
-        );
+        ],
+      ),
+      body: BlocBuilder<NotificationBloc, NotificationState>(
+        builder: (context, state) {
+          if (state is NotificationLoading) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          if (state is NotificationError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    size: 64,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Error loading notifications',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    state.message,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _loadNotifications,
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          if (state is NotificationLoaded) {
+            return StreamBuilder<List<NotificationModel>>(
+              stream: state.notificationsStream,
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      'Error: ${snapshot.error}',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  );
+                }
+
+                if (!snapshot.hasData) {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+
+                final notifications = snapshot.data!;
+
+                // Load user and post data when notifications change
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  print(
+                      '📱 Loading data for ${notifications.length} notifications');
+                  _loadUserData(notifications);
+                  _loadPostData(notifications);
+                });
+
+                if (notifications.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          FontAwesomeIcons.bell,
+                          size: 64,
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No notifications yet',
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'When you get notifications, they\'ll appear here',
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.outline,
+                              ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return RefreshIndicator(
+                  onRefresh: () async {
+                    _loadNotifications();
+                  },
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: notifications.length,
+                    itemBuilder: (context, index) {
+                      final notification = notifications[index];
+                      return NotificationTile(
+                        notification: notification,
+                        onTap: () {
+                          _handleNotificationTap(notification);
+                        },
+                        onMarkAsRead: () {
+                          context.read<NotificationBloc>().add(
+                                MarkAsRead(notification.id),
+                              );
+                        },
+                        onDelete: () {
+                          _showDeleteDialog(notification);
+                        },
+                      );
+                    },
+                  ),
+                );
+              },
+            );
+          }
+
+          return const Center(
+            child: Text('No notifications'),
+          );
+        },
+      ),
+    );
   }
 
   void _handleNotificationTap(NotificationModel notification) {

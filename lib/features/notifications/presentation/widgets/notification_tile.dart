@@ -1,12 +1,12 @@
 // features/notifications/presentation/widgets/notification_tile.dart
+import 'package:buldm/features/home/data/models/post_model.dart';
+import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
+import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
+import 'package:buldm/features/home/persentation/bloc/user/user_state.dart';
+import 'package:buldm/features/notifications/data/models/notification_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:buldm/features/notifications/data/models/notification_model.dart';
-import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
-import 'package:buldm/features/home/persentation/bloc/user/user_state.dart';
-import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
-import 'package:buldm/features/home/data/models/post_model.dart';
 
 class NotificationTile extends StatelessWidget {
   final NotificationModel notification;
@@ -69,7 +69,18 @@ class NotificationTile extends StatelessWidget {
                     builder: (context, userState) {
                       String? userName;
                       String? userAvatar;
-
+                      if (userState is UserLoading) {
+                        return const Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      } else if (userState is UserError) {
+                        return Center(
+                          child: Text(
+                            userState.message,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        );
+                      }
                       if (userState is UserLoaded) {
                         final user = userState.users[notification.userId];
 
@@ -121,8 +132,21 @@ class NotificationTile extends StatelessWidget {
                             Expanded(
                               child: BlocBuilder<UserBloc, UserState>(
                                 builder: (context, userState) {
-                                  String displayName =
-                                      'User ${notification.userId}';
+                                  String displayName = 'someone';
+                                  if (userState is UserLoading) {
+                                    return const Center(
+                                      child: CircularProgressIndicator(),
+                                    );
+                                  } else if (userState is UserError) {
+                                    return Center(
+                                      child: Text(
+                                        userState.message,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium,
+                                      ),
+                                    );
+                                  }
 
                                   if (userState is UserLoaded) {
                                     final user =

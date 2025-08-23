@@ -1,3 +1,4 @@
+// features/profile/presentation/view/screens/profile_screen.dart
 import 'package:buldm/features/auth/data/model/usermodel.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_state.dart';
@@ -461,6 +462,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           child: PostWidget(
                             post: state.posts[index],
                             index: state.posts[index].id,
+                            singlePost: false,
                           ),
                         );
                       },

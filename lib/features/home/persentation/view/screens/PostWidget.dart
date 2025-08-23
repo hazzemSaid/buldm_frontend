@@ -10,7 +10,12 @@ import 'package:flutter/material.dart';
 class PostWidget extends StatefulWidget {
   final PostEntity post;
   final String index;
-  const PostWidget({super.key, required this.post, required this.index});
+  final bool singlePost;
+  const PostWidget(
+      {super.key,
+      required this.post,
+      required this.index,
+      required this.singlePost});
 
   @override
   State<PostWidget> createState() => _PostWidgetState();
@@ -82,6 +87,7 @@ class _PostWidgetState extends State<PostWidget>
             alignment: Alignment.center,
             child: BuildPostActions(
               post: widget.post,
+              singlePost: widget.singlePost,
             ),
           ),
         ],
