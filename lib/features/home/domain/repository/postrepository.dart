@@ -1,3 +1,4 @@
+// features/home/domain/repository/postrepository.dart
 import 'package:buldm/core/failure/failure.dart';
 import 'package:buldm/features/auth/domain/entities/userentities.dart';
 import 'package:buldm/features/home/data/models/comments.dart';
@@ -15,7 +16,7 @@ abstract class Postrepository {
     int? page,
     required token,
   });
-  Future<PostModel> getPostById(String postId);
+  Future<PostModel> getPostById(String postId, String token);
   Future<Map<String, PostModel>> getPostsByUserId(String userId);
   Future<Map<String, PostModel>> getPostsByCategory(String category);
   Future<Map<String, PostModel>> getPostsByStatus(String status);

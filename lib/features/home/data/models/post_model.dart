@@ -1,3 +1,4 @@
+// features/home/data/models/post_model.dart
 import 'package:buldm/features/auth/data/model/usermodel.dart';
 import 'package:buldm/features/home/data/models/PredictedItem_model.dart';
 import 'package:buldm/features/home/data/models/comments.dart';
@@ -154,5 +155,27 @@ class PostModel extends PostEntity {
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
     };
+  }
+
+  fromModel(PostModel postModel) {
+    return PostModel(
+      id: postModel.id,
+      commentsCount: postModel.commentsCount,
+      comments: postModel.comments,
+      likes: postModel.likes,
+      user: postModel.user,
+      title: postModel.title,
+      description: postModel.description,
+      images: postModel.images,
+      location: postModel.location,
+      status: postModel.status,
+      category: postModel.category,
+      predictedItems: postModel.predictedItems,
+      user_id: postModel.user_id,
+      contactInfo: postModel.contactInfo,
+      when: postModel.when,
+      createdAt: postModel.createdAt,
+      updatedAt: postModel.updatedAt,
+    );
   }
 }

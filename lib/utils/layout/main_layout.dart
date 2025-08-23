@@ -1,3 +1,4 @@
+// utils/layout/main_layout.dart
 import 'package:buldm/core/Dependency_njection/service_locator.dart';
 import 'package:buldm/features/Add_Post/presentation/bloc/imagespicker_cubit/imagespicker_cubit.dart';
 import 'package:buldm/features/Add_Post/presentation/view/screens/add_post_screen.dart';
@@ -5,6 +6,8 @@ import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
 import 'package:buldm/features/home/persentation/view/screens/home_screen.dart';
 import 'package:buldm/features/map_location/presentation/view/screens/map_location_screen.dart';
+import 'package:buldm/features/notifications/data/repositories/notification_repository.dart';
+import 'package:buldm/features/notifications/presentation/bloc/notification_bloc.dart';
 import 'package:buldm/features/profile/presentation/blocs/profile/profile_cubit.dart';
 import 'package:buldm/features/profile/presentation/blocs/profilechanges/profilechanges_cubit.dart';
 import 'package:buldm/features/profile/presentation/view/screens/profile_screen.dart';
@@ -55,6 +58,9 @@ class _MainLayoutState extends State<MainLayout> {
         BlocProvider<UserBloc>(
           create: (context) => sl<UserBloc>(),
         ),
+        BlocProvider<NotificationBloc>(
+          create: (_) => NotificationBloc(sl<NotificationRepository>()),
+        )
       ],
       child: Builder(
         builder: (context) {

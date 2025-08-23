@@ -1,3 +1,4 @@
+// features/home/data/datasource/remote_post_data_source.dart
 import 'package:buldm/core/failure/failure.dart';
 import 'package:buldm/features/auth/data/model/usermodel.dart';
 import 'package:buldm/features/home/data/models/comments.dart';
@@ -19,7 +20,7 @@ abstract class RemotePostDataSource {
     int? page,
     required String token,
   });
-  Future<PostModel> getPostById(String postId);
+  Future<PostModel> getPostById(String postId, String token);
   Future<Map<String, PostModel>> getPostsByUserId(String userId);
   Future<Map<String, PostModel>> getPostsByCategory(String category);
   Future<Map<String, PostModel>> getPostsByStatus(String status);
@@ -79,9 +80,30 @@ class RemotePostDataSourceImpl implements RemotePostDataSource {
   }
 
   @override
-  Future<PostModel> getPostById(String postId) {
-    // TODO: implement getPostById
-    throw UnimplementedError();
+  Future<PostModel> getPostById(String postId, String token) async {
+    try {
+      final response = await dio.get(
+        '/post/$postId',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+          },
+        ),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = response.data['data'] ?? response.data;
+        return PostModel.fromJson(data);
+      } else {
+        throw Exception('Failed to fetch post');
+      }
+    } on DioException catch (e) {
+      if (e.response != null) {
+        throw Exception(e.response?.data['message'] ?? e.message);
+      } else {
+        throw Exception(e.message);
+      }
+    }
   }
 
   @override

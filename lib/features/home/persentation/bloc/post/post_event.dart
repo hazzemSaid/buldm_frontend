@@ -1,3 +1,4 @@
+// features/home/persentation/bloc/post/post_event.dart
 part of 'post_bloc.dart';
 
 class PostEvent extends Equatable {
@@ -184,6 +185,18 @@ class setreplycomment extends PostEvent {
 
   @override
   List<Object?> get props => [postId, parentCommentId, content];
+
+  @override
+  bool? get stringify => true;
+}
+
+class LoadIndividualPostEvent extends PostEvent {
+  final String postId;
+
+  const LoadIndividualPostEvent({required this.postId});
+
+  @override
+  List<Object?> get props => [postId];
 
   @override
   bool? get stringify => true;

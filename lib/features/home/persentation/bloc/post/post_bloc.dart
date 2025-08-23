@@ -1,3 +1,4 @@
+// features/home/persentation/bloc/post/post_bloc.dart
 import 'dart:async';
 import 'dart:io';
 
@@ -12,6 +13,7 @@ import 'package:buldm/features/home/domain/usecases/changeikepostUsecase.dart';
 import 'package:buldm/features/home/domain/usecases/createPostUseCase.dart';
 import 'package:buldm/features/home/domain/usecases/deletpostUsecase.dart';
 import 'package:buldm/features/home/domain/usecases/getPostUseCase.dart';
+import 'package:buldm/features/home/domain/usecases/getIndividualPostUseCase.dart';
 import 'package:buldm/features/home/domain/usecases/getcommentedpostUsecase.dart';
 import 'package:buldm/features/home/domain/usecases/getlikedpostUsecase.dart';
 import 'package:buldm/features/home/domain/usecases/setcommentUsecase.dart';
@@ -27,6 +29,7 @@ class PostBloc extends Bloc<PostEvent, PostState> {
   bool isFetchingMore = false;
 
   final GetPostUseCase getPostUseCase;
+  final GetIndividualPostUseCase getIndividualPostUseCase;
   final GetCurrentuserUsercase getCurrentuserUsercase;
   final Createpostusecase createPostUsecase;
   final GetCommentedPostUseCase getCommentedPostUseCase;
@@ -39,6 +42,7 @@ class PostBloc extends Bloc<PostEvent, PostState> {
   PostBloc(
       {required this.getCurrentuserUsercase,
       required this.getPostUseCase,
+      required this.getIndividualPostUseCase,
       required this.createPostUsecase,
       required this.getCommentedPostUseCase,
       required this.updatePostUseCase,
@@ -60,6 +64,7 @@ class PostBloc extends Bloc<PostEvent, PostState> {
     on<getcomment>(_onGetComment);
     on<setcomment>(_onSetComment);
     on<setreplycomment>(_onSetReplyComment);
+    on<LoadIndividualPostEvent>(_onLoadIndividualPost);
   }
 
   Future<void> _onLoadPost(LoadPostEvent event, Emitter<PostState> emit) async {
@@ -429,6 +434,36 @@ class PostBloc extends Bloc<PostEvent, PostState> {
       );
     } catch (e) {
       emit(CommentError(message: e.toString()));
+    }
+  }
+
+  Future<void> _onLoadIndividualPost(
+      LoadIndividualPostEvent event, Emitter<PostState> emit) async {
+    try {
+      final user = await getCurrentuserUsercase();
+      final token = user?.token ?? '';
+      final post =
+          await getIndividualPostUseCase(postId: event.postId, token: token);
+      print(post);
+
+      // Get current state to merge the new post
+      final currentState = state;
+      if (currentState is PostLoaded) {
+        final updatedPosts = Map<String, PostModel>.from(currentState.posts);
+        updatedPosts[post.id] = post;
+
+        emit(currentState.copyWith(posts: updatedPosts));
+      } else {
+        // If no posts loaded yet, create a new PostLoaded state with just this post
+        emit(PostLoaded(
+          posts: {post.id: post},
+          hasMore: false,
+          pageSize: 1,
+          currentPage: 1,
+        ));
+      }
+    } catch (e) {
+      emit(PostError(message: e.toString()));
     }
   }
 }

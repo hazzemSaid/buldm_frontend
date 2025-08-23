@@ -1,3 +1,4 @@
+// features/home/persentation/view/screens/home_screen.dart
 import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_event.dart';
@@ -78,7 +79,8 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           },
           child: CustomScrollView(
-            cacheExtent: 1000.0, // prebuild ~1k px ahead for smoother fast scrolls
+            cacheExtent:
+                1000.0, // prebuild ~1k px ahead for smoother fast scrolls
             physics: const AlwaysScrollableScrollPhysics(),
             controller: widget.scrollController,
             slivers: const <Widget>[

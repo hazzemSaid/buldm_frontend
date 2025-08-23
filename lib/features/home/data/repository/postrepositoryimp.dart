@@ -1,3 +1,4 @@
+// features/home/data/repository/postrepositoryimp.dart
 import 'package:buldm/core/failure/failure.dart';
 import 'package:buldm/features/auth/domain/entities/userentities.dart';
 import 'package:buldm/features/home/data/datasource/remote_post_data_source.dart';
@@ -21,8 +22,8 @@ class Postrepositoryimp extends Postrepository {
   }
 
   @override
-  Future<PostModel> getPostById(String postId) {
-    return remotePostDataSource.getPostById(postId);
+  Future<PostModel> getPostById(String postId, String token) {
+    return remotePostDataSource.getPostById(postId, token);
   }
 
   @override

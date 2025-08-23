@@ -1,4 +1,5 @@
-import 'package:buldm/core/notifications/notification_service.dart';
+// features/home/persentation/view/screens/CommentBottomSheet.dart
+import 'package:buldm/features/notifications/integration/notification_integration.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_state.dart';
 import 'package:buldm/features/home/data/models/comments.dart';
@@ -7,7 +8,6 @@ import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_event.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_state.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -149,9 +149,10 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
     required bool isReply,
   }) async {
     if (!kEnableCommentNotification) {
-      debugPrint('🔕 Comment push disabled by feature flag');
+      debugPrint('🔕 Comment notification disabled by feature flag');
       return;
     }
+
     try {
       // Get current user (sender)
       final authState = context.read<AuthCubit>().state;
@@ -165,51 +166,32 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
       } else {
         toUid = widget.post.user_id;
       }
+
       if (toUid == null || toUid.isEmpty) return;
       if (toUid == me.user_id) return; // don't notify self
 
-      // Fetch recipient's OneSignal player id from Firestore
-      final toDoc =
-          await FirebaseFirestore.instance.collection('users').doc(toUid).get();
-      final toData = toDoc.data() ?? {};
-      String? playerId = toData['onesignal_player_id'] as String?;
-      playerId ??= toData['oneSignalPlayerId'] as String?;
-      playerId ??= toData['playerId'] as String?;
-      if (playerId == null || playerId.isEmpty) {
-        debugPrint('⚠️ No OneSignal playerId for user $toUid. Skip push.');
-        return;
+      // Create notification using our new Firebase-based system
+      if (isReply) {
+        // For replies, notify the parent commenter
+        await NotificationIntegration.createCommentNotification(
+          postId: widget.post.id,
+          postOwnerId: toUid,
+          userName: me.name,
+          commentText: content,
+        );
+        debugPrint('📱 Reply notification sent to user $toUid');
+      } else {
+        // For root comments, notify the post owner
+        await NotificationIntegration.createCommentNotification(
+          postId: widget.post.id,
+          postOwnerId: toUid,
+          userName: me.name,
+          commentText: content,
+        );
+        debugPrint('📱 Comment notification sent to post owner $toUid');
       }
-
-      final title = isReply
-          ? '${me.name} replied to your comment'
-          : '${me.name} commented on your post';
-      final message = content;
-      final data = {
-        'type': 'post_comment',
-        'postId': widget.post.id,
-        'deeplink': '/post/${widget.post.id}',
-        'senderId': me.user_id,
-        'senderName': me.name,
-        'senderAvatar': me.avatar,
-        'isReply': isReply,
-      };
-
-      // Use dedicated post notification helper to enforce post deeplink
-      debugPrint('Comment notify -> playerId=$playerId data=$data');
-      await NotificationService.instance.sendPostNotification(
-        toPlayerId: playerId,
-        title: title,
-        message: message,
-        sender: {
-          'id': me.user_id,
-          'name': me.name,
-          'avatar': me.avatar,
-        },
-        postId: widget.post.id,
-        isReply: isReply,
-      );
     } catch (e) {
-      debugPrint('⚠️ Comment push flow error: $e');
+      debugPrint('⚠️ Comment notification error: $e');
     }
   }
 

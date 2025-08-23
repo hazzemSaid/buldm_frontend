@@ -1,3 +1,4 @@
+// features/home/persentation/view/widgets/buildPostActions.dart
 import 'package:buldm/core/Dependency_njection/service_locator.dart';
 import 'package:buldm/features/auth/domain/entities/userentities.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
@@ -9,6 +10,7 @@ import 'package:buldm/features/home/persentation/bloc/user/user_event.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_state.dart';
 import 'package:buldm/features/home/persentation/view/screens/CommentBottomSheet.dart';
 import 'package:buldm/features/map_location/presentation/view/screens/solo_map_location.dart';
+import 'package:buldm/features/notifications/integration/notification_integration.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -152,8 +154,10 @@ class _BuildPostActionsState extends State<BuildPostActions> {
                     label: "Like",
                     count: count,
                     isActive: liked,
-                    onTap: () {
+                    onTap: () async {
                       if (isProcessingLike) return;
+
+                      final wasLiked = isLiked;
                       setState(() {
                         isProcessingLike = true;
                         isLiked = !isLiked;
@@ -164,6 +168,18 @@ class _BuildPostActionsState extends State<BuildPostActions> {
                       context
                           .read<PostBloc>()
                           .add(setlike(postId: widget.post.id));
+
+                      // Send notification only when liking (not unliking)
+                      if (!wasLiked && isLiked) {
+                        try {
+                          await NotificationIntegration.createLikeNotification(
+                            postId: widget.post.id,
+                            postOwnerId: widget.post.user_id,
+                          );
+                        } catch (e) {
+                          debugPrint('⚠️ Like notification error: $e');
+                        }
+                      }
 
                       // ارجع السماح بعد فترة قصيرة أو لما يجي رد من bloc
                       Future.delayed(const Duration(seconds: 1), () {
