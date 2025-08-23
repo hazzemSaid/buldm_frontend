@@ -4,6 +4,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:buldm/features/notifications/presentation/bloc/notification_bloc.dart';
 import 'package:buldm/features/notifications/presentation/bloc/notification_state.dart';
 import 'package:buldm/features/notifications/presentation/view/screens/notification_screen.dart';
+import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
+import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
 
 class NotificationBadge extends StatelessWidget {
   final String userId;
@@ -33,9 +35,17 @@ class NotificationBadge extends StatelessWidget {
                       color: Theme.of(context).colorScheme.onSurface,
                     ),
                     onPressed: onTap ?? () {
+                      final postBloc = context.read<PostBloc>();
+                      final userBloc = context.read<UserBloc>();
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (context) => const NotificationScreen(),
+                          builder: (context) => MultiBlocProvider(
+                            providers: [
+                              BlocProvider<PostBloc>.value(value: postBloc),
+                              BlocProvider<UserBloc>.value(value: userBloc),
+                            ],
+                            child: const NotificationScreen(),
+                          ),
                         ),
                       );
                     },
@@ -78,9 +88,17 @@ class NotificationBadge extends StatelessWidget {
             color: Theme.of(context).colorScheme.onSurface,
           ),
           onPressed: onTap ?? () {
+            final postBloc = context.read<PostBloc>();
+            final userBloc = context.read<UserBloc>();
             Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (context) => const NotificationScreen(),
+                builder: (context) => MultiBlocProvider(
+                  providers: [
+                    BlocProvider<PostBloc>.value(value: postBloc),
+                    BlocProvider<UserBloc>.value(value: userBloc),
+                  ],
+                  child: const NotificationScreen(),
+                ),
               ),
             );
           },

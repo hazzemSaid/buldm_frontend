@@ -6,7 +6,6 @@ import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
 import 'package:buldm/features/home/persentation/view/screens/home_screen.dart';
 import 'package:buldm/features/map_location/presentation/view/screens/map_location_screen.dart';
-import 'package:buldm/features/notifications/data/repositories/notification_repository.dart';
 import 'package:buldm/features/notifications/presentation/bloc/notification_bloc.dart';
 import 'package:buldm/features/profile/presentation/blocs/profile/profile_cubit.dart';
 import 'package:buldm/features/profile/presentation/blocs/profilechanges/profilechanges_cubit.dart';
@@ -54,12 +53,14 @@ class _MainLayoutState extends State<MainLayout> {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider<PostBloc>(create: (context) => sl<PostBloc>()),
+        BlocProvider<PostBloc>(
+          create: (context) => sl<PostBloc>(),
+        ),
         BlocProvider<UserBloc>(
           create: (context) => sl<UserBloc>(),
         ),
         BlocProvider<NotificationBloc>(
-          create: (_) => NotificationBloc(sl<NotificationRepository>()),
+          create: (context) => sl<NotificationBloc>(),
         )
       ],
       child: Builder(

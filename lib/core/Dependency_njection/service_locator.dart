@@ -28,8 +28,8 @@ import 'package:buldm/features/home/domain/repository/postrepository.dart';
 import 'package:buldm/features/home/domain/usecases/changeikepostUsecase.dart';
 import 'package:buldm/features/home/domain/usecases/createPostUseCase.dart';
 import 'package:buldm/features/home/domain/usecases/deletpostUsecase.dart';
-import 'package:buldm/features/home/domain/usecases/getPostUseCase.dart';
 import 'package:buldm/features/home/domain/usecases/getIndividualPostUseCase.dart';
+import 'package:buldm/features/home/domain/usecases/getPostUseCase.dart';
 import 'package:buldm/features/home/domain/usecases/getUserById.dart';
 import 'package:buldm/features/home/domain/usecases/getcommentedpostUsecase.dart';
 import 'package:buldm/features/home/domain/usecases/getlikedpostUsecase.dart';
@@ -38,6 +38,8 @@ import 'package:buldm/features/home/domain/usecases/setreplycommentUsecase.dart'
 import 'package:buldm/features/home/domain/usecases/updatepostUsecase.dart';
 import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
+import 'package:buldm/features/notifications/data/repositories/notification_repository.dart';
+import 'package:buldm/features/notifications/presentation/bloc/notification_bloc.dart';
 import 'package:buldm/features/profile/data/datasource/profile_remote_data_resource.dart';
 import 'package:buldm/features/profile/data/repo/profilerepoimp.dart';
 import 'package:buldm/features/profile/domain/repo/ProfileRepository.dart';
@@ -47,7 +49,6 @@ import 'package:buldm/features/profile/domain/usecases/updateProfileAvatar_useca
 import 'package:buldm/features/profile/presentation/blocs/profile/profile_cubit.dart';
 import 'package:buldm/features/profile/presentation/blocs/profilechanges/profilechanges_cubit.dart';
 import 'package:buldm/features/search/presentation/bloc/ssearch/Search_Cubit.dart';
-import 'package:buldm/features/notifications/data/repositories/notification_repository.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive/hive.dart';
@@ -300,4 +301,7 @@ Future<void> init() async {
   // Notification Repository
   sl.registerLazySingleton<NotificationRepository>(
       () => NotificationRepository());
+
+  // Notification Bloc
+  sl.registerFactory(() => NotificationBloc(sl<NotificationRepository>()));
 }

@@ -1,20 +1,18 @@
 // features/notifications/presentation/view/screens/notification_screen.dart
-import 'package:buldm/core/Dependency_njection/service_locator.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
+import 'package:buldm/features/auth/presentaion/view/bloc/auth_state.dart';
+import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
+import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
+import 'package:buldm/features/home/persentation/bloc/user/user_event.dart';
+import 'package:buldm/features/home/persentation/view/screens/PostDetailScreen.dart';
 import 'package:buldm/features/notifications/data/models/notification_model.dart';
 import 'package:buldm/features/notifications/presentation/bloc/notification_bloc.dart';
 import 'package:buldm/features/notifications/presentation/bloc/notification_event.dart';
 import 'package:buldm/features/notifications/presentation/bloc/notification_state.dart';
 import 'package:buldm/features/notifications/presentation/widgets/notification_tile.dart';
-import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
-import 'package:buldm/features/auth/presentaion/view/bloc/auth_state.dart';
-import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
-import 'package:buldm/features/home/persentation/bloc/user/user_event.dart';
-import 'package:buldm/features/home/persentation/bloc/user/user_state.dart';
-import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
-import 'package:buldm/features/home/data/models/post_model.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
@@ -50,7 +48,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
     if (userIds.isNotEmpty) {
       print('👤 Loading user data for: $userIds');
       // Load all users at once using LoadMultipleUsersEvent
-      context.read<UserBloc>().add(LoadMultipleUsersEvent(userIds: userIds));
+      // Add a small delay to ensure the UserBloc is properly initialized
+      Future.microtask(() {
+        context.read<UserBloc>().add(LoadMultipleUsersEvent(userIds: userIds));
+      });
     }
   }
 
@@ -73,12 +74,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-        providers: [
-          BlocProvider<UserBloc>.value(value: sl<UserBloc>()),
-          BlocProvider<PostBloc>.value(value: sl<PostBloc>()),
-        ],
-        child: Scaffold(
+    // Use PostBloc, UserBloc, NotificationBloc from ancestors (e.g., MainLayout)
+    return Scaffold(
           backgroundColor: Theme.of(context).colorScheme.surface,
           appBar: AppBar(
             title: const Text(
@@ -260,7 +257,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
               );
             },
           ),
-        ));
+        );
   }
 
   void _handleNotificationTap(NotificationModel notification) {
@@ -278,9 +275,22 @@ class _NotificationScreenState extends State<NotificationScreen> {
           if (postState is PostLoaded) {
             final postModel = postState.posts[notification.postId!];
             if (postModel != null) {
-              // Navigate to post details - you can implement your own navigation here
+              // Navigate to post details
               print('Navigate to post: ${notification.postId}');
-              // Example: Navigator.push(context, MaterialPageRoute(builder: (context) => PostDetailScreen(post: postModel)));
+              final postBloc = context.read<PostBloc>();
+              final userBloc = context.read<UserBloc>();
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MultiBlocProvider(
+                    providers: [
+                      BlocProvider<PostBloc>.value(value: postBloc),
+                      BlocProvider<UserBloc>.value(value: userBloc),
+                    ],
+                    child: PostDetailScreen(post: postModel),
+                  ),
+                ),
+              );
             } else {
               // Post not loaded yet, load it first
               context
@@ -304,7 +314,12 @@ class _NotificationScreenState extends State<NotificationScreen> {
             final postModel = postState.posts[notification.postId!];
             if (postModel != null) {
               print('Navigate to post with mention: ${notification.postId}');
-              // Example: Navigator.push(context, MaterialPageRoute(builder: (context) => PostDetailScreen(post: postModel)));
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => PostDetailScreen(post: postModel),
+                ),
+              );
             } else {
               context
                   .read<PostBloc>()

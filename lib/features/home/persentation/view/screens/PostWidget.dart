@@ -48,7 +48,7 @@ class _PostWidgetState extends State<PostWidget>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context); // ✅ important for keepAlive
+    // super.build(context); // ✅ important for keepAlive
     return Container(
       padding: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
