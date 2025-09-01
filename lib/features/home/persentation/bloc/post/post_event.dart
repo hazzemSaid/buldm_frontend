@@ -141,17 +141,17 @@ class userbyid extends PostEvent {
   bool? get stringify => true;
 }
 
-// class Getlike extends PostEvent {
-//   final String postId;
+class Getlike extends PostEvent {
+  final String postId;
 
-//   const Getlike({required this.postId});
+  const Getlike({required this.postId});
 
-//   @override
-//   List<Object?> get props => [postId];
+  @override
+  List<Object?> get props => [postId];
 
-//   @override
-//   bool? get stringify => true;
-// }
+  @override
+  bool? get stringify => true;
+}
 
 class setlike extends PostEvent {
   final String postId;

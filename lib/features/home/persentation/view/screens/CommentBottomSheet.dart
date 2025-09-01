@@ -304,16 +304,140 @@ class _CommentBottomSheetState extends State<CommentBottomSheet>
   }
 
   Widget _buildLoadingState() {
-    return Center(
+    return Container(
+      width: double.infinity,
+      constraints: BoxConstraints(
+        minHeight: MediaQuery.of(context).size.height * 0.4,
+      ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          const CircularProgressIndicator(),
-          const SizedBox(height: 16),
-          Text(
-            'Loading comments...',
-            style: Theme.of(context).textTheme.bodyMedium,
+          const SizedBox(height: 10),
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade400,
+              borderRadius: BorderRadius.circular(2),
+            ),
           ),
+          const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.mode_comment_outlined,
+                  color: Theme.of(context).colorScheme.primary,
+                  size: 24,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Comments',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          Expanded(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width > 600 ? 48 : 40,
+                    height: MediaQuery.of(context).size.width > 600 ? 48 : 40,
+                    child: CircularProgressIndicator(
+                      strokeWidth:
+                          MediaQuery.of(context).size.width > 600 ? 4 : 3,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Add some skeleton loading items to make it look more realistic
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Column(
+              children: List.generate(
+                3,
+                (index) => Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Avatar skeleton
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .outline
+                              .withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Name skeleton
+                            Container(
+                              width: 120 + (index * 20).toDouble(),
+                              height: 14,
+                              decoration: BoxDecoration(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .outline
+                                    .withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(7),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            // Comment skeleton
+                            Container(
+                              width: double.infinity,
+                              height: 12,
+                              decoration: BoxDecoration(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .outline
+                                    .withOpacity(0.08),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Container(
+                              width: MediaQuery.of(context).size.width *
+                                  (0.6 - index * 0.1),
+                              height: 12,
+                              decoration: BoxDecoration(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .outline
+                                    .withOpacity(0.08),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
         ],
       ),
     );
@@ -459,13 +583,16 @@ class _CommentBottomSheetState extends State<CommentBottomSheet>
                 }
               },
               child: BlocBuilder<PostBloc, PostState>(
+                buildWhen: (prev, next) {
+                  // Rebuild when loading, error, or success states change
+                  return prev.status != next.status &&
+                      (next.status == PostStatus.commentLoadLoading ||
+                          next.status == PostStatus.commentLoadError ||
+                          next.status == PostStatus.commentLoadSuccess ||
+                          next.status == PostStatus.commentCreateSuccess ||
+                          next.status == PostStatus.commentCreateError);
+                },
                 builder: (context, state) {
-                  // Show loading state
-                  if (state.status == PostStatus.commentLoadLoading &&
-                      !_initialRequested) {
-                    return _buildLoadingState();
-                  }
-
                   // Show error state
                   if (state.status == PostStatus.commentLoadError) {
                     return _buildErrorState(state.message);
@@ -594,8 +721,19 @@ class _CommentBottomSheetState extends State<CommentBottomSheet>
                         // BlocBuilder for comment state
                         Expanded(
                           child: BlocBuilder<PostBloc, PostState>(
-                            // Only rebuild the list when the comment set for this post changes
+                            // Rebuild when comments change or loading/error states change
                             buildWhen: (prev, next) {
+                              // Always rebuild if loading/error state changes
+                              if (prev.status != next.status &&
+                                  (next.status ==
+                                          PostStatus.commentLoadLoading ||
+                                      next.status ==
+                                          PostStatus.commentLoadError ||
+                                      next.status ==
+                                          PostStatus.commentLoadSuccess)) {
+                                return true;
+                              }
+
                               List<CommentModel> getCommentsFromState(
                                   PostState s) {
                                 if (s.status == PostStatus.postLoadSuccess) {
@@ -609,7 +747,9 @@ class _CommentBottomSheetState extends State<CommentBottomSheet>
                                       .where((c) => c.postId == widget.post.id)
                                       .toList();
                                 }
-                                return [];
+                                return s.comments.values
+                                    .where((c) => c.postId == widget.post.id)
+                                    .toList();
                               }
 
                               final prevComments = getCommentsFromState(prev);
@@ -630,14 +770,50 @@ class _CommentBottomSheetState extends State<CommentBottomSheet>
                               // Compute per-post comments first to decide initial vs pagination loading UI
                               final comments = _getCommentsFromState(state);
 
-                              // Full-screen loader only for initial load (no comments yet)
-                              final isInitialLoading = state.status ==
+                              // Show full-screen loading only for initial load (no comments yet)
+                              if (state.status ==
                                       PostStatus.commentLoadLoading &&
-                                  comments.isEmpty;
-
-                              if (isInitialLoading) {
-                                return const Center(
-                                    child: CircularProgressIndicator());
+                                  comments.isEmpty &&
+                                  !_isLoadingMoreComments) {
+                                return FadeTransition(
+                                  opacity: _fadeAnimation,
+                                  child: Center(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        SizedBox(
+                                          width: MediaQuery.of(context)
+                                                      .size
+                                                      .width >
+                                                  600
+                                              ? 48
+                                              : 40,
+                                          height: MediaQuery.of(context)
+                                                      .size
+                                                      .width >
+                                                  600
+                                              ? 48
+                                              : 40,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: MediaQuery.of(context)
+                                                        .size
+                                                        .width >
+                                                    600
+                                                ? 4
+                                                : 3,
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                              Theme.of(context)
+                                                  .colorScheme
+                                                  .primary,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
                               } else if (state.status ==
                                       PostStatus.commentLoadError &&
                                   comments.isEmpty) {
@@ -1259,7 +1435,6 @@ class _CommentBottomSheetState extends State<CommentBottomSheet>
                             _replyingTo = c;
                             _replyingToCommentId = c.id;
                           });
-                          debugPrint('[UI][ReplyTap] selectedParentId=${c.id}');
                           _inputFocusNode.requestFocus();
                         },
                         child: const Text('Reply'),

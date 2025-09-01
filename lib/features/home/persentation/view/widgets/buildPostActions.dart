@@ -159,14 +159,11 @@ class _BuildPostActionsState extends State<BuildPostActions> {
                     onLongPress: isProcessingLike
                         ? null
                         : () {
-                            // Likes list is not provided by bloc currently; open empty state
-                            _showLikesBottomSheet(
-                              state.likes.values
-                                  .map((e) => e.usersIDS)
-                                  .toList()
-                                  .expand((x) => x)
-                                  .toList(),
-                            );
+                            // Trigger the get likes event and show loading bottom sheet
+                            context
+                                .read<PostBloc>()
+                                .add(Getlike(postId: widget.post.id));
+                            _showLikesBottomSheet([]);
                           },
                     iconColor:
                         isProcessingLike ? Colors.blue : Colors.redAccent,
@@ -237,6 +234,113 @@ class _BuildPostActionsState extends State<BuildPostActions> {
   }
 
   Future<void> _showLikesBottomSheet(List<String> userIds) async {
+    // Show loading bottom sheet first
+    final postBloc = context.read<PostBloc>();
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isDismissible: false,
+      isScrollControlled: true,
+      builder: (context) => BlocProvider.value(
+        value: postBloc,
+        child: BlocListener<PostBloc, PostState>(
+          listenWhen: (prev, next) {
+            return prev.status != next.status &&
+                (next.status == PostStatus.likeLoadSuccess ||
+                    next.status == PostStatus.likeLoadError);
+          },
+          listener: (context, state) {
+            // Close the loading sheet
+            Navigator.of(context).pop();
+
+            if (state.status == PostStatus.likeLoadSuccess) {
+              // Show success bottom sheet with users
+              final likesSet = state.likes[widget.post.id];
+              final likesList =
+                  likesSet != null ? List<String>.from(likesSet) : <String>[];
+              _showSuccessLikesBottomSheet(likesList);
+            } else if (state.status == PostStatus.likeLoadError) {
+              // Show error bottom sheet
+              _showErrorLikesBottomSheet(
+                  state.message ?? 'Failed to load likes');
+            }
+          },
+          child: Container(
+            width: double.infinity,
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height * 0.3,
+              maxHeight: MediaQuery.of(context).size.height * 0.5,
+            ),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(16)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, -2),
+                ),
+              ],
+            ),
+            child: SafeArea(
+              child: Padding(
+                padding: EdgeInsets.all(
+                  MediaQuery.of(context).size.width > 600 ? 24.0 : 16.0,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).dividerColor,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
+                    SizedBox(
+                        height:
+                            MediaQuery.of(context).size.height > 700 ? 32 : 24),
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width > 600 ? 48 : 40,
+                      height: MediaQuery.of(context).size.width > 600 ? 48 : 40,
+                      child: CircularProgressIndicator(
+                        strokeWidth:
+                            MediaQuery.of(context).size.width > 600 ? 4 : 3,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                        height:
+                            MediaQuery.of(context).size.height > 700 ? 24 : 16),
+                    Text(
+                      'Loading likes...',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            fontSize: MediaQuery.of(context).size.width > 600
+                                ? 18
+                                : 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(
+                        height:
+                            MediaQuery.of(context).size.height > 700 ? 32 : 24),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showSuccessLikesBottomSheet(List<String> userIds) async {
     if (userIds.isEmpty) {
       await showModalBottomSheet(
         context: context,
@@ -247,11 +351,29 @@ class _BuildPostActionsState extends State<BuildPostActions> {
             borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
           ),
           padding: const EdgeInsets.all(16),
-          child: Center(
-            child: Text(
-              'No likes yet',
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).dividerColor,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Icon(
+                Icons.favorite_border,
+                size: 48,
+                color: Theme.of(context).colorScheme.outline,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'No likes yet',
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              const SizedBox(height: 16),
+            ],
           ),
         ),
       );
@@ -269,6 +391,71 @@ class _BuildPostActionsState extends State<BuildPostActions> {
                 ..add(LoadMultipleUsersEvent(userIds: userIds))),
         ],
         child: _LikesBottomSheet(userIds: userIds),
+      ),
+    );
+  }
+
+  Future<void> _showErrorLikesBottomSheet(String errorMessage) async {
+    final postBloc = context.read<PostBloc>();
+    await showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (modalContext) => BlocProvider.value(
+        value: postBloc,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(modalContext).colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+          ),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Theme.of(modalContext).dividerColor,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Icon(
+                Icons.error_outline,
+                size: 48,
+                color: Theme.of(modalContext).colorScheme.error,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Error loading likes',
+                style: Theme.of(modalContext).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                errorMessage,
+                style: Theme.of(modalContext).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(modalContext).colorScheme.outline,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(modalContext).pop();
+                  // Retry the request
+                  modalContext
+                      .read<PostBloc>()
+                      .add(Getlike(postId: widget.post.id));
+                  _showLikesBottomSheet([]);
+                },
+                child: const Text('Retry'),
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
       ),
     );
   }

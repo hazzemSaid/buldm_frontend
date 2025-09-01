@@ -57,7 +57,7 @@ class PostBloc extends Bloc<PostEvent, PostState> {
     on<uploadPostEvent>(_onUpdatePost);
     on<DeletePostEvent>(_onDeletePost);
     on<FilterPostEvent>(_onFilterPost);
-    // on<getlike>(_onGetLike);
+    on<Getlike>(_onGetLike);
     on<setlike>(_onSetLike);
     on<getcomment>(_onGetComment);
     on<setcomment>(_onSetComment);
@@ -188,39 +188,41 @@ class PostBloc extends Bloc<PostEvent, PostState> {
     // Logic to filter posts by category
   }
 
-  // Future<void> _onGetLike(getlike event, Emitter<PostState> emit) async {
-  //   final currentState = state;
-  //   Map<String, PostModel> posts = {};
-  //   bool hasMore = true;
-  //   if (currentState is PostLoaded) {
-  //     posts = currentState.posts;
-  //     hasMore = currentState.hasMore;
-  //   }
-  //   try {
-  //     final result = await getlikedpostusecase(event.postId);
-  //     result.fold(
-  //       (failure) => emit(PostError(message: failure.message)),
-  //       (likeUserIds) {
-  //         // Map user IDs to LikeModel to satisfy PostModel types
+  Future<void> _onGetLike(Getlike event, Emitter<PostState> emit) async {
+    final post = state.posts[event.postId];
+    if (post == null) {
+      emit(PostState(
+          posts: state.posts,
+          likes: state.likes,
+          comments: state.comments,
+          status: PostStatus.likeLoadError,
+          message: 'Post not found'));
+      return;
+    }
 
-  //         // Update the specific post with new likes and count
-  //         //time complexity O(1)
-  //         final updated = Map<String, PostModel>.from(posts);
-  //         updated[event.postId] = updated[event.postId]!.copyWith(
-  //           likes: likeUserIds,
-  //         );
-
-  //         if (currentState is PostLoaded) {
-  //           emit(currentState.copyWith(posts: updated));
-  //         } else {
-  //           emit(PostLoaded(posts: updated, hasMore: hasMore));
-  //         }
-  //       },
-  //     );
-  //   } catch (e) {
-  //     emit(PostError(message: e.toString()));
-  //   }
-  // }
+    emit(PostState(status: PostStatus.likeLoadLoading, posts: state.posts));
+    final result = await getlikedpostusecase(event.postId);
+    result.fold(
+      (failure) {
+        emit(PostState(
+          status: PostStatus.likeLoadError,
+          message: failure.message,
+          posts: state.posts,
+          likes: state.likes,
+          comments: state.comments,
+        ));
+      },
+      (likeUserIds) {
+        Set<String> userIds = likeUserIds.toSet();
+        emit(PostState(
+          status: PostStatus.likeLoadSuccess,
+          posts: state.posts,
+          likes: {event.postId: userIds},
+          comments: state.comments,
+        ));
+      },
+    );
+  }
 
   Future<void> _onSetLike(setlike event, Emitter<PostState> emit) async {
     final posts = state.posts;
@@ -270,9 +272,11 @@ class PostBloc extends Bloc<PostEvent, PostState> {
     // Clone to a mutable map before modifications
     final comments = Map<String, CommentModel>.from(state.comments);
     emit(PostState(
-        posts: posts,
-        status: PostStatus.commentLoadLoading,
-        comments: comments));
+      posts: posts,
+      status: PostStatus.commentLoadLoading,
+      comments: comments,
+      likes: state.likes,
+    ));
     final result = await getCommentedPostUseCase(
       postId: event.postId,
       page: event.page,
@@ -282,7 +286,9 @@ class PostBloc extends Bloc<PostEvent, PostState> {
       emit(PostState(
           posts: posts,
           status: PostStatus.commentLoadError,
-          comments: comments));
+          comments: comments,
+          likes: state.likes,
+          message: failure.message));
     }, (data) {
       if (event.page == 1) {
         comments.clear();
@@ -291,7 +297,8 @@ class PostBloc extends Bloc<PostEvent, PostState> {
       emit(PostState(
           posts: posts,
           comments: comments,
-          status: PostStatus.commentLoadSuccess));
+          status: PostStatus.commentLoadSuccess,
+          likes: state.likes));
     });
   }
 
@@ -338,59 +345,66 @@ class PostBloc extends Bloc<PostEvent, PostState> {
   Future<void> _onSetReplyComment(
       setreplycomment event, Emitter<PostState> emit) async {
     // // Reply comment (has parentId)
-    // final posts = state.posts;
-    // final res = await setReplyCommentUseCase(
-    //       event.postId, event.parentCommentId, event.content);
-    //   res.fold(
-    //     (failure) {
-    //       emit(PostState(
-    //           status: PostStatus.commentCreateError,
-    //           posts: posts,
-    //           message: failure.message));
-    //     },
-    //     (data) async {
-    //       emit(PostState(posts: posts, status: PostStatus.commentCreateSuccess,));
-    //       await NotificationIntegration.createCommentNotification(
-    //         postId: event.postId,
-    //         postOwnerId: posts[event.postId]!.user_id,
-    //         commentText: event.content,
-    //         commentId: data.id,
-    //       );
-    //     },
-    //   );
-    // } catch (e) {
-    //   emit(CommentError(message: e.toString()));
-    // }
+    final posts = state.posts;
+    emit(PostState(
+        posts: posts,
+        likes: state.likes,
+        individualPost: state.individualPost,
+        status: PostStatus.commentCreateLoading,
+        comments: state.comments));
+    final res = await setReplyCommentUseCase(
+        event.postId, event.parentCommentId, event.content);
+    res.fold(
+      (failure) {
+        emit(PostState(
+            status: PostStatus.commentCreateError,
+            posts: posts,
+            message: failure.message));
+      },
+      (data) async {
+        emit(PostState(
+            posts: posts,
+            status: PostStatus.commentCreateSuccess,
+            comments: state.comments..addAll({data.id: data})));
+        await NotificationIntegration.createCommentNotification(
+          postId: event.postId,
+          postOwnerId: posts[event.postId]!.user_id,
+          commentText: event.content,
+          commentId: data.id,
+        );
+      },
+    );
   }
 
   Future<void> _onLoadIndividualPost(
       LoadIndividualPostEvent event, Emitter<PostState> emit) async {
-    //   try {
-    //     final user = await getCurrentuserUsercase();
-    //     final token = user?.token ?? '';
-    //     final post =
-    //         await getIndividualPostUseCase(postId: event.postId, token: token);
-    //     print(post);
-
-    //     // Get current state to merge the new post
-    //     final currentState = state;
-    //     if (currentState is PostLoaded) {
-    //       final updatedPosts = Map<String, PostModel>.from(currentState.posts);
-    //       updatedPosts[post.id] = post;
-
-    //       emit(currentState.copyWith(posts: updatedPosts));
-    //     } else {
-    //       // If no posts loaded yet, create a new PostLoaded state with just this post
-    //       emit(PostLoaded(
-    //         posts: {post.id: post},
-    //         hasMore: false,
-    //         pageSize: 1,
-    //         currentPage: 1,
-    //       ));
-    //     }
-    //   } catch (e) {
-    //     emit(PostError(message: e.toString()));
-    //   }
-    // }
+    final posts = state.posts;
+    emit(PostState(
+      posts: posts,
+      status: PostStatus.individualPostLoadLoading,
+      comments: state.comments,
+      likes: state.likes,
+    ));
+    try {
+      final user = await getCurrentuserUsercase();
+      final result = await getIndividualPostUseCase(
+        postId: event.postId,
+        token: user!.token,
+      );
+      emit(PostState(
+        individualPost: result,
+        posts: posts,
+        status: PostStatus.individualPostLoadSuccess,
+        comments: state.comments,
+        likes: state.likes,
+      ));
+    } on Exception catch (e) {
+      emit(PostState(
+        posts: posts,
+        status: PostStatus.individualPostLoadError,
+        comments: state.comments,
+        likes: state.likes,
+      ));
+    }
   }
 }

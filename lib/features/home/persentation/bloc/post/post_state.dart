@@ -1,5 +1,4 @@
 import 'package:buldm/features/home/data/models/commentsmodel.dart';
-import 'package:buldm/features/home/data/models/likemodel.dart';
 import 'package:buldm/features/home/data/models/post_model.dart';
 import 'package:equatable/equatable.dart';
 
@@ -17,6 +16,9 @@ enum PostStatus {
   postUpdateLoading,
   postUpdateSuccess,
   postUpdateError,
+  individualPostLoadLoading,
+  individualPostLoadSuccess,
+  individualPostLoadError,
   commentCreateLoading,
   commentCreateSuccess,
   commentCreateError,
@@ -35,15 +37,16 @@ class PostState extends Equatable {
   final PostStatus status;
   final bool hasMoreposts;
   final bool hasMorecomments;
-
+  final PostModel? individualPost;
   final Map<String, PostModel> posts;
   final bool isLoadingMore;
 
   final String? message;
   final Map<String, CommentModel> comments;
-  final Map<String, LikeModel> likes;
+  final Map<String, Set<String>> likes;
 
   const PostState({
+    this.individualPost,
     this.status = PostStatus.initial,
     this.posts = const {},
     this.hasMoreposts = true,
@@ -55,6 +58,7 @@ class PostState extends Equatable {
   });
 
   PostState copyWith({
+    PostModel? individualPost,
     PostStatus? status,
     Map<String, PostModel>? posts,
     bool? hasMoreposts,
@@ -62,9 +66,10 @@ class PostState extends Equatable {
     bool? isLoadingMore,
     String? message,
     Map<String, CommentModel>? comments,
-    Map<String, LikeModel>? likes,
+    Map<String, Set<String>>? likes,
   }) {
     return PostState(
+      individualPost: individualPost ?? this.individualPost,
       hasMoreposts: hasMoreposts ?? this.hasMoreposts,
       hasMorecomments: hasMorecomments ?? this.hasMorecomments,
       status: status ?? this.status,
