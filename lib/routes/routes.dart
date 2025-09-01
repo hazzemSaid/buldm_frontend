@@ -193,11 +193,11 @@ final GoRouter router = GoRouter(
       path: paths[AppRoute.profileSelf.name]!,
       builder: (BuildContext context, GoRouterState state) => MultiBlocProvider(
         providers: [
-          BlocProvider.value(
-            value: sl<ProfileCubit>(),
+          BlocProvider(
+            create: (context) => sl<ProfileCubit>(),
           ),
-          BlocProvider.value(
-            value: sl<ProfilechangesCubit>(),
+          BlocProvider(
+            create: (context) => sl<ProfilechangesCubit>(),
           ),
         ],
         child: const ProfileScreen(),
@@ -209,11 +209,11 @@ final GoRouter router = GoRouter(
         final user = state.extra as ViewerUser?;
         return MultiBlocProvider(
           providers: [
-            BlocProvider.value(
-              value: sl<ProfileCubit>(),
+            BlocProvider(
+              create: (context) => sl<ProfileCubit>(),
             ),
-            BlocProvider.value(
-              value: sl<UserBloc>(),
+            BlocProvider(
+              create: (context) => sl<ProfilechangesCubit>(),
             ),
           ],
           child: OtherUserProfileScreen(user: user!),

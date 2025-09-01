@@ -22,7 +22,7 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  bool status = false;
+  bool? status = false;
   bool listview = false;
   late UserModel usermodel;
 
@@ -128,8 +128,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       color: Theme.of(context).colorScheme.primary),
                   onPressed: () {
                     setState(() {
-                      status = !status;
-                      _fetchUserPosts(status: status);
+                      status = status == true ? false : true;
+                      _fetchUserPosts(status: status ?? false);
                     });
                   },
                 ),
@@ -148,7 +148,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(16),
                     image: const DecorationImage(
-                      image: AssetImage('assets/images/pngwing.png'),
+                      image: NetworkImage(
+                          'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80'),
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -167,6 +168,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               Colors.transparent,
                               Colors.black.withOpacity(0.3),
                             ],
+                          ),
+                        ),
+                      ),
+                      // Background change button
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: GestureDetector(
+                          onTap: () async {
+                            final ImagePicker picker = ImagePicker();
+                            final XFile? image = await picker.pickImage(
+                                source: ImageSource.gallery);
+                            if (image != null) {
+                              // TODO: Implement cover image update when backend supports it
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text(
+                                        'Cover image update coming soon!')),
+                              );
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.6),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.camera_alt,
+                              color: Colors.white,
+                              size: 20,
+                            ),
                           ),
                         ),
                       ),
@@ -303,7 +336,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     height: 50,
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         GestureDetector(
                           onTap: () {
@@ -335,7 +368,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                               .withOpacity(0.7),
                                     ),
                               ),
-                              const SizedBox(width: 10),
+                              const SizedBox(width: 6),
                               ImageIcon(
                                 const AssetImage("assets/images/find.png"),
                                 color: status == false
@@ -344,7 +377,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         .colorScheme
                                         .onSurface
                                         .withOpacity(0.5),
-                                size: 35,
+                                size: 28,
                               ),
                             ],
                           ),
@@ -387,7 +420,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                               .withOpacity(0.7),
                                     ),
                               ),
-                              const SizedBox(width: 10),
+                              const SizedBox(width: 6),
                               ImageIcon(
                                 const AssetImage("assets/images/lost.png"),
                                 color: status == true
@@ -396,7 +429,58 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         .colorScheme
                                         .onSurface
                                         .withOpacity(0.5),
-                                size: 45,
+                                size: 28,
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          width: 1,
+                          height: 30,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .outline
+                              .withOpacity(0.3),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            // TODO: Implement reposted posts when backend supports it
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('Reposted posts coming soon!')),
+                            );
+                          },
+                          child: Row(
+                            children: [
+                              Text(
+                                "Reposts",
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyLarge
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w500,
+                                      color: status == null
+                                          ? Theme.of(context)
+                                              .colorScheme
+                                              .primary
+                                          : (Theme.of(context)
+                                                      .textTheme
+                                                      .bodyLarge
+                                                      ?.color ??
+                                                  Colors.grey)
+                                              .withOpacity(0.7),
+                                    ),
+                              ),
+                              const SizedBox(width: 6),
+                              Icon(
+                                Icons.repeat,
+                                color: status == null
+                                    ? Theme.of(context).colorScheme.primary
+                                    : Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withOpacity(0.5),
+                                size: 20,
                               ),
                             ],
                           ),
@@ -462,7 +546,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           child: PostWidget(
                             post: state.posts[index],
                             index: state.posts[index].id,
-                            singlePost: false,
                           ),
                         );
                       },

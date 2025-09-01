@@ -1,8 +1,6 @@
 import 'dart:io';
 
-import 'package:buldm/features/Add_Post/data/model/UploadablePostModel.dart';
 import 'package:buldm/features/Add_Post/presentation/bloc/imagespicker_cubit/imagespicker_cubit.dart';
-import 'package:buldm/features/Add_Post/presentation/bloc/location_cubit/location_cubit.dart';
 import 'package:buldm/features/Add_Post/presentation/view/widgets/buildCategorySelector.dart';
 import 'package:buldm/features/Add_Post/presentation/view/widgets/buildCustomTextField.dart';
 import 'package:buldm/features/Add_Post/presentation/view/widgets/buildDateSelector.dart';
@@ -10,16 +8,13 @@ import 'package:buldm/features/Add_Post/presentation/view/widgets/buildImagesSec
 import 'package:buldm/features/Add_Post/presentation/view/widgets/buildLocationSelector.dart';
 import 'package:buldm/features/Add_Post/presentation/view/widgets/buildSectionCard.dart';
 import 'package:buldm/features/Add_Post/presentation/view/widgets/buildStatusSelector.dart';
-import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
-import 'package:buldm/features/auth/presentaion/view/bloc/auth_state.dart';
-import 'package:buldm/features/home/data/models/location_model.dart';
 import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
+import 'package:buldm/features/home/persentation/bloc/post/post_state.dart';
 import 'package:buldm/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:latlong2/latlong.dart';
 
 class AddPostDetails extends StatefulWidget {
   const AddPostDetails({super.key});
@@ -133,55 +128,55 @@ class _AddPostDetailsState extends State<AddPostDetails>
     super.dispose();
   }
 
-  void _submit() async {
-    //handel this later with bloc
-    //here we have a problem with _pickedLocation being null
-    final localizations = AppLocalizations.of(context)!;
+  // void _submit() async {
+  //   //handel this later with bloc
+  //   //here we have a problem with _pickedLocation being null
+  //   final localizations = AppLocalizations.of(context)!;
 
-    if (!_formKey.currentState!.validate()) {
-      _scrollToFirstError();
-      return;
-    }
-    if (_descriptionController.text.trim().isEmpty) {
-      _showErrorSnackBar(localizations.descriptionRequired);
-      return;
-    }
+  //   if (!_formKey.currentState!.validate()) {
+  //     _scrollToFirstError();
+  //     return;
+  //   }
+  //   if (_descriptionController.text.trim().isEmpty) {
+  //     _showErrorSnackBar(localizations.descriptionRequired);
+  //     return;
+  //   }
 
-    final locationpiker = context.read<LocationCubit>();
-    final currentState = locationpiker.state;
-    LatLng? pickedLocation;
-    if (currentState is LocationSelected) {
-      pickedLocation = currentState.location;
-    }
-    if (pickedLocation == null) {
-      _showErrorSnackBar(localizations.selectLocation);
-      return;
-    }
-    context.read<PostBloc>().add(uploadPostEvent(
-            post: UploadablePostModel(
-          title: "asdasd",
-          description: _descriptionController.text.trim(),
-          category: _categoryController.text.trim(),
-          contactInfo: _contactInfoController.text.trim(),
-          status:
-              _statusNotifier.value == localizations.found ? "found" : "lost",
-          when: DateTime.now(),
-          images: images,
-          location: LocationModel(
-              type: "Point",
-              coordinates: [pickedLocation.latitude, pickedLocation.longitude],
-              placeName: "Selected Location"),
-          predictedItems: [],
-          user_id:
-              (context.read<AuthCubit>().state as Authenticated).user.user_id,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        )));
-    // go back to home page
-    _showSuccessSnackBar(localizations.postSubmittedSuccessfully);
-    context.read<ImagespickerCubit>().clearImages();
-    Navigator.pop(context);
-  }
+  //   final locationpiker = context.read<LocationCubit>();
+  //   final currentState = locationpiker.state;
+  //   LatLng? pickedLocation;
+  //   if (currentState is LocationSelected) {
+  //     pickedLocation = currentState.location;
+  //   }
+  // //   if (pickedLocation == null) {
+  // //     _showErrorSnackBar(localizations.selectLocation);
+  // //     return;
+  // //   // }
+  // //   // context.read<PostBloc>().add(uploadPostEvent(
+  // //   //         post: UploadablePostModel(
+  // //   //       title: "asdasd",
+  // //   //       description: _descriptionController.text.trim(),
+  // //   //       category: _categoryController.text.trim(),
+  // //   //       contactInfo: _contactInfoController.text.trim(),
+  // //   //       status:
+  // //   //           _statusNotifier.value == localizations.found ? "found" : "lost",
+  // //   //       when: DateTime.now(),
+  // //   //       images: images,
+  // //   //       location: LocationModel(
+  // //   //           type: "Point",
+  // //   //           coordinates: [pickedLocation.latitude, pickedLocation.longitude],
+  // //   //           placeName: "Selected Location"),
+  // //   //       predictedItems: [],
+  // //   //       user_id:
+  // //   //           (context.read<AuthCubit>().state as Authenticated).user.user_id,
+  // //   //       createdAt: DateTime.now(),
+  // //   //       updatedAt: DateTime.now(),
+  // //   //     )));
+  // //   // go back to home page
+  // //   _showSuccessSnackBar(localizations.postSubmittedSuccessfully);
+  // //   context.read<ImagespickerCubit>().clearImages();
+  // //   Navigator.pop(context);
+  // // }
 
   void _scrollToFirstError() {
     _scrollController.animateTo(
@@ -259,9 +254,9 @@ class _AddPostDetailsState extends State<AddPostDetails>
         actions: [
           BlocConsumer<PostBloc, PostState>(
             listener: (context, state) {
-              if (state is PostError) {
-                _showErrorSnackBar(state.message);
-              } else if (state is PostCreatedState) {
+              if (state.status == PostStatus.postLoadError) {
+                _showErrorSnackBar(state.message ?? "");
+              } else if (state.status == PostStatus.postCreateSuccess) {
                 _showSuccessSnackBar(localizations.postCreatedSuccessfully);
                 Navigator.pop(context);
               }
@@ -269,7 +264,7 @@ class _AddPostDetailsState extends State<AddPostDetails>
             builder: (context, state) {
               return Padding(
                 padding: const EdgeInsets.only(right: 16),
-                child: state is PostLoading
+                child: state.status == PostStatus.postCreateLoading
                     ? const Center(
                         child: SizedBox(
                           width: 20,
@@ -282,7 +277,8 @@ class _AddPostDetailsState extends State<AddPostDetails>
                         ),
                       )
                     : TextButton.icon(
-                        onPressed: _submit,
+                        onPressed: () {},
+                        // onPressed: _submit,
                         icon: const Icon(Icons.publish, color: Colors.white),
                         label: Text(
                           localizations.publish,

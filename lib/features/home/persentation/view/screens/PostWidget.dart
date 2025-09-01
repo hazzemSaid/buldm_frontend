@@ -1,21 +1,18 @@
 // features/home/persentation/view/screens/PostWidget.dart
-import 'package:buldm/features/home/domain/entities/postentity.dart';
+import 'package:buldm/features/home/data/models/post_model.dart';
 import 'package:buldm/features/home/persentation/view/widgets/buildDescription.dart';
 import 'package:buldm/features/home/persentation/view/widgets/buildImageCarousel.dart';
 import 'package:buldm/features/home/persentation/view/widgets/buildPostActions.dart';
-import 'package:buldm/features/home/persentation/view/widgets/buildPostList.dart';
 import 'package:buldm/features/home/persentation/view/widgets/buildProfileHeader.dart';
 import 'package:flutter/material.dart';
 
+// Define keepAliveIndexes as a Set of String indexes to keep alive.
+final Set<String> keepAliveIndexes = <String>{};
+
 class PostWidget extends StatefulWidget {
-  final PostEntity post;
+  final PostModel post;
   final String index;
-  final bool singlePost;
-  const PostWidget(
-      {super.key,
-      required this.post,
-      required this.index,
-      required this.singlePost});
+  const PostWidget({super.key, required this.post, required this.index});
 
   @override
   State<PostWidget> createState() => _PostWidgetState();
@@ -87,7 +84,6 @@ class _PostWidgetState extends State<PostWidget>
             alignment: Alignment.center,
             child: BuildPostActions(
               post: widget.post,
-              singlePost: widget.singlePost,
             ),
           ),
         ],

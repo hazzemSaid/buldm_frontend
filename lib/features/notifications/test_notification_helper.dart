@@ -18,6 +18,7 @@ class TestNotificationHelper {
         postOwnerId: 'test_user_456',
         userName: 'Test User',
         commentText: 'This is a test comment!',
+        commentId: 'test_comment_456',
       );
 
       // Test follow notification
@@ -116,6 +117,7 @@ class TestNotificationHelper {
           case 'comment':
             await NotificationIntegration.createCommentNotification(
               postId: event['postId']!,
+              commentId: event['commentId']!,
               postOwnerId: event['postOwnerId']!,
               userName: event['userName'],
               commentText: event['commentText'],
@@ -154,4 +156,3 @@ class TestNotificationHelper {
     }
   }
 }
-

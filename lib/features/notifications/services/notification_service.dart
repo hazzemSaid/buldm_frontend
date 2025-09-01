@@ -36,6 +36,7 @@ class NotificationService {
     required String postId,
     String? userName,
     String? commentText,
+    required String commentId,
   }) async {
     await _repository.createNotification(
       userId: userId,
@@ -45,6 +46,7 @@ class NotificationService {
       additionalData: {
         'userName': userName,
         'commentText': commentText,
+        'commentId': commentId,
         'type': 'post_comment',
       },
     );
@@ -251,5 +253,26 @@ class NotificationService {
     }
 
     await batch.commit();
+  }
+
+  Future<bool> hasSentNotification(
+      {required String userId,
+      required String userTo,
+      required String postId,
+      required String event,
+      String? comment}) async {
+    final query = _firestore
+        .collection('notifications')
+        .where('userId', isEqualTo: userId)
+        .where('event', isEqualTo: event)
+        .where('userTo', isEqualTo: userTo);
+    if (comment != null) {
+      query.where('commentText', isEqualTo: comment);
+    }
+    if (postId != null) {
+      query.where('postId', isEqualTo: postId);
+    }
+    final snapshot = await query.limit(1).get();
+    return snapshot.docs.isNotEmpty;
   }
 }

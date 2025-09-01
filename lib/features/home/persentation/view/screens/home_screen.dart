@@ -17,42 +17,74 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late PostBloc _postBloc;
+  late final PostBloc _postBloc;
+  int _currentPage = 1;
+  bool _isLoadingMore = false;
 
   @override
   void initState() {
     super.initState();
-
     _postBloc = context.read<PostBloc>();
+    _loadInitialPosts();
+    widget.scrollController.addListener(_onScroll);
+  }
 
+  Future<void> _loadInitialPosts() async {
     _postBloc.add(
       LoadPostEvent(
-          category: null,
-          status: null,
-          userId: null,
-          searchQuery: null,
-          limit: 5,
-          page: 1),
+        category: null,
+        status: null,
+        userId: null,
+        searchQuery: null,
+        limit: 5,
+        page: 1,
+      ),
     );
-
-    widget.scrollController.addListener(_onScroll);
   }
 
   void _onScroll() {
     final position = widget.scrollController.position;
     final currentState = _postBloc.state;
+    final hasReachedEnd = position.pixels >= position.maxScrollExtent - 200;
+    final canLoadMore = currentState.hasMoreposts;
 
-    if (position.pixels >= position.maxScrollExtent - 200 &&
-        !_postBloc.isFetchingMore &&
-        currentState is PostLoaded &&
-        currentState.hasMore) {
-      _postBloc.add(LoadMorePostsEvent());
+    if (hasReachedEnd && canLoadMore) {
+      _loadMorePosts();
+    }
+  }
+
+  Future<void> _loadMorePosts() async {
+    if (_isLoadingMore) return;
+
+    setState(() {
+      _isLoadingMore = true;
+    });
+
+    _postBloc.add(
+      LoadPostEvent(
+        category: null,
+        status: null,
+        userId: null,
+        searchQuery: null,
+        limit: 5,
+        page: _currentPage + 1,
+      ),
+    );
+
+    // Reset loading state after a short delay
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (mounted) {
+      setState(() {
+        _isLoadingMore = false;
+        _currentPage++;
+      });
     }
   }
 
   @override
   void dispose() {
     widget.scrollController.removeListener(_onScroll);
+    // No need to dispose the bloc as it's managed by BlocProvider
     super.dispose();
   }
 
@@ -83,10 +115,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 1000.0, // prebuild ~1k px ahead for smoother fast scrolls
             physics: const AlwaysScrollableScrollPhysics(),
             controller: widget.scrollController,
-            slivers: const <Widget>[
-              buildAppBar(),
-              SliverToBoxAdapter(child: SizedBox(height: 8)),
-              BuildPostList(),
+            slivers: <Widget>[
+              const buildAppBar(),
+              const SliverToBoxAdapter(child: SizedBox(height: 8)),
+              const BuildPostList(),
+              if (_isLoadingMore)
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),

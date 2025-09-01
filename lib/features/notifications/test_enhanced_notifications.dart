@@ -19,6 +19,7 @@ class EnhancedNotificationTest {
         postOwnerId: 'test_user_enhanced',
         userName: 'Enhanced Test User',
         commentText: 'This is an enhanced test comment!',
+        commentId: 'test_comment_enhanced',
       );
 
       print('✅ Enhanced notification test completed!');
@@ -52,6 +53,7 @@ class EnhancedNotificationTest {
         case 'comment':
           await NotificationIntegration.createCommentNotification(
             postId: postId,
+            commentId: 'test_comment_enhanced',
             postOwnerId: userId,
             userName: 'Test User',
             commentText: 'This is a test comment!',

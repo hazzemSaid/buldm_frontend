@@ -29,13 +29,13 @@ import 'package:buldm/features/home/domain/usecases/changeikepostUsecase.dart';
 import 'package:buldm/features/home/domain/usecases/createPostUseCase.dart';
 import 'package:buldm/features/home/domain/usecases/deletpostUsecase.dart';
 import 'package:buldm/features/home/domain/usecases/getIndividualPostUseCase.dart';
-import 'package:buldm/features/home/domain/usecases/getPostUseCase.dart';
+import 'package:buldm/features/home/domain/usecases/getPostsUseCase.dart';
 import 'package:buldm/features/home/domain/usecases/getUserById.dart';
 import 'package:buldm/features/home/domain/usecases/getcommentedpostUsecase.dart';
 import 'package:buldm/features/home/domain/usecases/getlikedpostUsecase.dart';
 import 'package:buldm/features/home/domain/usecases/setcommentUsecase.dart';
 import 'package:buldm/features/home/domain/usecases/setreplycommentUsecase.dart';
-import 'package:buldm/features/home/domain/usecases/updatepostUsecase.dart';
+import 'package:buldm/features/home/domain/usecases/updatePostUseCase.dart';
 import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
 import 'package:buldm/features/notifications/data/repositories/notification_repository.dart';
@@ -237,7 +237,7 @@ Future<void> init() async {
   sl.registerLazySingleton(
       () => GetCommentedPostUseCase(postRepository: sl<Postrepository>()));
   sl.registerLazySingleton(
-      () => UpdatePostUseCase(postRepository: sl<Postrepository>()));
+      () => Updatepostusecase(postRepository: sl<Postrepository>()));
   sl.registerLazySingleton(
       () => SetReplyCommentUseCase(postRepository: sl<Postrepository>()));
   sl.registerLazySingleton(
@@ -258,11 +258,11 @@ Future<void> init() async {
       getIndividualPostUseCase: sl<GetIndividualPostUseCase>(),
       createPostUsecase: sl<Createpostusecase>(),
       getCommentedPostUseCase: sl<GetCommentedPostUseCase>(),
-      updatePostUseCase: sl<UpdatePostUseCase>(),
       setReplyCommentUseCase: sl<SetReplyCommentUseCase>(),
       setCommentUseCase: sl<SetCommentUseCase>(),
       deletePostUseCase: sl<DeletePostUseCase>(),
-      changeLikePostUseCase: sl<ChangeLikePostUseCase>()));
+      changeLikePostUseCase: sl<ChangeLikePostUseCase>(),
+      uploadpostusecase: sl<Updatepostusecase>()));
   sl.registerFactory(() => UserBloc(getuserbyid: sl()));
   // location cubit
   sl.registerFactory(() => LocationCubit());

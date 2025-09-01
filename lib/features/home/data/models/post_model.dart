@@ -1,7 +1,6 @@
 // features/home/data/models/post_model.dart
-import 'package:buldm/features/auth/data/model/usermodel.dart';
+import 'package:buldm/features/auth/data/model/userprofilemodel.dart';
 import 'package:buldm/features/home/data/models/PredictedItem_model.dart';
-import 'package:buldm/features/home/data/models/comments.dart';
 import 'package:buldm/features/home/data/models/location_model.dart';
 import 'package:buldm/features/home/domain/entities/postentity.dart';
 
@@ -9,10 +8,9 @@ class PostModel extends PostEntity {
   const PostModel({
     required super.id,
     required super.commentsCount,
-    required super.comments,
-    required super.likes,
     required super.user,
     required super.title,
+    required super.likesCount,
     required super.description,
     required super.images,
     required super.location,
@@ -23,16 +21,17 @@ class PostModel extends PostEntity {
     required super.contactInfo,
     required super.when,
     required super.createdAt,
+    required super.repostsCount,
     required super.updatedAt,
+    required super.isliked,
   });
   PostModel copyWith({
+    bool? isliked,
     String? id,
     int? commentsCount,
-    List<CommentModel>? comments,
-    Set<String>? likes,
-    UserModel? user,
     String? title,
     String? description,
+    int? likesCount,
     List<String>? images,
     LocationModel? location,
     String? status,
@@ -43,14 +42,17 @@ class PostModel extends PostEntity {
     DateTime? when,
     DateTime? createdAt,
     DateTime? updatedAt,
+    int? repostsCount,
+    UserProfileModel? user,
   }) {
     return PostModel(
+      isliked: isliked ?? this.isliked,
+      repostsCount: repostsCount ?? this.repostsCount,
+      user: user ?? this.user,
       id: id ?? this.id,
       commentsCount: commentsCount ?? this.commentsCount,
-      comments: comments ?? this.comments,
-      likes: likes ?? this.likes,
-      user: user ?? this.user,
       title: title ?? this.title,
+      likesCount: likesCount ?? this.likesCount,
       description: description ?? this.description,
       images: images ?? this.images,
       location: location ?? this.location,
@@ -66,116 +68,59 @@ class PostModel extends PostEntity {
   }
 
   factory PostModel.fromJson(Map<String, dynamic> json) {
-    // Normalize likes structure: can be
-    // 1) List<String>
-    // 2) List<Map> where each map may contain 'usersIDs': List<String>
-    // 3) Map { usersIDs: List<String>, ... }
-    final dynamic likesRaw = json['likes'];
-    Set<String> likesSet = <String>{};
-    if (likesRaw is List) {
-      if (likesRaw.isNotEmpty && likesRaw.first is String) {
-        // Simple array of user IDs
-        likesSet = likesRaw.whereType<String>().toSet();
-      } else if (likesRaw.isNotEmpty && likesRaw.first is Map) {
-        // Array of objects; extract all usersIDs arrays and union them
-        for (final item in likesRaw.whereType<Map>()) {
-          final dynamic users = item['usersIDs']; // nested usersIDs
-          if (users is List) {
-            likesSet.addAll(users.whereType<String>());
-          }
-        }
-      }
-    } else if (likesRaw is Map<String, dynamic>) {
-      final usersIDs =
-          (likesRaw['usersIDs'] as List?)?.whereType<String>().toSet() ?? {};
-      likesSet = usersIDs;
-    }
-
-    // Normalize comments structure: can be List or {count, recent}
-    final dynamic commentsRaw = json['recentComments'];
-    List<CommentModel> commentsList = [];
-    int commentsCount = 0;
-    if (commentsRaw is List) {
-      commentsList = List<CommentModel>.from(commentsRaw
-          .map((x) => CommentModel.fromJson(x as Map<String, dynamic>)));
-      commentsCount = json['commentsCount'] ?? commentsList.length;
-    } else if (commentsRaw is Map<String, dynamic>) {
-      final recent = (commentsRaw as List?) ?? [];
-      commentsList = List<CommentModel>.from(
-          recent.map((x) => CommentModel.fromJson(x as Map<String, dynamic>)));
-      commentsCount = (commentsRaw['count'] is int)
-          ? commentsRaw['count'] as int
-          : commentsList.length;
-    }
-
     return PostModel(
-      id: json['_id']?.toString() ?? json['id']?.toString() ?? '',
-      likes: likesSet,
-      commentsCount: commentsCount,
-      comments: commentsList,
-      user: UserModel.fromJson(json['user'] ?? {}),
-      title: json['title'] ?? '',
-      description: json['description'] ?? '',
-      images: json['images'] == null
-          ? []
-          : List<String>.from(json['images'].whereType<String>()),
-      location: LocationModel.fromJson(json['location'] ?? {}),
-      status: json['status'] ?? '',
-      category: json['category'] ?? '',
-      predictedItems: json['predictedItems'] == null
-          ? []
-          : List<PredictedItemModel>.from(json['predictedItems']
-              .map((item) => PredictedItemModel.fromJson(item))),
-      user_id: json['user_id'] ?? '',
-      contactInfo: json['contactInfo'] ?? '',
-      when: DateTime.tryParse(json['when'] ?? '') ?? DateTime.now(),
-      createdAt: DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now(),
-      updatedAt: DateTime.tryParse(json['updatedAt'] ?? '') ?? DateTime.now(),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'commentsCount': commentsCount,
-      'comments': comments.map((x) => x.toJson()).toList(),
-      'likes': likes,
-      'user': user.toJson(),
-      'title': title,
-      'description': description,
-      'images': images,
-      'location': (location as LocationModel).toJson(),
-      'status': status,
-      'category': category,
-      'predictedItems': predictedItems
-          .map((item) => (item as PredictedItemModel).toJson())
-          .toList(),
-      'user_id': user_id,
-      'contactInfo': contactInfo,
-      'when': when.toIso8601String(),
-      'createdAt': createdAt.toIso8601String(),
-      'updatedAt': updatedAt.toIso8601String(),
-    };
-  }
-
-  fromModel(PostModel postModel) {
-    return PostModel(
-      id: postModel.id,
-      commentsCount: postModel.commentsCount,
-      comments: postModel.comments,
-      likes: postModel.likes,
-      user: postModel.user,
-      title: postModel.title,
-      description: postModel.description,
-      images: postModel.images,
-      location: postModel.location,
-      status: postModel.status,
-      category: postModel.category,
-      predictedItems: postModel.predictedItems,
-      user_id: postModel.user_id,
-      contactInfo: postModel.contactInfo,
-      when: postModel.when,
-      createdAt: postModel.createdAt,
-      updatedAt: postModel.updatedAt,
+      isliked: json['isLike'],
+      id: json['_id'],
+      commentsCount: json['commentsCount'],
+      user: UserProfileModel.fromJson(json['user']),
+      title: json['title'],
+      likesCount: json['likesCount'],
+      description: json['description'],
+      images: List<String>.from(json['images']),
+      location: LocationModel.fromJson(json['location']),
+      status: json['status'],
+      category: json['category'],
+      predictedItems: List<PredictedItemModel>.from(
+        json['predictedItems'].map((x) => PredictedItemModel.fromJson(x)),
+      ),
+      user_id: json['user_id'],
+      contactInfo: json['contactInfo'],
+      when: DateTime.parse(json['when']),
+      createdAt: DateTime.parse(json['createdAt']),
+      updatedAt: DateTime.parse(json['updatedAt']),
+      repostsCount: json['repostsCount'],
     );
   }
 }
+/*
+            "_id": "68b05b6949d5a728d949fd2c",
+            "repost": [],
+            "title": "withe Wallet",
+            "description": "black wallet found near the park",
+            "images": [],
+            "location": {
+                "type": "Point",
+                "coordinates": [
+                    40.7128,
+                    -74.006
+                ],
+                "placeName": "New York"
+            },
+            "status": "found",
+            "category": "",
+            "predictedItems": [],
+            "user_id": "689a677320a1503a42519a23",
+            "contactInfo": "",
+            "when": "2025-08-28T13:36:41.792Z",
+            "createdAt": "2025-08-28T13:36:41.783Z",
+            "updatedAt": "2025-08-28T13:36:41.783Z",
+            "__v": 0,
+            "reposts": [],
+            "repostsCount": 0,
+            "user": {
+                "_id": "689a677320a1503a42519a23",
+                "name": "hazem",
+                "avatar": "https://lh3.googleusercontent.com/a/ACg8ocLM2GW7-Zm8mwk57_MMTv76ClWVq-iXGtdaFkwZ9_mHZv0svJHb=s96-c"
+            },
+            "commentsCount": 0,
+            "likesCount": 0*/

@@ -7,7 +7,7 @@ class ChangeLikePostUseCase {
 
   ChangeLikePostUseCase({required this.postRepository});
 
-  Future<Either<Failure, void>> call(String postId, String userId) {
+  Future<Either<Failure, bool>> call(String postId, String userId) {
     return postRepository.setLike(postId, userId);
   }
 }

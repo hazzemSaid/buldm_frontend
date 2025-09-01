@@ -1,16 +1,16 @@
 // features/home/data/datasource/remote_post_data_source.dart
 import 'package:buldm/core/failure/failure.dart';
 import 'package:buldm/features/auth/data/model/usermodel.dart';
-import 'package:buldm/features/home/data/models/comments.dart';
+import 'package:buldm/features/home/data/models/commentsmodel.dart';
 import 'package:buldm/features/home/data/models/post_model.dart';
 import 'package:dio/dio.dart';
 import 'package:either_dart/either.dart';
 
 abstract class RemotePostDataSource {
-  Future<Response> createPost(FormData data, String token);
-  Future<Either<Failure, void>> updatePost(
+  Future<Either<Failure, void>> createPost(FormData data, String token);
+  Future<Either<Failure, PostModel>> updatePost(
       String token, String postId, Map<String, dynamic> data);
-  Future<Either<Failure, void>> deletePost(String postId);
+  Future<Either<Failure, void>> deletePost(String postId, String token);
   Future<Map<String, PostModel>> getPosts({
     String? category,
     String? status,
@@ -36,7 +36,7 @@ abstract class RemotePostDataSource {
     required int page,
     required int limit,
   });
-  Future<Either<Failure, void>> setLike(String postId, String userId);
+  Future<Either<Failure, bool>> setLike(String postId, String userId);
   Future<Either<Failure, CommentModel>> setComment(
       String postId, String content);
   Future<Either<Failure, CommentModel>> setCommentReply(
@@ -49,30 +49,39 @@ class RemotePostDataSourceImpl implements RemotePostDataSource {
   RemotePostDataSourceImpl({required this.dio});
 
   @override
-  Future<Response> createPost(FormData data, String token) async {
-    // Convert List<MapEntry<String, String>> to Map<String, dynamic>
+  Future<Either<Failure, void>> createPost(FormData data, String token) async {
+    try {
+      // Convert List<MapEntry<String, String>> to Map<String, dynamic>
 
-    print('Posting to: ${dio.options.baseUrl}/post');
+      print('Posting to: ${dio.options.baseUrl}/post');
 
-    final response = await dio.post(
-      '/post',
-      data: data,
-      options: Options(
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      ),
-    );
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      return response;
+      final response = await dio.post(
+        '/post',
+        data: data,
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+        ),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return Right(null);
+      }
+      return Left(Failure(error: 'Failed to create post'));
+    } on DioException catch (e) {
+      return Left(Failure(error: e.message!));
     }
-    throw Exception('Failed to create post: ${response.data['message']}');
   }
 
   @override
-  Future<Either<Failure, void>> deletePost(String postId) async {
-    final response = await dio.delete('/post/$postId');
+  Future<Either<Failure, void>> deletePost(String postId, String token) async {
+    final response = await dio.delete('/post/$postId',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+          },
+        ));
     if (response.statusCode == 200 || response.statusCode == 204) {
       return Right(null);
     }
@@ -185,7 +194,7 @@ class RemotePostDataSourceImpl implements RemotePostDataSource {
   }
 
   @override
-  Future<Either<Failure, void>> updatePost(
+  Future<Either<Failure, PostModel>> updatePost(
     String token,
     String postId,
     Map<String, dynamic> data,
@@ -194,7 +203,7 @@ class RemotePostDataSourceImpl implements RemotePostDataSource {
         data: data,
         options: Options(headers: {'Authorization': 'Bearer $token'}));
     if (response.statusCode == 200 || response.statusCode == 201) {
-      return Right(null);
+      return Right(PostModel.fromJson(response.data['data']));
     }
     return Left(Failure(error: 'Failed to update post'));
   }
@@ -287,10 +296,10 @@ class RemotePostDataSourceImpl implements RemotePostDataSource {
   }
 
   @override
-  Future<Either<Failure, void>> setLike(String postId, String userId) async {
+  Future<Either<Failure, bool>> setLike(String postId, String userId) async {
     final response = await dio.post('/post/$postId/like');
     if (response.statusCode == 200 || response.statusCode == 201) {
-      return Right(null);
+      return Right(response.data['data']['isliked']);
     } else {
       return Left(Failure(error: 'Failed to set like'));
     }

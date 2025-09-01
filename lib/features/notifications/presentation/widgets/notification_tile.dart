@@ -1,6 +1,7 @@
 // features/notifications/presentation/widgets/notification_tile.dart
 import 'package:buldm/features/home/data/models/post_model.dart';
 import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
+import 'package:buldm/features/home/persentation/bloc/post/post_state.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_state.dart';
 import 'package:buldm/features/notifications/data/models/notification_model.dart';
@@ -210,7 +211,8 @@ class NotificationTile extends StatelessWidget {
                             builder: (context, postState) {
                               PostModel? post;
 
-                              if (postState is PostLoaded) {
+                              if (postState.status == PostStatus.postLoadSuccess) {
+
                                 final postModel =
                                     postState.posts[notification.postId!];
                                 if (postModel != null) {

@@ -32,6 +32,7 @@ class IndividualPostLoadingTest {
           postId: testPostId,
           postOwnerId: currentUser.user_id,
           userName: currentUser.name,
+          commentId: 'test_comment_enhanced',
           commentText: 'This is a test comment for individual post loading!',
         );
 

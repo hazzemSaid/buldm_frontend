@@ -2,7 +2,7 @@
 import 'package:buldm/core/failure/failure.dart';
 import 'package:buldm/features/auth/domain/entities/userentities.dart';
 import 'package:buldm/features/home/data/datasource/remote_post_data_source.dart';
-import 'package:buldm/features/home/data/models/comments.dart';
+import 'package:buldm/features/home/data/models/commentsmodel.dart';
 import 'package:buldm/features/home/data/models/post_model.dart';
 import 'package:buldm/features/home/domain/repository/postrepository.dart';
 import 'package:dio/dio.dart';
@@ -12,13 +12,13 @@ class Postrepositoryimp extends Postrepository {
   final RemotePostDataSource remotePostDataSource;
   Postrepositoryimp({required this.remotePostDataSource});
   @override
-  Future<Response> createPost(FormData data, String token) {
+  Future<Either<Failure, void>> createPost(FormData data, String token) {
     return remotePostDataSource.createPost(data, token);
   }
 
   @override
-  Future<Either<Failure, void>> deletePost(String postId) {
-    return remotePostDataSource.deletePost(postId);
+  Future<Either<Failure, void>> deletePost(String postId, String token) {
+    return remotePostDataSource.deletePost(postId, token);
   }
 
   @override
@@ -91,7 +91,7 @@ class Postrepositoryimp extends Postrepository {
   }
 
   @override
-  Future<Either<Failure, void>> updatePost(
+  Future<Either<Failure, PostModel>> updatePost(
     String token,
     String postId,
     Map<String, dynamic> data,
@@ -136,7 +136,7 @@ class Postrepositoryimp extends Postrepository {
   }
 
   @override
-  Future<Either<Failure, void>> setLike(String postId, String userId) {
+  Future<Either<Failure, bool>> setLike(String postId, String userId) {
     return remotePostDataSource.setLike(postId, userId);
   }
 }

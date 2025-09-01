@@ -4,6 +4,7 @@ import 'package:buldm/core/services/LocationService.dart';
 import 'package:buldm/features/Add_Post/data/model/mapstyledata_model.dart';
 import 'package:buldm/features/Add_Post/presentation/view/screens/PostView.dart';
 import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
+import 'package:buldm/features/home/persentation/bloc/post/post_state.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
 import 'package:buldm/features/home/persentation/view/screens/PostWidget.dart';
 import 'package:buldm/l10n/app_localizations.dart';
@@ -113,15 +114,15 @@ class _MapLocationScreen extends State<MapLocationScreen>
       ),
       body: BlocBuilder<PostBloc, PostState>(
         builder: (context, state) {
-          if (state is PostError) {
+          if (state.status == PostStatus.postLoadError) {
             return Center(
               child: Text(
-                state.message,
+                state.message ?? "have a error",
                 style: const TextStyle(color: Colors.red, fontSize: 16),
               ),
             );
           }
-          if (state is PostLoaded) {
+          if (state.status == PostStatus.postLoadSuccess) {
             var posts = state.posts;
             return Stack(
               children: [
@@ -178,7 +179,6 @@ class _MapLocationScreen extends State<MapLocationScreen>
                                                 child: PostWidget(
                                                   post: post,
                                                   index: post.id,
-                                                  singlePost: false,
                                                 ),
                                               ),
                                             )),

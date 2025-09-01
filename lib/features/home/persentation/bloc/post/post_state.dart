@@ -1,182 +1,90 @@
-part of 'post_bloc.dart';
+import 'package:buldm/features/home/data/models/commentsmodel.dart';
+import 'package:buldm/features/home/data/models/likemodel.dart';
+import 'package:buldm/features/home/data/models/post_model.dart';
+import 'package:equatable/equatable.dart';
+
+enum PostStatus {
+  initial,
+  postLoadLoading,
+  postLoadSuccess,
+  postLoadError,
+  postCreateLoading,
+  postCreateSuccess,
+  postCreateError,
+  postDeleteLoading,
+  postDeleteError,
+  postDeleteSuccess,
+  postUpdateLoading,
+  postUpdateSuccess,
+  postUpdateError,
+  commentCreateLoading,
+  commentCreateSuccess,
+  commentCreateError,
+  commentLoadLoading,
+  commentLoadSuccess,
+  commentLoadError,
+  likeLoadLoading,
+  likeLoadSuccess,
+  likeLoadError,
+  likeToggleLoading,
+  likeToggleSuccess,
+  likeToggleError,
+}
 
 class PostState extends Equatable {
-  const PostState();
+  final PostStatus status;
+  final bool hasMoreposts;
+  final bool hasMorecomments;
 
-  @override
-  List<Object?> get props => [];
-
-  @override
-  bool? get stringify => true;
-}
-
-class ReplySuccess extends PostState {
-  final String postId;
-  final String parentCommentId;
-
-  const ReplySuccess({required this.postId, required this.parentCommentId});
-
-  @override
-  List<Object?> get props => [postId, parentCommentId];
-}
-
-class CommentsForPostLoaded extends PostState {
-  final String postId;
-  final List<CommentModel> comments;
-
-  const CommentsForPostLoaded({required this.postId, required this.comments});
-
-  @override
-  List<Object?> get props => [postId, comments];
-}
-
-class PostInitial extends PostState {}
-
-class PostLoading extends PostState {}
-
-class PostLoaded extends PostState {
   final Map<String, PostModel> posts;
-  final bool hasMore;
   final bool isLoadingMore;
-  final String? category;
-  final String? status;
-  final String? userId;
-  final String? searchQuery;
-  final int pageSize;
-  final int currentPage;
 
-  const PostLoaded({
-    required this.posts,
-    this.hasMore = true,
+  final String? message;
+  final Map<String, CommentModel> comments;
+  final Map<String, LikeModel> likes;
+
+  const PostState({
+    this.status = PostStatus.initial,
+    this.posts = const {},
+    this.hasMoreposts = true,
+    this.hasMorecomments = true,
     this.isLoadingMore = false,
-    this.category,
-    this.status,
-    this.userId,
-    this.searchQuery,
-    this.pageSize = 5,
-    this.currentPage = 1,
+    this.message,
+    this.comments = const {},
+    this.likes = const {},
   });
 
-  PostLoaded copyWith({
+  PostState copyWith({
+    PostStatus? status,
     Map<String, PostModel>? posts,
-    bool? hasMore,
+    bool? hasMoreposts,
+    bool? hasMorecomments,
     bool? isLoadingMore,
-    String? category,
-    String? status,
-    String? userId,
-    String? searchQuery,
-    int? pageSize,
-    int? currentPage,
+    String? message,
+    Map<String, CommentModel>? comments,
+    Map<String, LikeModel>? likes,
   }) {
-    return PostLoaded(
-      posts: posts ?? this.posts,
-      hasMore: hasMore ?? this.hasMore,
-      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
-      category: category ?? this.category,
+    return PostState(
+      hasMoreposts: hasMoreposts ?? this.hasMoreposts,
+      hasMorecomments: hasMorecomments ?? this.hasMorecomments,
       status: status ?? this.status,
-      userId: userId ?? this.userId,
-      searchQuery: searchQuery ?? this.searchQuery,
-      pageSize: pageSize ?? this.pageSize,
-      currentPage: currentPage ?? this.currentPage,
+      posts: posts ?? this.posts,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      message: message ?? this.message,
+      comments: comments ?? this.comments,
+      likes: likes ?? this.likes,
     );
   }
 
   @override
   List<Object?> get props => [
-        posts,
-        hasMore,
-        isLoadingMore,
-        category,
         status,
-        userId,
-        searchQuery,
-        pageSize,
-        currentPage
+        posts,
+        isLoadingMore,
+        hasMoreposts,
+        hasMorecomments,
+        message,
+        comments,
+        likes,
       ];
-}
-
-class PostError extends PostState {
-  final String message;
-
-  const PostError({required this.message});
-
-  @override
-  List<Object?> get props => [message];
-
-  @override
-  bool? get stringify => true;
-}
-
-class PostCreatedState extends PostState {
-  final String userId;
-
-  const PostCreatedState({required this.userId});
-
-  @override
-  List<Object?> get props => [userId];
-}
-
-class CommentLoading extends PostState {}
-
-class CommentLoaded extends PostState {}
-
-class CommentError extends PostState {
-  final String message;
-
-  const CommentError({required this.message});
-
-  @override
-  List<Object?> get props => [message];
-}
-
-class LikeLoading extends PostState {}
-
-class LikeLoaded extends PostState {
-  final List<LikeModel> likes;
-
-  const LikeLoaded({required this.likes});
-
-  @override
-  List<Object?> get props => [likes];
-}
-
-class LikeError extends PostState {
-  final String message;
-
-  const LikeError({required this.message});
-
-  @override
-  List<Object?> get props => [message];
-}
-
-class PostUploadError extends PostState {
-  final String message;
-
-  const PostUploadError({required this.message});
-
-  @override
-  List<Object?> get props => [message];
-}
-
-class PostUpdatedSuccess extends PostState {
-  const PostUpdatedSuccess();
-
-  @override
-  List<Object?> get props => [];
-}
-
-class PostUpdatedError extends PostState {
-  final String message;
-
-  const PostUpdatedError({required this.message});
-
-  @override
-  List<Object?> get props => [message];
-}
-
-class PostUpdatedLoading extends PostState {
-  const PostUpdatedLoading();
-
-  @override
-  List<Object?> get props => [];
 }

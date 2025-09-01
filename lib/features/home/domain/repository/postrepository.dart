@@ -1,8 +1,9 @@
 // features/home/domain/repository/postrepository.dart
 import 'package:buldm/core/failure/failure.dart';
 import 'package:buldm/features/auth/domain/entities/userentities.dart';
-import 'package:buldm/features/home/data/models/comments.dart';
+import 'package:buldm/features/home/data/models/commentsmodel.dart';
 import 'package:buldm/features/home/data/models/post_model.dart';
+import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
 import 'package:dio/dio.dart';
 import 'package:either_dart/either.dart';
 
@@ -25,13 +26,14 @@ abstract class Postrepository {
     double longitude,
     double radius,
   );
-  Future<Response> createPost(FormData data, String token);
-  Future<Either<Failure, void>> updatePost(
+  Future<Either<Failure, void>> createPost(FormData data, String token);
+  Future<Either<Failure, PostModel>> updatePost(
     String token,
     String postId,
     Map<String, dynamic> data,
   );
-  Future<Either<Failure, void>> deletePost(String postId);
+  Future<Either<Failure, void>> deletePost(String postId, String token);
+
   Future<Map<String, PostModel>> getPostsBySearchQuery(String searchQuery);
   Future<Map<String, PostModel>> getPostsByPredictedItem(String predictedItem);
   Future<Map<String, PostModel>> getPostsByLocationAndCategory(
@@ -47,7 +49,7 @@ abstract class Postrepository {
     required int page,
     required int limit,
   });
-  Future<Either<Failure, void>> setLike(String postId, String userId);
+  Future<Either<Failure, bool>> setLike(String postId, String userId);
   Future<Either<Failure, CommentModel>> setComment(
       String postId, String content);
   Future<Either<Failure, CommentModel>> setCommentReply(

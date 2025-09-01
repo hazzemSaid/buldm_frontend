@@ -19,12 +19,20 @@ class NotificationIntegration {
 
       // Don't notify yourself
       if (currentUserId != postOwnerId) {
-        await _notificationService.createLikeNotification(
-          userId: currentUserId,
-          userTo: postOwnerId,
-          postId: postId,
-          userName: userName ?? authState.user.name,
-        );
+        final hasSentNotification =
+            await _notificationService.hasSentNotification(
+                userId: currentUserId,
+                userTo: postOwnerId,
+                postId: postId,
+                event: 'like');
+        if (!hasSentNotification) {
+          await _notificationService.createLikeNotification(
+            userId: currentUserId,
+            userTo: postOwnerId,
+            postId: postId,
+            userName: userName ?? authState.user.name,
+          );
+        }
       }
     }
   }
@@ -35,6 +43,7 @@ class NotificationIntegration {
     required String postOwnerId,
     String? userName,
     String? commentText,
+    required String commentId,
   }) async {
     final authState = sl<AuthCubit>().state;
     if (authState is Authenticated) {
@@ -42,14 +51,26 @@ class NotificationIntegration {
 
       // Don't notify yourself
       if (currentUserId != postOwnerId) {
-        await _notificationService.createCommentNotification(
+        final hasSentNotification =
+            await _notificationService.hasSentNotification(
           userId: currentUserId,
           userTo: postOwnerId,
           postId: postId,
-          userName: userName ?? authState.user.name,
-          commentText: commentText,
+          event: 'comment',
+          comment: commentId,
         );
+        if (!hasSentNotification) {
+          await _notificationService.createCommentNotification(
+            userId: currentUserId,
+            userTo: postOwnerId,
+            postId: postId,
+            userName: userName ?? authState.user.name,
+            commentText: commentText,
+            commentId: commentId,
+          );
+        }
       }
+      // i need to check if i send this before
     }
   }
 

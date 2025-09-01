@@ -1,5 +1,5 @@
 import 'package:buldm/core/failure/failure.dart';
-import 'package:buldm/features/home/data/models/comments.dart';
+import 'package:buldm/features/home/data/models/commentsmodel.dart';
 import 'package:buldm/features/home/domain/repository/postrepository.dart';
 import 'package:either_dart/either.dart';
 

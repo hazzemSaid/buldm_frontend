@@ -2,6 +2,7 @@
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_state.dart';
 import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
+import 'package:buldm/features/home/persentation/bloc/post/post_state.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_event.dart';
 import 'package:buldm/features/home/persentation/view/screens/PostDetailScreen.dart';
@@ -271,7 +272,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
         if (notification.postId != null) {
           // Try to get the post from PostBloc state
           final postState = context.read<PostBloc>().state;
-          if (postState is PostLoaded) {
+          if (postState.status == PostStatus.postLoadSuccess) {
             final postModel = postState.posts[notification.postId!];
             if (postModel != null) {
               // Navigate to post details
@@ -286,7 +287,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       BlocProvider<PostBloc>.value(value: postBloc),
                       BlocProvider<UserBloc>.value(value: userBloc),
                     ],
-                    child: PostDetailScreen(post: postModel),
+                    child: PostDetailScreen(
+                        post: postModel,
+                        content: "comment",
+                        commentid: notification.additionalData?['commentId']),
                   ),
                 ),
               );
@@ -309,14 +313,17 @@ class _NotificationScreenState extends State<NotificationScreen> {
         if (notification.postId != null) {
           // Same as like/comment/share - navigate to post
           final postState = context.read<PostBloc>().state;
-          if (postState is PostLoaded) {
+          if (postState.status == PostStatus.postCreateLoading) {
             final postModel = postState.posts[notification.postId!];
             if (postModel != null) {
               print('Navigate to post with mention: ${notification.postId}');
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => PostDetailScreen(post: postModel),
+                  builder: (context) => PostDetailScreen(
+                      post: postModel,
+                      content: "mention",
+                      commentid: notification.additionalData?['commentId']!),
                 ),
               );
             } else {

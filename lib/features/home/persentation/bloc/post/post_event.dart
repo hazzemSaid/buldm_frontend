@@ -33,7 +33,27 @@ class LoadPostEvent extends PostEvent {
       [category, status, userId, searchQuery, limit, page];
 }
 
-class LoadMorePostsEvent extends PostEvent {}
+class LoadMorePostsEvent extends PostEvent {
+  final String? category;
+  final String? status;
+  final String? userId;
+  final String? searchQuery;
+  final int limit;
+  final int page;
+
+  const LoadMorePostsEvent({
+    this.category,
+    this.status,
+    this.userId,
+    this.searchQuery,
+    required this.limit,
+    required this.page,
+  });
+
+  @override
+  List<Object?> get props =>
+      [category, status, userId, searchQuery, limit, page];
+}
 
 class AddPostEvent extends PostEvent {
   final PostModel post;
@@ -51,7 +71,7 @@ class AddPostEvent extends PostEvent {
 }
 
 class uploadPostEvent extends PostEvent {
-  final UploadablePostModel post;
+  final PostModel post;
 
   const uploadPostEvent({required this.post});
 
@@ -63,7 +83,7 @@ class uploadPostEvent extends PostEvent {
 }
 
 class DeletePostEvent extends PostEvent {
-  final PostEntity post;
+  final PostModel post;
 
   const DeletePostEvent({required this.post});
   @override

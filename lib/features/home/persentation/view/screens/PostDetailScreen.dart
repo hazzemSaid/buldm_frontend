@@ -1,7 +1,10 @@
 // features/home/persentation/view/screens/PostDetailScreen.dart
-import 'package:buldm/features/home/data/models/comments.dart';
-import 'package:buldm/features/home/domain/entities/postentity.dart';
+import 'dart:async';
+
+import 'package:buldm/features/home/data/models/commentsmodel.dart';
+import 'package:buldm/features/home/data/models/post_model.dart';
 import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
+import 'package:buldm/features/home/persentation/bloc/post/post_state.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_event.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_state.dart';
@@ -10,16 +13,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class PostDetailScreen extends StatefulWidget {
-  final PostEntity post;
-
-  const PostDetailScreen({super.key, required this.post});
+  final PostModel post;
+  final String content;
+  final String? commentid;
+  PostDetailScreen(
+      {super.key, required this.post, required this.content, this.commentid}) {
+    print("Comment ID: $commentid");
+  }
 
   @override
   State<PostDetailScreen> createState() => _PostDetailScreenState();
 }
 
 class _PostDetailScreenState extends State<PostDetailScreen> {
-  bool _isInitialized = false;
   final ScrollController _scrollController = ScrollController();
   bool _isLoadingMoreComments = false;
   int _currentPage = 1;
@@ -28,30 +34,58 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   final Set<String> _expandedParents = <String>{};
   final Map<String, int> _commentLikes = <String, int>{};
   final Set<String> _likedComments = <String>{};
+  final TextEditingController _commentController = TextEditingController();
+  String? _replyToCommentId;
+  String? _replyToUserName;
+
+  Timer? _scrollDebounce;
+  final Map<String, String> _timeAgoCache = {};
 
   @override
   void initState() {
     super.initState();
-    // Load initial comments with pagination
-    context
-        .read<PostBloc>()
-        .add(getcomment(postId: widget.post.id, page: 1, limit: _limit));
-
-    // Add scroll listener for pagination
+    _loadInitialComments();
     _scrollController.addListener(_scrollListener);
+  }
+
+  void _loadInitialComments() {
+    if (widget.post.id.isEmpty) return;
+
+    setState(() {
+      _currentPage = 1;
+      _hasMoreComments = true;
+      _isLoadingMoreComments = true;
+    });
+
+    context.read<PostBloc>().add(
+          getcomment(
+            postId: widget.post.id,
+            page: 1,
+            limit: _limit,
+          ),
+        );
   }
 
   @override
   void dispose() {
+    _scrollDebounce?.cancel();
     _scrollController.removeListener(_scrollListener);
     _scrollController.dispose();
+    _commentController.dispose();
+    _timeAgoCache.clear();
+    _expandedParents.clear();
+    _commentLikes.clear();
+    _likedComments.clear();
     super.dispose();
   }
 
   void _scrollListener() {
     if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 10) {
-      _loadMoreComments();
+        _scrollController.position.maxScrollExtent - 100) {
+      // Debounce scroll events
+      _scrollDebounce?.cancel();
+      _scrollDebounce =
+          Timer(const Duration(milliseconds: 200), _loadMoreComments);
     }
   }
 
@@ -62,37 +96,58 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       _isLoadingMoreComments = true;
     });
 
+    final nextPage = _currentPage + 1;
     context.read<PostBloc>().add(
           getcomment(
             postId: widget.post.id,
-            page: _currentPage + 1,
+            page: nextPage,
             limit: _limit,
           ),
         );
   }
 
   String _relativeTime(DateTime dt) {
+    final cacheKey = dt.toIso8601String();
+    if (_timeAgoCache.containsKey(cacheKey)) {
+      return _timeAgoCache[cacheKey]!;
+    }
+
     final now = DateTime.now();
     final diff = now.difference(dt);
-    if (diff.inSeconds < 60) return 'just now';
-    if (diff.inMinutes < 60) return '${diff.inMinutes}m';
-    if (diff.inHours < 24) return '${diff.inHours}h';
-    if (diff.inDays < 7) return '${diff.inDays}d';
-    final weeks = (diff.inDays / 7).floor();
-    if (weeks < 5) return '${weeks}w';
-    final months = (diff.inDays / 30).floor();
-    if (months < 12) return '${months}mo';
-    final years = (diff.inDays / 365).floor();
-    return '${years}y';
+
+    String result;
+    if (diff.inSeconds < 60) {
+      result = 'just now';
+    } else if (diff.inMinutes < 60) {
+      result = '${diff.inMinutes}m';
+    } else if (diff.inHours < 24) {
+      result = '${diff.inHours}h';
+    } else if (diff.inDays < 7) {
+      result = '${diff.inDays}d';
+    } else {
+      final weeks = (diff.inDays / 7).floor();
+      if (weeks < 5) {
+        result = '${weeks}w';
+      } else {
+        final months = (diff.inDays / 30).floor();
+        if (months < 12) {
+          result = '${months}mo';
+        } else {
+          final years = (diff.inDays / 365).floor();
+          result = '${years}y';
+        }
+      }
+    }
+
+    _timeAgoCache[cacheKey] = result;
+    return result;
   }
 
   @override
   Widget build(BuildContext context) {
-    // Use blocs provided by ancestors (e.g., MainLayout or caller via BlocProvider.value)
-    // Initialize only once after providers are available
-    if (!_isInitialized) {
-      _isInitialized = true;
-      // Optionally trigger loads here using context.read<PostBloc>() / UserBloc
+    // Clear time cache if it grows too large
+    if (_timeAgoCache.length > 100) {
+      _timeAgoCache.clear();
     }
 
     return Scaffold(
@@ -102,93 +157,215 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
       ),
-      body: BlocConsumer<PostBloc, PostState>(
-        listener: (context, state) {
-          if (state is PostLoaded) {
-            // Update pagination state
-            final post = state.posts[widget.post.id];
-            if (post != null) {
-              // Check if we've loaded all comments
-              if (post.comments.length < _limit * _currentPage) {
-                _hasMoreComments = false;
-              } else {
-                _currentPage++;
-              }
+      body: Column(
+        children: [
+          Expanded(
+            child: BlocConsumer<PostBloc, PostState>(
+              listener: (context, state) {
+                if (state.status == PostStatus.commentLoadSuccess) {
+                  // Update pagination state
+                  final post = state.posts[widget.post.id];
+                  if (post != null) {
+                    final newComments = state.comments.values
+                        .where((c) => c.postId == widget.post.id)
+                        .toList();
+                    final loadedAll =
+                        newComments.length < _limit * _currentPage;
 
-              if (_isLoadingMoreComments) {
-                setState(() {
-                  _isLoadingMoreComments = false;
-                });
-              }
+                    setState(() {
+                      _hasMoreComments = !loadedAll;
+                      if (!loadedAll) {
+                        _currentPage++;
+                      }
+                      _isLoadingMoreComments = false;
+                    });
 
-              // Request user details for all commenters (cached by UserBloc)
-              final uniqueUserIds = post.comments
-                  .map((c) => c.userId)
-                  .where((id) => id.isNotEmpty)
-                  .toSet()
-                  .toList();
-              if (uniqueUserIds.isNotEmpty) {
-                context.read<UserBloc>().add(
-                      LoadMultipleUsersEvent(userIds: uniqueUserIds),
-                    );
-              }
-            }
-          } else if (state is CommentError) {
-            if (_isLoadingMoreComments) {
-              setState(() {
-                _isLoadingMoreComments = false;
-              });
-            }
-          }
-        },
-        builder: (context, state) {
-          if (state is PostLoaded) {
-            final post = state.posts[widget.post.id];
-            List<CommentModel> comments = [];
-            if (post != null) {
-              comments = post.comments;
-            }
-
-            return SingleChildScrollView(
-              controller: _scrollController,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    PostWidget(
-                      post: widget.post,
-                      index: widget.post.id, // Using post ID as index
-                      singlePost: true,
+                    // Request user details for all commenters (cached by UserBloc)
+                    final uniqueUserIds = newComments
+                        .map((c) => c.userId)
+                        .where((id) => id.isNotEmpty)
+                        .toSet()
+                        .toList();
+                    if (uniqueUserIds.isNotEmpty) {
+                      context.read<UserBloc>().add(
+                            LoadMultipleUsersEvent(userIds: uniqueUserIds),
+                          );
+                    }
+                  }
+                } else if (state.status == PostStatus.commentLoadError) {
+                  setState(() {
+                    _isLoadingMoreComments = false;
+                  });
+                  // Show error message to user
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(state.message ?? 'Failed to load comments'),
+                      backgroundColor: Theme.of(context).colorScheme.error,
                     ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Comments',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+                  );
+                }
+              },
+              builder: (context, state) {
+                if (state.status == PostStatus.postLoadSuccess ||
+                    state.status == PostStatus.commentLoadSuccess ||
+                    state.status == PostStatus.commentLoadLoading) {
+                  final post = state.posts[widget.post.id];
+                  List<CommentModel> comments = [];
+                  if (post != null) {
+                    comments = state.comments.values
+                        .where((c) => c.postId == widget.post.id)
+                        .toList();
+                  }
+
+                  return SingleChildScrollView(
+                    controller: _scrollController,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          PostWidget(
+                            post: widget.post,
+                            index: widget.post.id, // Using post ID as index
+                          ),
+                          const SizedBox(height: 20),
+                          const Text(
+                            'Comments',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          ..._buildCommentsList(context, comments),
+                          if (_isLoadingMoreComments)
+                            const Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    ..._buildCommentsList(context, comments),
-                    if (_isLoadingMoreComments)
-                      const Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: Center(
-                          child: CircularProgressIndicator(),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            );
-          }
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        },
+                  );
+                }
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              },
+            ),
+          ),
+          _buildCommentInput(context),
+        ],
       ),
     );
+  }
+
+  Widget _buildCommentInput(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    return SafeArea(
+      top: false,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerLowest,
+          border: Border(
+            top: BorderSide(color: colorScheme.outline.withOpacity(0.08)),
+          ),
+        ),
+        child: Row(
+          children: [
+            if (_replyToUserName != null)
+              Flexible(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 4.0, right: 8.0),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          'Replying to $_replyToUserName',
+                          style: textTheme.labelSmall?.copyWith(
+                            color: colorScheme.primary,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, size: 18),
+                        onPressed: () {
+                          setState(() {
+                            _replyToCommentId = null;
+                            _replyToUserName = null;
+                          });
+                        },
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            Expanded(
+              flex: 3,
+              child: TextField(
+                controller: _commentController,
+                minLines: 1,
+                maxLines: 4,
+                textInputAction: TextInputAction.send,
+                decoration: InputDecoration(
+                  hintText: _replyToUserName != null
+                      ? 'Write a reply...'
+                      : 'Add a comment...',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                ),
+                onSubmitted: (_) => _sendComment(context),
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.send),
+              color: colorScheme.primary,
+              onPressed: () => _sendComment(context),
+              padding: const EdgeInsets.only(left: 4),
+              constraints: const BoxConstraints(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _sendComment(BuildContext context) {
+    final text = _commentController.text.trim();
+    if (text.isEmpty) return;
+    if (_replyToCommentId != null) {
+      context.read<PostBloc>().add(
+            setreplycomment(
+              postId: widget.post.id,
+              parentCommentId: _replyToCommentId!,
+              content: text,
+            ),
+          );
+    } else {
+      context.read<PostBloc>().add(
+            setcomment(
+              postId: widget.post.id,
+              content: text,
+            ),
+          );
+    }
+    setState(() {
+      _commentController.clear();
+      _replyToCommentId = null;
+      _replyToUserName = null;
+    });
+    // Optionally, scroll to bottom or show a snackbar
   }
 
   List<Widget> _buildCommentsList(
@@ -205,6 +382,10 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     final Map<String, CommentModel> idToComment = {
       for (final c in comments) c.id: c,
     };
+    for (final c in comments) {
+      print("Comment ID: ${c.id}, Parent ID: ${c.parentCommentId}");
+    }
+
     final Map<String, List<CommentModel>> childrenMap = {};
     final List<CommentModel> roots = [];
     final Set<String> allIds = idToComment.keys.toSet();
@@ -426,7 +607,13 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                   const SizedBox(height: 4),
                   Text(
                     c.comment,
-                    style: textTheme.bodyMedium,
+                    style: widget.commentid == c.id
+                        ? textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          )
+                        : textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w400,
+                          ),
                   ),
                   const SizedBox(height: 4),
                   Row(
@@ -461,6 +648,26 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                             fontWeight: _likedComments.contains(c.id)
                                 ? FontWeight.w700
                                 : FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      TextButton(
+                        style: TextButton.styleFrom(
+                          minimumSize: const Size(0, 32),
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _replyToCommentId = c.id;
+                            _replyToUserName =
+                                c.userId; // Or fetch user name if available
+                          });
+                          FocusScope.of(context).requestFocus(FocusNode());
+                        },
+                        child: Text(
+                          'Reply',
+                          style: textTheme.labelMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.primary,
                           ),
                         ),
                       ),

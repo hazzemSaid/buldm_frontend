@@ -1,73 +1,42 @@
 // features/home/persentation/view/widgets/buildPostActions.dart
+import 'dart:async';
+
 import 'package:buldm/core/Dependency_njection/service_locator.dart';
 import 'package:buldm/features/auth/domain/entities/userentities.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_state.dart';
-import 'package:buldm/features/home/domain/entities/postentity.dart';
+import 'package:buldm/features/home/data/models/post_model.dart';
 import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
+import 'package:buldm/features/home/persentation/bloc/post/post_state.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_event.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_state.dart';
 import 'package:buldm/features/home/persentation/view/screens/CommentBottomSheet.dart';
 import 'package:buldm/features/map_location/presentation/view/screens/solo_map_location.dart';
-import 'package:buldm/features/notifications/integration/notification_integration.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class BuildPostActions extends StatefulWidget {
-  const BuildPostActions(
-      {super.key, required this.post, required this.singlePost});
-  final PostEntity post;
-  final bool singlePost;
+  const BuildPostActions({super.key, required this.post});
+  final PostModel post;
   @override
   State<BuildPostActions> createState() => _BuildPostActionsState();
 }
 
 class _BuildPostActionsState extends State<BuildPostActions> {
-  late bool isLiked;
-  late int likeCount;
-  DateTime? _lastLikeToggleAt;
-  bool isProcessingLike = false;
-  @override
-  void initState() {
-    super.initState();
-    // Determine if current user liked the post and initialize counts
-    final authState = context.read<AuthCubit>().state;
-    final currentUser = (authState is Authenticated) ? authState.user : null;
-    isLiked = currentUser != null &&
-        widget.post.likes.any((l) => l == currentUser.user_id);
-    likeCount = widget.post.likes.length;
-    // Ensure we have up-to-date membership (usersIDs) for this post
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   if (mounted) {
-    //     context.read<PostBloc>().add(getlike(postId: widget.post.id));
-    //   }
-    // });
-  }
+  bool progress = false;
+  // Debounce timers keyed by action+postId
+  final Map<String, Timer?> debounces = {};
+  // Optimistic like state per postId to toggle icon immediately
+  final Map<String, bool> _optimisticLiked = {};
 
   @override
-  void didUpdateWidget(covariant BuildPostActions oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // When parent provides a refreshed PostEntity, merge carefully so we don't
-    // drop the user's recent like action due to timing
-    final authState = context.read<AuthCubit>().state;
-    final currentUser = (authState is Authenticated) ? authState.user : null;
-    final bool withinOptimisticWindow = _lastLikeToggleAt != null &&
-        DateTime.now().difference(_lastLikeToggleAt!) <
-            const Duration(seconds: 3);
-    if (currentUser != null && !withinOptimisticWindow) {
-      final serverLiked =
-          widget.post.likes.any((l) => l == currentUser.user_id);
-      setState(() {
-        isLiked = serverLiked;
-        likeCount = widget.post.likes.length;
-      });
-    } else if (!withinOptimisticWindow) {
-      // No auth or no optimistic state; still sync count from server
-      setState(() {
-        likeCount = widget.post.likes.length;
-      });
+  void dispose() {
+    for (final t in debounces.values) {
+      t?.cancel();
     }
+    debounces.clear();
+    super.dispose();
   }
 
   @override
@@ -81,173 +50,187 @@ class _BuildPostActionsState extends State<BuildPostActions> {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Align(
-          alignment: Alignment.center,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              BlocBuilder<PostBloc, PostState>(
-                buildWhen: (prev, next) {
-                  if (prev is PostLoaded && next is PostLoaded) {
-                    try {
-                      final prevPost =
-                          (prev as PostLoaded).posts[widget.post.id];
-                      final nextPost =
-                          (next as PostLoaded).posts[widget.post.id];
-                      if (prevPost == null || nextPost == null) {
-                        return true;
-                      }
-                      final prevLikes = prevPost.likes.length;
-                      final nextLikes = nextPost.likes.length;
-                      // Also rebuild if user's own like membership toggled
-                      return prevLikes != nextLikes ||
-                          (prevPost.likes.length != nextPost.likes.length);
-                    } catch (_) {
-                      return true;
-                    }
+      child: SizedBox(
+        height: 44,
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          shrinkWrap: true,
+          padding: EdgeInsets.zero,
+          children: [
+            BlocListener<PostBloc, PostState>(
+              listenWhen: (prev, next) => prev.status != next.status,
+              listener: (context, state) {
+                if (state.status == PostStatus.likeToggleSuccess ||
+                    state.status == PostStatus.likeToggleError) {
+                  final postId = widget.post.id;
+                  if (_optimisticLiked.containsKey(postId)) {
+                    setState(() {
+                      _optimisticLiked.remove(postId);
+                    });
                   }
-                  return next is PostLoaded || next is PostError;
+                }
+              },
+              child: BlocBuilder<PostBloc, PostState>(
+                buildWhen: (prev, next) {
+                  // Rebuild when the likesCount of this post changes or when like toggle status changes
+                  final prevPost = prev.posts[widget.post.id];
+                  final nextPost = next.posts[widget.post.id];
+                  final countChanged =
+                      (prevPost?.likesCount != nextPost?.likesCount);
+                  final statusChanged = prev.status != next.status &&
+                      (next.status == PostStatus.likeToggleLoading ||
+                          next.status == PostStatus.likeToggleSuccess ||
+                          next.status == PostStatus.likeToggleError);
+                  return countChanged || statusChanged;
                 },
                 builder: (context, state) {
-                  // Merge server and local like state to avoid losing the user's action
-                  bool liked = isLiked;
-                  int count = likeCount;
-                  if (state is PostLoaded) {
-                    final maybe = state.posts[widget.post.id];
+                  // Get current post data from bloc state
+                  final postId = widget.post.id;
+                  final postFromState = state.posts[postId];
+                  final currentPost = postFromState ?? widget.post;
 
-                    try {
-                      final int serverCount = maybe!.likes.length;
-                      final authState = context.read<AuthCubit>().state;
-                      final currentUser =
-                          (authState is Authenticated) ? authState.user : null;
-                      final bool hasMembershipInfo = maybe.likes.isNotEmpty;
-                      bool serverLiked = false;
-                      if (currentUser != null && hasMembershipInfo) {
-                        serverLiked =
-                            maybe.likes.any((l) => l == currentUser.user_id);
-                      }
+                  // Since bloc does not provide per-post isLiked, reflect count and loading state only
+                  final likeCount = currentPost.likesCount;
 
-                      // If server provided membership, trust it; otherwise keep local liked
-                      liked = hasMembershipInfo ? serverLiked : isLiked;
+                  // Show loading spinner while like toggle is in progress
+                  final isProcessingLike =
+                      state.status == PostStatus.likeToggleLoading;
+                  // Determine immediate liked state (optimistic first, fallback to bloc)
+                  final originalLiked = state.posts[postId]?.isliked ?? false;
+                  final isActiveLike =
+                      _optimisticLiked[postId] ?? originalLiked;
+                  // Compute optimistic like count to match the icon
+                  int displayedLikeCount = likeCount +
+                      (isActiveLike && !originalLiked ? 1 : 0) -
+                      (!isActiveLike && originalLiked ? 1 : 0);
+                  if (displayedLikeCount < 0) displayedLikeCount = 0;
 
-                      // Count from server is authoritative, but if we're within a short
-                      // optimistic window after a toggle, keep local to avoid flicker
-                      final bool withinOptimisticWindow =
-                          _lastLikeToggleAt != null &&
-                              DateTime.now().difference(_lastLikeToggleAt!) <
-                                  const Duration(seconds: 3);
-                      count = withinOptimisticWindow ? likeCount : serverCount;
-
-                      // If not in optimistic window and server has clear membership info,
-                      // sync our local cache to server values
-                      if (!withinOptimisticWindow) {
-                        isLiked = liked;
-                        likeCount = serverCount;
-                      }
-                    } catch (_) {
-                      // Keep local on parsing/shape issues
-                    }
-                  }
                   return _glassAction(
-                    icon: liked ? Icons.favorite : Icons.favorite_border,
+                    icon: isActiveLike ? Icons.favorite : Icons.favorite_border,
                     label: "Like",
-                    count: count,
-                    isActive: liked,
+                    count: displayedLikeCount,
+                    isActive: isActiveLike,
+                    isLoading: isProcessingLike,
                     onTap: () async {
-                      if (isProcessingLike) return;
-
-                      final wasLiked = isLiked;
+                      final debounceKey = 'like_${widget.post.id}';
+                      // Optimistic toggle: change icon immediately
                       setState(() {
-                        isProcessingLike = true;
-                        isLiked = !isLiked;
-                        likeCount = likeCount + (isLiked ? 1 : -1);
-                        _lastLikeToggleAt = DateTime.now();
+                        _optimisticLiked[postId] = !isActiveLike;
                       });
+                      if (mounted) {
+                        // Cancel previous debounce if still pending
+                        debounces[debounceKey]?.cancel();
 
-                      context
-                          .read<PostBloc>()
-                          .add(setlike(postId: widget.post.id));
+                        // Set up new debounce
+                        debounces[debounceKey] = Timer(
+                          const Duration(milliseconds: 500),
+                          () async {
+                            final authState = context.read<AuthCubit>().state;
+                            final currentUser = (authState is Authenticated)
+                                ? authState.user
+                                : null;
 
-                      // Send notification only when liking (not unliking)
-                      if (!wasLiked && isLiked) {
-                        try {
-                          await NotificationIntegration.createLikeNotification(
-                            postId: widget.post.id,
-                            postOwnerId: widget.post.user_id,
-                          );
-                        } catch (e) {
-                          debugPrint('⚠️ Like notification error: $e');
-                        }
-                      }
+                            if (currentUser == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Please login to like posts'),
+                                ),
+                              );
+                              // Revert optimistic toggle if not logged in
+                              if (mounted) {
+                                setState(() {
+                                  _optimisticLiked.remove(postId);
+                                });
+                              }
+                              return;
+                            }
 
-                      // ارجع السماح بعد فترة قصيرة أو لما يجي رد من bloc
-                      Future.delayed(const Duration(seconds: 1), () {
-                        if (mounted) {
-                          setState(() => isProcessingLike = false);
-                        }
-                      });
-                    },
-                    onLongPress: () {
-                      _showLikesBottomSheet(widget.post.likes.toList());
-                    },
-                    iconColor: Colors.redAccent,
-                    surfaceColor: surfaceColor,
-                    textColor: textColor,
-                  );
-                },
-              ),
-              !widget.singlePost
-                  ? _glassAction(
-                      icon: Icons.mode_comment_outlined,
-                      label: "Comment",
-                      count: widget.post.commentsCount,
-                      onTap: () async {
-                        // Open comments bottom sheet. TODO: connect to real comments list when available.
-                        final userbloc = context.read<UserBloc>();
-                        final postbloc = context.read<PostBloc>();
-                        await showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          backgroundColor: Colors.transparent,
-                          builder: (context) => MultiBlocProvider(
-                            providers: [
-                              BlocProvider.value(value: postbloc),
-                              BlocProvider.value(value: userbloc),
-                            ],
-                            child: CommentBottomSheet(post: widget.post),
-                          ),
+                            // Send backend request
+                            context
+                                .read<PostBloc>()
+                                .add(setlike(postId: widget.post.id));
+
+                            // Clear debounce after operation is complete
+                            debounces[debounceKey] = null;
+                          },
                         );
-                      },
-                      iconColor: Colors.deepPurpleAccent,
-                      surfaceColor: surfaceColor,
-                      textColor: textColor,
-                    )
-                  : const SizedBox.shrink(),
-              _glassAction(
-                icon: Icons.pin_drop_outlined,
-                label: "Location",
-                onTap: () {
-                  final route = MaterialPageRoute(
-                    builder: (context) => SoloPostLocation(post: widget.post),
+                      }
+                    },
+                    onLongPress: isProcessingLike
+                        ? null
+                        : () {
+                            // Likes list is not provided by bloc currently; open empty state
+                            _showLikesBottomSheet(
+                              state.likes.values
+                                  .map((e) => e.usersIDS)
+                                  .toList()
+                                  .expand((x) => x)
+                                  .toList(),
+                            );
+                          },
+                    iconColor:
+                        isProcessingLike ? Colors.blue : Colors.redAccent,
+                    surfaceColor: isProcessingLike
+                        ? surfaceColor.withOpacity(0.5)
+                        : surfaceColor,
+                    textColor: isProcessingLike
+                        ? textColor.withOpacity(0.5)
+                        : textColor,
+                    showLabel: true,
                   );
-                  Navigator.push(context, route);
                 },
-                iconColor: Colors.teal,
-                surfaceColor: surfaceColor,
-                textColor: textColor,
               ),
-              _glassAction(
-                icon: Icons.repeat,
-                label: "share",
-                onTap: () {},
-                iconColor: Colors.blueAccent,
-                surfaceColor: surfaceColor,
-                textColor: textColor,
-              ),
-            ],
-          ),
+            ),
+            _glassAction(
+              icon: Icons.mode_comment_outlined,
+              label: "Comment",
+              count: widget.post.commentsCount,
+              isLoading: false,
+              onTap: () async {
+                // Open comments bottom sheet. TODO: connect to real comments list when available.
+                final postBloc = context.read<PostBloc>();
+                final userBloc = context.read<UserBloc>();
+                await showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) => MultiBlocProvider(
+                    providers: [
+                      BlocProvider.value(value: postBloc),
+                      BlocProvider.value(value: userBloc),
+                    ],
+                    child: CommentBottomSheet(post: widget.post),
+                  ),
+                );
+              },
+              iconColor: Colors.deepPurpleAccent,
+              surfaceColor: surfaceColor,
+              textColor: textColor,
+            ),
+            _glassAction(
+              icon: Icons.pin_drop_outlined,
+              label: "Location",
+              isLoading: false,
+              onTap: () {
+                final route = MaterialPageRoute(
+                  builder: (context) => SoloPostLocation(post: widget.post),
+                );
+                Navigator.push(context, route);
+              },
+              iconColor: Colors.teal,
+              surfaceColor: surfaceColor,
+              textColor: textColor,
+            ),
+            _glassAction(
+              icon: Icons.repeat,
+              label: "share",
+              isLoading: false,
+              onTap: () {},
+              iconColor: Colors.blueAccent,
+              surfaceColor: surfaceColor,
+              textColor: textColor,
+            ),
+          ],
         ),
       ),
     );
@@ -306,6 +289,7 @@ class _BuildPostActionsState extends State<BuildPostActions> {
     int? count,
     bool isActive = false,
     bool showLabel = false,
+    bool isLoading = false,
     required VoidCallback onTap,
     VoidCallback? onLongPress,
     required Color iconColor,
@@ -353,12 +337,23 @@ class _BuildPostActionsState extends State<BuildPostActions> {
                 duration: const Duration(milliseconds: 140),
                 transitionBuilder: (c, a) =>
                     ScaleTransition(scale: a, child: c),
-                child: Icon(
-                  icon,
-                  key: ValueKey(icon.codePoint ^ (isActive ? 1 : 0)),
-                  color: isActive ? activeColor : inactiveIconColor,
-                  size: 22,
-                ),
+                child: isLoading
+                    ? SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            isActive ? activeColor : inactiveIconColor,
+                          ),
+                        ),
+                      )
+                    : Icon(
+                        icon,
+                        key: ValueKey(icon.codePoint ^ (isActive ? 1 : 0)),
+                        color: isActive ? activeColor : inactiveIconColor,
+                        size: 22,
+                      ),
               ),
               if (count != null && count > 0) ...[
                 const SizedBox(width: 8),
