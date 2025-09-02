@@ -1,9 +1,16 @@
+import 'package:buldm/core/Dependency_njection/service_locator.dart';
 import 'package:buldm/features/auth/domain/entities/userentities.dart';
+import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
+import 'package:buldm/features/auth/presentaion/view/bloc/auth_state.dart';
 import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
 import 'package:buldm/features/home/persentation/bloc/post/post_state.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_event.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_state.dart';
+import 'package:buldm/features/profile/presentation/blocs/profile/profile_cubit.dart';
+import 'package:buldm/features/profile/presentation/blocs/profilechanges/profilechanges_cubit.dart';
+import 'package:buldm/features/profile/presentation/view/screens/OtherUserProfileScreen.dart';
+import 'package:buldm/features/profile/presentation/view/screens/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -289,125 +296,286 @@ class _LikesBottomSheetState extends State<LikesBottomSheet> {
               : _allUserIds.length;
 
           return Container(
-            height: MediaQuery.of(context).size.height, // Full screen height
-            width: MediaQuery.of(context).size.width, // Full screen width
+            height: MediaQuery.of(context).size.height,
+            width: MediaQuery.of(context).size.width,
             decoration: BoxDecoration(
-              color: theme.colorScheme.surface,
-              borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(20)), // Slightly larger radius
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  theme.colorScheme.surface,
+                  theme.colorScheme.surface.withOpacity(0.98),
+                ],
+              ),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(25)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.3), // Stronger shadow
-                  blurRadius: 16,
-                  offset: const Offset(0, -6),
+                  color: Colors.black.withOpacity(0.4),
+                  blurRadius: 25,
+                  offset: const Offset(0, -10),
+                ),
+                BoxShadow(
+                  color: theme.colorScheme.primary.withOpacity(0.1),
+                  blurRadius: 40,
+                  offset: const Offset(0, -20),
                 ),
               ],
             ),
-            padding:
-                const EdgeInsets.only(top: 16, bottom: 0), // Adjusted padding
             child: SafeArea(
-              top: true, // Include top safe area for full screen
-              bottom: true, // Include bottom safe area
+              top: true,
+              bottom: true,
               child: Column(
-                mainAxisSize: MainAxisSize.max, // Take maximum available space
                 children: [
-                  // Close button for full screen
-                  Padding(
-                    padding: const EdgeInsets.only(right: 16.0, top: 8.0),
-                    child: Align(
-                      alignment: Alignment.topRight,
-                      child: IconButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        icon: Icon(
-                          Icons.close,
-                          color: theme.colorScheme.onSurface,
-                          size: 24,
-                        ),
-                        style: IconButton.styleFrom(
-                          backgroundColor: theme.colorScheme.surface,
-                          elevation: 2,
+                  // Modern glassmorphic header
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surface.withOpacity(0.9),
+                      borderRadius:
+                          const BorderRadius.vertical(top: Radius.circular(25)),
+                      border: Border(
+                        bottom: BorderSide(
+                          color: theme.colorScheme.outline.withOpacity(0.08),
+                          width: 1,
                         ),
                       ),
                     ),
-                  ),
-
-                  Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: theme.dividerColor,
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Row(
+                    child: Column(
                       children: [
-                        Icon(Icons.favorite, color: theme.colorScheme.primary),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Liked by',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
+                        // Animated handle bar
+                        Container(
+                          width: 60,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                theme.colorScheme.primary.withOpacity(0.4),
+                                theme.colorScheme.primary,
+                                theme.colorScheme.primary.withOpacity(0.4),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color:
+                                    theme.colorScheme.primary.withOpacity(0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                           ),
                         ),
-                        const Spacer(),
-                        // Show loading indicator in header when paginating
-                        if (_isLoadingMore) ...[
-                          SizedBox(
-                            width: 12,
-                            height: 12,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                theme.colorScheme.primary,
+                        const SizedBox(height: 24),
+
+                        // Enhanced header content
+                        Row(
+                          children: [
+                            // Gradient heart container
+                            Container(
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    theme.colorScheme.primary,
+                                    theme.colorScheme.primary.withOpacity(0.8),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(18),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: theme.colorScheme.primary
+                                        .withOpacity(0.4),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.favorite_rounded,
+                                color: Colors.white,
+                                size: 28,
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                        ],
-                        Text(
-                          '$displayCount',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.outline,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        if (_allUserIds.length != displayCount) ...[
-                          const SizedBox(width: 4),
-                          Text(
-                            '(${_allUserIds.length} loaded)',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.outline.withOpacity(0.7),
-                              fontSize: 10,
+                            const SizedBox(width: 20),
+
+                            // Title section
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Liked by',
+                                    style: theme.textTheme.headlineMedium
+                                        ?.copyWith(
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: -0.8,
+                                      height: 1.1,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    'People who loved this post ✨',
+                                    style: theme.textTheme.bodyLarge?.copyWith(
+                                      color: theme.colorScheme.outline,
+                                      fontWeight: FontWeight.w500,
+                                      letterSpacing: 0.2,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
-                        // Show pagination status
+
+                            // Stats container with animation
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 12),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    theme.colorScheme.primaryContainer
+                                        .withOpacity(0.4),
+                                    theme.colorScheme.primaryContainer
+                                        .withOpacity(0.2),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(25),
+                                border: Border.all(
+                                  color: theme.colorScheme.primary
+                                      .withOpacity(0.3),
+                                  width: 1.5,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: theme.colorScheme.primary
+                                        .withOpacity(0.1),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                children: [
+                                  if (_isLoadingMore) ...[
+                                    SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                          theme.colorScheme.primary,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                  ],
+                                  Text(
+                                    '$displayCount',
+                                    style:
+                                        theme.textTheme.headlineSmall?.copyWith(
+                                      color: theme.colorScheme.primary,
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 24,
+                                      letterSpacing: -0.5,
+                                    ),
+                                  ),
+                                  if (_allUserIds.length != displayCount) ...[
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      '${_allUserIds.length} loaded',
+                                      style:
+                                          theme.textTheme.bodySmall?.copyWith(
+                                        color: theme.colorScheme.outline,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        letterSpacing: 0.3,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+
+                            const SizedBox(width: 16),
+
+                            // Premium close button
+                            GestureDetector(
+                              onTap: () => Navigator.of(context).pop(),
+                              child: Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.surface,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: theme.colorScheme.outline
+                                        .withOpacity(0.15),
+                                    width: 1.5,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.08),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(
+                                  Icons.close_rounded,
+                                  color: theme.colorScheme.onSurface
+                                      .withOpacity(0.7),
+                                  size: 22,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        // Page indicator with better styling
                         if (_currentPage > 1) ...[
-                          const SizedBox(width: 8),
+                          const SizedBox(height: 20),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 2),
+                                horizontal: 16, vertical: 8),
                             decoration: BoxDecoration(
-                              color: theme.colorScheme.primary.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              'Page $_currentPage',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.primary,
-                                fontSize: 9,
-                                fontWeight: FontWeight.bold,
+                              gradient: LinearGradient(
+                                colors: [
+                                  theme.colorScheme.primary.withOpacity(0.15),
+                                  theme.colorScheme.primary.withOpacity(0.08),
+                                ],
                               ),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color:
+                                    theme.colorScheme.primary.withOpacity(0.25),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.layers_rounded,
+                                  size: 16,
+                                  color: theme.colorScheme.primary,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Page $_currentPage',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: theme.colorScheme.primary,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ],
                     ),
                   ),
-                  const SizedBox(height: 8),
 
                   // list - Now takes most of the screen
                   Expanded(
@@ -441,6 +609,10 @@ class _LikesBottomSheetState extends State<LikesBottomSheet> {
                             return false;
                           },
                           child: RefreshIndicator(
+                            color: theme.colorScheme.primary,
+                            backgroundColor: theme.colorScheme.surface,
+                            strokeWidth: 3,
+                            displacement: 60,
                             onRefresh: () async {
                               _refreshLikes();
                               await Future.delayed(
@@ -449,8 +621,8 @@ class _LikesBottomSheetState extends State<LikesBottomSheet> {
                             child: ListView.separated(
                               controller: _scrollController,
                               physics: const AlwaysScrollableScrollPhysics(),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 8),
+                              padding:
+                                  const EdgeInsets.fromLTRB(16, 12, 16, 24),
                               itemCount: _allUserIds.length +
                                   (_isLoadingMore ? 1 : 0) +
                                   (!_hasMoreData &&
@@ -459,38 +631,86 @@ class _LikesBottomSheetState extends State<LikesBottomSheet> {
                                       ? 1
                                       : 0),
                               separatorBuilder: (_, index) {
-                                // Skip separator for loader/footer rows
                                 if (index >= _allUserIds.length - 1) {
                                   return const SizedBox.shrink();
                                 }
-                                return Divider(
-                                    height: 1,
-                                    color: theme.dividerColor.withOpacity(0.3));
+                                return Container(
+                                  height: 12,
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.transparent,
+                                        theme.dividerColor.withOpacity(0.05),
+                                        Colors.transparent,
+                                      ],
+                                    ),
+                                  ),
+                                );
                               },
                               itemBuilder: (context, index) {
-                                // bottom loader
+                                // Enhanced loading indicator
                                 if (index == _allUserIds.length &&
                                     _isLoadingMore) {
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 20),
+                                  return Container(
+                                    margin: const EdgeInsets.symmetric(
+                                        vertical: 24),
+                                    padding: const EdgeInsets.all(20),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          theme.colorScheme.primary
+                                              .withOpacity(0.05),
+                                          theme.colorScheme.primary
+                                              .withOpacity(0.02),
+                                        ],
+                                      ),
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: theme.colorScheme.primary
+                                            .withOpacity(0.1),
+                                      ),
+                                    ),
                                     child: Column(
                                       children: [
-                                        SizedBox(
-                                          height: 28, // Slightly larger loader
-                                          width: 28,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 3,
-                                            valueColor:
-                                                AlwaysStoppedAnimation<Color>(
-                                              theme.colorScheme.primary,
+                                        Container(
+                                          padding: const EdgeInsets.all(16),
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              colors: [
+                                                theme.colorScheme.primary
+                                                    .withOpacity(0.1),
+                                                theme.colorScheme.primary
+                                                    .withOpacity(0.05),
+                                              ],
+                                            ),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: SizedBox(
+                                            height: 32,
+                                            width: 32,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 3.5,
+                                              valueColor:
+                                                  AlwaysStoppedAnimation<Color>(
+                                                theme.colorScheme.primary,
+                                              ),
                                             ),
                                           ),
                                         ),
-                                        const SizedBox(height: 12),
+                                        const SizedBox(height: 16),
                                         Text(
-                                          'Loading more likes...',
-                                          style: theme.textTheme.bodyMedium
+                                          'Loading more amazing people...',
+                                          style: theme.textTheme.bodyLarge
+                                              ?.copyWith(
+                                            color: theme.colorScheme.primary,
+                                            fontWeight: FontWeight.w600,
+                                            letterSpacing: 0.3,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'Please wait ✨',
+                                          style: theme.textTheme.bodySmall
                                               ?.copyWith(
                                             color: theme.colorScheme.outline,
                                             fontWeight: FontWeight.w500,
@@ -501,27 +721,182 @@ class _LikesBottomSheetState extends State<LikesBottomSheet> {
                                   );
                                 }
 
-                                // "All loaded" footer
+                                // Enhanced "All loaded" footer
                                 if (index == _allUserIds.length &&
                                     !_hasMoreData &&
                                     _currentPage > 1) {
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 20),
+                                  return Container(
+                                    margin: const EdgeInsets.symmetric(
+                                        vertical: 24),
+                                    padding: const EdgeInsets.all(20),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          theme.colorScheme.secondary
+                                              .withOpacity(0.08),
+                                          theme.colorScheme.secondary
+                                              .withOpacity(0.03),
+                                        ],
+                                      ),
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: theme.colorScheme.secondary
+                                            .withOpacity(0.2),
+                                      ),
+                                    ),
                                     child: Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.center,
                                       children: [
-                                        Icon(Icons.check_circle_outline,
-                                            size: 18,
-                                            color: theme.colorScheme.outline),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          'All likes loaded',
-                                          style: theme.textTheme.bodyMedium
-                                              ?.copyWith(
-                                            color: theme.colorScheme.outline,
-                                            fontWeight: FontWeight.w500,
+                                        Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color: theme.colorScheme.secondary
+                                                .withOpacity(0.1),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Icon(
+                                            Icons.check_circle_rounded,
+                                            size: 20,
+                                            color: theme.colorScheme.secondary,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'All hearts collected! 💝',
+                                              style: theme.textTheme.bodyLarge
+                                                  ?.copyWith(
+                                                color:
+                                                    theme.colorScheme.secondary,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                            Text(
+                                              'You\'ve seen everyone who liked this',
+                                              style: theme.textTheme.bodySmall
+                                                  ?.copyWith(
+                                                color:
+                                                    theme.colorScheme.outline,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }
+
+                                // Enhanced user list item with modern card design
+                                final id = _allUserIds[index];
+                                final user = users[id];
+                                if (user == null) {
+                                  return Container(
+                                    margin: const EdgeInsets.symmetric(
+                                        horizontal: 4, vertical: 6),
+                                    padding: const EdgeInsets.all(20),
+                                    decoration: BoxDecoration(
+                                      color: theme.colorScheme.surface
+                                          .withOpacity(0.7),
+                                      borderRadius: BorderRadius.circular(24),
+                                      border: Border.all(
+                                        color: theme.colorScheme.outline
+                                            .withOpacity(0.05),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            gradient: LinearGradient(
+                                              colors: [
+                                                theme.colorScheme.primary
+                                                    .withOpacity(0.1),
+                                                theme.colorScheme.primary
+                                                    .withOpacity(0.05),
+                                              ],
+                                            ),
+                                          ),
+                                          padding: const EdgeInsets.all(3),
+                                          child: CircleAvatar(
+                                            radius: 28,
+                                            backgroundColor: theme
+                                                .colorScheme.outline
+                                                .withOpacity(0.1),
+                                            child: SizedBox(
+                                              height: 20,
+                                              width: 20,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2.5,
+                                                valueColor:
+                                                    AlwaysStoppedAnimation<
+                                                        Color>(
+                                                  theme.colorScheme.primary
+                                                      .withOpacity(0.7),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 20),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Container(
+                                                height: 20,
+                                                width: double.infinity,
+                                                decoration: BoxDecoration(
+                                                  gradient: LinearGradient(
+                                                    colors: [
+                                                      theme.colorScheme.outline
+                                                          .withOpacity(0.1),
+                                                      theme.colorScheme.outline
+                                                          .withOpacity(0.05),
+                                                      theme.colorScheme.outline
+                                                          .withOpacity(0.1),
+                                                    ],
+                                                    stops: const [
+                                                      0.0,
+                                                      0.5,
+                                                      1.0
+                                                    ],
+                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(10),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 8),
+                                              Container(
+                                                height: 16,
+                                                width: 120,
+                                                decoration: BoxDecoration(
+                                                  gradient: LinearGradient(
+                                                    colors: [
+                                                      theme.colorScheme.outline
+                                                          .withOpacity(0.08),
+                                                      theme.colorScheme.outline
+                                                          .withOpacity(0.04),
+                                                      theme.colorScheme.outline
+                                                          .withOpacity(0.08),
+                                                    ],
+                                                    stops: const [
+                                                      0.0,
+                                                      0.5,
+                                                      1.0
+                                                    ],
+                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ),
                                       ],
@@ -529,52 +904,291 @@ class _LikesBottomSheetState extends State<LikesBottomSheet> {
                                   );
                                 }
 
-                                // normal item
-                                final id = _allUserIds[index];
-                                final user = users[id];
-                                if (user == null) {
-                                  return const ListTile(
-                                    leading: CircleAvatar(
-                                        child: Icon(Icons.person_outline)),
-                                    title: SizedBox(
-                                      height: 16,
-                                      child:
-                                          LinearProgressIndicator(minHeight: 4),
+                                return AnimatedContainer(
+                                  duration: const Duration(milliseconds: 400),
+                                  curve: Curves.easeOutCubic,
+                                  margin: const EdgeInsets.symmetric(
+                                      horizontal: 4, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [
+                                        theme.colorScheme.surface,
+                                        theme.colorScheme.surface
+                                            .withOpacity(0.7),
+                                      ],
                                     ),
-                                    subtitle: Text('Loading...'),
-                                  );
-                                }
+                                    borderRadius: BorderRadius.circular(24),
+                                    border: Border.all(
+                                      color: theme.colorScheme.outline
+                                          .withOpacity(0.08),
+                                      width: 1.5,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: theme.colorScheme.shadow
+                                            .withOpacity(0.08),
+                                        blurRadius: 20,
+                                        offset: const Offset(0, 8),
+                                        spreadRadius: 0,
+                                      ),
+                                      BoxShadow(
+                                        color: theme.colorScheme.primary
+                                            .withOpacity(0.04),
+                                        blurRadius: 40,
+                                        offset: const Offset(0, 20),
+                                        spreadRadius: -8,
+                                      ),
+                                    ],
+                                  ),
+                                  child: Material(
+                                    color: Colors.transparent,
+                                    borderRadius: BorderRadius.circular(24),
+                                    child: InkWell(
+                                      borderRadius: BorderRadius.circular(24),
+                                      onTap: () {
+                                        // Check if this is the current user
+                                        final authState =
+                                            context.read<AuthCubit>().state;
+                                        if (authState is Authenticated) {
+                                          final currentUserId =
+                                              authState.user.user_id;
 
-                                return ListTile(
-                                  contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 4), // Better spacing
-                                  leading: CircleAvatar(
-                                    radius: 22, // Slightly larger avatar
-                                    backgroundImage: user.avatar.isNotEmpty
-                                        ? NetworkImage(user.avatar)
-                                        : null,
-                                    child: user.avatar.isEmpty
-                                        ? Text(
-                                            user.name.isNotEmpty
-                                                ? user.name[0].toUpperCase()
-                                                : '?',
-                                            style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16),
-                                          )
-                                        : null,
-                                  ),
-                                  title: Text(
-                                    user.name,
-                                    style: theme.textTheme.bodyLarge?.copyWith(
-                                      fontWeight: FontWeight.w600,
+                                          if (user.user_id == currentUserId) {
+                                            // Navigate to own profile with BlocProviders
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    MultiBlocProvider(
+                                                  providers: [
+                                                    BlocProvider<ProfileCubit>(
+                                                      create: (context) =>
+                                                          sl<ProfileCubit>(),
+                                                    ),
+                                                    BlocProvider<
+                                                        ProfilechangesCubit>(
+                                                      create: (context) => sl<
+                                                          ProfilechangesCubit>(),
+                                                    ),
+                                                  ],
+                                                  child: const ProfileScreen(),
+                                                ),
+                                              ),
+                                            );
+                                          } else {
+                                            // Navigate to other user's profile with BlocProviders
+                                            final viewerUser = ViewerUser(
+                                              id: user.user_id,
+                                              name: user.name,
+                                              email: user.email,
+                                              avatar: user.avatar,
+                                            );
+
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    MultiBlocProvider(
+                                                  providers: [
+                                                    BlocProvider<ProfileCubit>(
+                                                      create: (context) =>
+                                                          sl<ProfileCubit>(),
+                                                    ),
+                                                    BlocProvider<
+                                                        ProfilechangesCubit>(
+                                                      create: (context) => sl<
+                                                          ProfilechangesCubit>(),
+                                                    ),
+                                                  ],
+                                                  child: OtherUserProfileScreen(
+                                                      user: viewerUser),
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                        } else {
+                                          // User not authenticated, show error
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                  'Please log in to view profiles'),
+                                            ),
+                                          );
+                                        }
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.all(20),
+                                        child: Row(
+                                          children: [
+                                            // Enhanced avatar container
+                                            Container(
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                gradient: LinearGradient(
+                                                  colors: [
+                                                    theme.colorScheme.primary
+                                                        .withOpacity(0.15),
+                                                    theme.colorScheme.primary
+                                                        .withOpacity(0.05),
+                                                  ],
+                                                ),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: theme
+                                                        .colorScheme.primary
+                                                        .withOpacity(0.3),
+                                                    blurRadius: 15,
+                                                    offset: const Offset(0, 6),
+                                                    spreadRadius: -2,
+                                                  ),
+                                                ],
+                                              ),
+                                              padding: const EdgeInsets.all(3),
+                                              child: Container(
+                                                decoration: BoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  border: Border.all(
+                                                    color: theme
+                                                        .colorScheme.surface,
+                                                    width: 2,
+                                                  ),
+                                                ),
+                                                child: CircleAvatar(
+                                                  radius: 28,
+                                                  backgroundColor: theme
+                                                      .colorScheme.primary
+                                                      .withOpacity(0.1),
+                                                  backgroundImage:
+                                                      user.avatar.isNotEmpty
+                                                          ? NetworkImage(
+                                                              user.avatar)
+                                                          : null,
+                                                  child: user.avatar.isEmpty
+                                                      ? Text(
+                                                          user.name.isNotEmpty
+                                                              ? user.name[0]
+                                                                  .toUpperCase()
+                                                              : '?',
+                                                          style: TextStyle(
+                                                            fontWeight:
+                                                                FontWeight.w900,
+                                                            fontSize: 20,
+                                                            color: theme
+                                                                .colorScheme
+                                                                .primary,
+                                                            letterSpacing: -0.5,
+                                                          ),
+                                                        )
+                                                      : null,
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 20),
+                                            // Enhanced user info section
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Text(
+                                                    user.name,
+                                                    style: theme
+                                                        .textTheme.titleMedium
+                                                        ?.copyWith(
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      letterSpacing: -0.3,
+                                                      height: 1.2,
+                                                      color: theme.colorScheme
+                                                          .onSurface,
+                                                    ),
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                  const SizedBox(height: 6),
+                                                  Container(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                      horizontal: 12,
+                                                      vertical: 4,
+                                                    ),
+                                                    decoration: BoxDecoration(
+                                                      gradient: LinearGradient(
+                                                        colors: [
+                                                          theme.colorScheme
+                                                              .primary
+                                                              .withOpacity(
+                                                                  0.08),
+                                                          theme.colorScheme
+                                                              .primary
+                                                              .withOpacity(
+                                                                  0.04),
+                                                        ],
+                                                      ),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              12),
+                                                      border: Border.all(
+                                                        color: theme
+                                                            .colorScheme.primary
+                                                            .withOpacity(0.1),
+                                                      ),
+                                                    ),
+                                                    child: Text(
+                                                      'Liked this post ✨',
+                                                      style: theme
+                                                          .textTheme.bodySmall
+                                                          ?.copyWith(
+                                                        color: theme.colorScheme
+                                                            .primary,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        letterSpacing: 0.2,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            // Enhanced heart icon
+                                            Container(
+                                              padding: const EdgeInsets.all(12),
+                                              decoration: BoxDecoration(
+                                                gradient: LinearGradient(
+                                                  colors: [
+                                                    Colors.red
+                                                        .withOpacity(0.15),
+                                                    Colors.red
+                                                        .withOpacity(0.08),
+                                                  ],
+                                                ),
+                                                shape: BoxShape.circle,
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.red
+                                                        .withOpacity(0.3),
+                                                    blurRadius: 12,
+                                                    offset: const Offset(0, 4),
+                                                    spreadRadius: -2,
+                                                  ),
+                                                ],
+                                              ),
+                                              child: const Icon(
+                                                Icons.favorite,
+                                                color: Colors.red,
+                                                size: 20,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                  onTap: () {
-                                    // Optional: Add user profile navigation
-                                    print('👤 Tapped on user: ${user.name}');
-                                  },
                                 );
                               },
                             ),
