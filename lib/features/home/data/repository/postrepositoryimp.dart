@@ -105,8 +105,10 @@ class Postrepositoryimp extends Postrepository {
   }
 
   @override
-  Future<Either<Failure, Set<String>>> getLikesByPostId(String postId) {
-    return remotePostDataSource.getLikesByPostId(postId);
+  Future<Either<Failure, Set<String>>> getLikesByPostId(
+      {required String postId, int limit = 10, int page = 1}) {
+    return remotePostDataSource.getLikesByPostId(
+        postId: postId, limit: limit, page: page);
   }
 
   @override

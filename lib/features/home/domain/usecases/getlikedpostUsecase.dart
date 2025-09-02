@@ -8,7 +8,15 @@ class Getlikedpostusecase {
 
   Getlikedpostusecase({required this.postRepository});
 
-  Future<Either<Failure, Set<String>>> call(String postId) {
-    return postRepository.getLikesByPostId(postId);
+  Future<Either<Failure, Set<String>>> call({
+    required String postId,
+    int limit = 10,
+    int page = 1,
+  }) {
+    return postRepository.getLikesByPostId(
+      postId: postId,
+      limit: limit,
+      page: page,
+    );
   }
 }

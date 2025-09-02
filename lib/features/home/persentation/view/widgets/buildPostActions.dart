@@ -2,7 +2,6 @@
 import 'dart:async';
 
 import 'package:buldm/core/Dependency_njection/service_locator.dart';
-import 'package:buldm/features/auth/domain/entities/userentities.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_cubit.dart';
 import 'package:buldm/features/auth/presentaion/view/bloc/auth_state.dart';
 import 'package:buldm/features/home/data/models/post_model.dart';
@@ -10,8 +9,8 @@ import 'package:buldm/features/home/persentation/bloc/post/post_bloc.dart';
 import 'package:buldm/features/home/persentation/bloc/post/post_state.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_bloc.dart';
 import 'package:buldm/features/home/persentation/bloc/user/user_event.dart';
-import 'package:buldm/features/home/persentation/bloc/user/user_state.dart';
 import 'package:buldm/features/home/persentation/view/screens/CommentBottomSheet.dart';
+import 'package:buldm/features/home/persentation/view/widgets/LikesBottomSheet%20.dart';
 import 'package:buldm/features/map_location/presentation/view/screens/solo_map_location.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -160,9 +159,8 @@ class _BuildPostActionsState extends State<BuildPostActions> {
                         ? null
                         : () {
                             // Trigger the get likes event and show loading bottom sheet
-                            context
-                                .read<PostBloc>()
-                                .add(Getlike(postId: widget.post.id));
+                            context.read<PostBloc>().add(Getlike(
+                                postId: widget.post.id, page: 1, limit: 20));
                             _showLikesBottomSheet([]);
                           },
                     iconColor:
@@ -380,17 +378,19 @@ class _BuildPostActionsState extends State<BuildPostActions> {
       return;
     }
 
+    final postBloc = context.read<PostBloc>();
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => MultiBlocProvider(
         providers: [
+          BlocProvider.value(value: postBloc),
           BlocProvider(
               create: (context) => sl<UserBloc>()
                 ..add(LoadMultipleUsersEvent(userIds: userIds))),
         ],
-        child: _LikesBottomSheet(userIds: userIds),
+        child: LikesBottomSheet(userIds: userIds, postId: widget.post.id),
       ),
     );
   }
@@ -447,7 +447,7 @@ class _BuildPostActionsState extends State<BuildPostActions> {
                   // Retry the request
                   modalContext
                       .read<PostBloc>()
-                      .add(Getlike(postId: widget.post.id));
+                      .add(Getlike(postId: widget.post.id, page: 1, limit: 20));
                   _showLikesBottomSheet([]);
                 },
                 child: const Text('Retry'),
@@ -572,98 +572,6 @@ class _BuildPostActionsState extends State<BuildPostActions> {
               ],
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _LikesBottomSheet extends StatelessWidget {
-  final List<String> userIds;
-  const _LikesBottomSheet({required this.userIds});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 12,
-              offset: const Offset(0, -4)),
-        ],
-      ),
-      padding: const EdgeInsets.only(top: 12, bottom: 24),
-      child: SafeArea(
-        top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: theme.dividerColor,
-                borderRadius: BorderRadius.circular(999),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
-                children: [
-                  Icon(Icons.favorite, color: theme.colorScheme.primary),
-                  const SizedBox(width: 8),
-                  Text('Liked by',
-                      style: theme.textTheme.titleMedium
-                          ?.copyWith(fontWeight: FontWeight.w700)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-            Flexible(
-              child: BlocBuilder<UserBloc, UserState>(
-                builder: (context, state) {
-                  Map<String, User> users = {};
-                  if (state is UserLoaded) users = state.users;
-
-                  return ListView.separated(
-                    shrinkWrap: true,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                    itemCount: userIds.length,
-                    separatorBuilder: (_, __) => Divider(
-                        height: 1, color: theme.dividerColor.withOpacity(0.3)),
-                    itemBuilder: (context, index) {
-                      final id = userIds[index];
-                      final user = users[id];
-                      if (user == null) {
-                        return ListTile(
-                          leading: const CircleAvatar(
-                              child: Icon(Icons.person_outline)),
-                          title: const SizedBox(
-                              height: 16,
-                              child: LinearProgressIndicator(minHeight: 4)),
-                          subtitle: const Text('Loading...'),
-                        );
-                      }
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundImage: NetworkImage(user.avatar),
-                        ),
-                        title: Text(user.name,
-                            style: theme.textTheme.bodyLarge
-                                ?.copyWith(fontWeight: FontWeight.w600)),
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
         ),
       ),
     );

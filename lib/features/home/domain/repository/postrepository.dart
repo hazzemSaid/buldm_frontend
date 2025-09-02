@@ -43,7 +43,8 @@ abstract class Postrepository {
     String category,
   );
   Future<User> getUserById(String userId);
-  Future<Either<Failure, Set<String>>> getLikesByPostId(String postId);
+  Future<Either<Failure, Set<String>>> getLikesByPostId(
+      {required String postId, int limit = 10, int page = 1});
   Future<Either<Failure, List<CommentModel>>> getCommentsByPostId({
     required String postId,
     required int page,

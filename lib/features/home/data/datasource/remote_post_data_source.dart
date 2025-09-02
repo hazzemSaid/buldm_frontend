@@ -30,7 +30,8 @@ abstract class RemotePostDataSource {
     double radius,
   );
   Future<UserModel> getUserById(String userId);
-  Future<Either<Failure, Set<String>>> getLikesByPostId(String postId);
+  Future<Either<Failure, Set<String>>> getLikesByPostId(
+      {required String postId, int limit = 10, int page = 1});
   Future<Either<Failure, List<CommentModel>>> getCommentsByPostId({
     required String postId,
     required int page,
@@ -248,8 +249,12 @@ class RemotePostDataSourceImpl implements RemotePostDataSource {
   }
 
   @override
-  Future<Either<Failure, Set<String>>> getLikesByPostId(String postId) async {
-    final response = await dio.get('/post/$postId/like');
+  Future<Either<Failure, Set<String>>> getLikesByPostId(
+      {required String postId, int limit = 10, int page = 1}) async {
+    final response = await dio.get('/post/$postId/like', queryParameters: {
+      'page': page,
+      'limit': limit,
+    });
     if (response.statusCode == 200) {
       return Right(Set<String>.from(response.data['data']['usersIDS']));
     } else {

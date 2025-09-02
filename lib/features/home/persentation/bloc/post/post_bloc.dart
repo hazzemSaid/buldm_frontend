@@ -201,7 +201,8 @@ class PostBloc extends Bloc<PostEvent, PostState> {
     }
 
     emit(PostState(status: PostStatus.likeLoadLoading, posts: state.posts));
-    final result = await getlikedpostusecase(event.postId);
+    final result = await getlikedpostusecase(
+        postId: event.postId, limit: event.limit, page: event.page);
     result.fold(
       (failure) {
         emit(PostState(

@@ -143,11 +143,13 @@ class userbyid extends PostEvent {
 
 class Getlike extends PostEvent {
   final String postId;
+  final int limit;
+  final int page;
 
-  const Getlike({required this.postId});
+  const Getlike({required this.postId, this.limit = 10, this.page = 1});
 
   @override
-  List<Object?> get props => [postId];
+  List<Object?> get props => [postId, limit, page];
 
   @override
   bool? get stringify => true;
